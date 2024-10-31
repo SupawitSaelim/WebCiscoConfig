@@ -88,7 +88,7 @@
             <div class="container">
                 <h1 style="text-align: left;color: #2e4ead;">Device Details SNMP</h1>
                 <br>
-                <h3>Select Device:</h3>
+                <h3 style="color: #2e4ead;">Select Device:</h3>
                 <form method="POST" action="/get_snmp">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -109,23 +109,48 @@
                 {% if not cisco_devices %}
                 <p style="color: red;">No devices found in the database.</p>
                 {% endif %}
-
+                <br><br>
+                <!-- แสดงค่า System Description -->
+                {% if description %}
+                <div id="description_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; overflow: auto;">
+                    <h3 style="color: #2e4ead;">System Description:</h3>
+                    <pre
+                        style="font-size: 16px; color: #333; overflow-wrap: break-word; white-space: pre-wrap;">{{ description }}</pre>
+                </div>
+                {% endif %}
                 <!-- แสดงค่า Uptime -->
                 {% if uptime %}
-                <div id="uptime_output">
-                    <h3>Uptime:</h3>
-                    <pre>{{ uptime }}</pre>
+                <div id="uptime_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
+                    <h3 style="color: #2e4ead;">Uptime:</h3>
+                    <p style="font-size: 16px; color: #333;">{{ uptime }}</p>
                 </div>
                 {% endif %}
-                
-                <!-- Uptime -->
+                <!-- แสดงค่า Location -->
+                {% if location %}
+                <div id="location_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
+                    <h3 style="color: #2e4ead;">Location:</h3>
+                    <p style="font-size: 16px; color: #333;">{{ location }}</p>
+                </div>
+                {% endif %}
+                <!-- แสดงค่า Contact -->
+                {% if contact %}
+                <div id="contact_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
+                    <h3 style="color: #2e4ead;">Contact:</h3>
+                    <p style="font-size: 16px; color: #333;">{{ contact }}</p>
+                </div>
+                {% endif %}
+                <!-- Port Descriptions -->
                 {% if output %}
-                <div id="port_output">
-                    <h3>Port Descriptions:</h3>
-                    <pre>{{ output }}</pre>
+                <div id="port_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
+                    <h3 style="color: #2e4ead;">Port Descriptions:</h3>
+                    <p style="font-size: 16px; color: #333;">{{ output }}</p>
                 </div>
                 {% endif %}
-
             </div>
         </div>
     </div>
