@@ -25,6 +25,12 @@ def commands(consoleport, hostname, domainname, privilege_password, ssh_username
     else:
         send_command(ser, f'ip address {ip_address} {subnet_mask}')
     send_command(ser, 'no sh')  
+    send_command(ser, 'line vty 0 4')
+    send_command(ser, 'transport input ssh') 
+    send_command(ser, 'login local')
+    send_command(ser, 'crypto key generate rsa general-keys modulus 1024')
+    send_command(ser, 'end')
+    send_command(ser, 'wri')
 
     # ปิดการเชื่อมต่อ
     ser.close()

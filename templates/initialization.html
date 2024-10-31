@@ -25,34 +25,6 @@
             display: none;
             margin-top: 10px;
         }
-
-        /* Loader Styles */
-        #loader {
-            display: none;
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            z-index: 9999;
-            border: 8px solid rgba(255, 255, 255, 0.2);
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 5vw;
-            height: 5vw;
-            max-width: 80px;
-            max-height: 80px;
-            animation: spin 1.5s linear infinite;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
     </style>
     <script>
         function toggleIpInput() {
@@ -106,7 +78,7 @@
                         <span class="title">Device Initialization</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-file-video"></i></span>
-                        <span class="title">Device Record Management</span>
+                        <span class="title">Device Record <br>Management</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-cogs"></i></span>
                         <span class="title">Device Information</span>
@@ -138,7 +110,7 @@
                         <span class="title">Erase configuration</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
-                        <span class="title">View Device Configurations</span>
+                        <span class="title">View Device <br>Configurations</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
                         <span class="title">Security Check</span>

@@ -327,3 +327,31 @@ input[type="submit"]:hover {
 .dropdown-menu li a:hover {
   background-color: #f0f0f0;
 }
+
+/* Loader Styles */
+#loader {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  border: 8px solid rgba(255, 255, 255, 0.2);
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 5vw;
+  height: 5vw;
+  max-width: 80px;
+  max-height: 80px;
+  animation: spin 1.5s linear infinite;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes spin {
+  0% {
+      transform: rotate(0deg);
+  }
+
+  100% {
+      transform: rotate(360deg);
+  }
+}
