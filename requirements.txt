@@ -1,0 +1,8 @@
+Flask
+jsonlib-python3
+netmiko
+paramiko
+asyncio
+netmiko
+
+#pip install -r requirements.txt

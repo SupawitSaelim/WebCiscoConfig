@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles.css">
+    <title>Device Initialization</title>
+    <style>
+        .input-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .input-container input[type="text"],
+        .input-container input[type="password"] {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        /* Hide the IP input field initially */
+        #ipAddressInput,
+        #subnetMaskInput {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        function toggleIpInput() {
+            const interfaceType = document.getElementById("interfaceType").value;
+            const ipAddressInput = document.getElementById("ipAddressInput");
+            const subnetMaskInput = document.getElementById("subnetMaskInput");
+
+            // Show IP and subnet mask input fields if "Manual" is selected, hide otherwise
+            if (interfaceType === "Manual") {
+                ipAddressInput.style.display = "block";
+                subnetMaskInput.style.display = "block";
+            } else {
+                ipAddressInput.style.display = "none";
+                subnetMaskInput.style.display = "none";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="top_navbar">
+            <div class="hamburger"></div>
+            <div class="top_menu">
+                <div class="logo">
+                    <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;" alt="">
+                </div>
+                <ul>
+                    <li><a href="index">
+                            <h4>Refresh</h4>
+                        </a></li>
+                    <form method="POST" action="/logout">
+                        <button type="submit"
+                            style="color: #2e4ead;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;"
+                            onmouseover="this.style.color='midnightblue';"
+                            onmouseout="this.style.color='#2e4ead';">Logout</button>
+                    </form>
+                </ul>
+            </div>
+        </div>
+        <div class="sidebar">
+            <ul><br>
+                <li><a href="initialization.html" class="active">
+                        <span class="icon"><i class="fas fa-book"></i></span>
+                        <span class="title">Device Initialization</span>
+                    </a></li>
+                <li><a href="#"><span class="icon"><i class="fas fa-file-video"></i></span>
+                        <span class="title">Device Record Management</span>
+                    </a></li>
+                <li><a href="#"><span class="icon"><i class="fas fa-cogs"></i></span>
+                        <span class="title">Device Information</span>
+                    </a></li>
+                <li class="dropdown">
+                    <a href="#">
+                        <span class="icon"><i class="fas fa-cogs"></i></span>
+                        <span class="title">Configurations</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Basic Settings</a></li>
+                        <li><a href="#">Network Interface Configuration</a></li>
+                        <li><a href="#">Management Settings</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#">
+                        <span class="icon"><i class="fas fa-cogs"></i></span>
+                        <span class="title">Routing Configuration</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Static Route</a></li>
+                        <li><a href="#">OSPF</a></li>
+                        <li><a href="#">RIPv2</a></li>
+                        <li><a href="#">EIGRP</a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
+                        <span class="title">Erase configuration</span>
+                    </a></li>
+                <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
+                        <span class="title">View Device Configurations</span>
+                    </a></li>
+                <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
+                        <span class="title">Security Check</span>
+                    </a></li>
+                <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
+                        <span class="title">Device Details (SNMP)</span>
+                    </a></li>
+            </ul>
+        </div>
+        <div class="main_container">
+            <div class="container">
+                <h1 style="color:#2e4ead;text-align: left;">Device Initialization</h1>
+                <br><br>
+                <form method="post" action="/initialization">
+                    <div class="input-container">
+                        <input type="text" name="consoleport" id="consoleport" placeholder="Console port"
+                            style="width: 49%;" required>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;"
+                            required>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="domainname" name="domainname" placeholder="Domain Name" required>
+                        <input type="text" id="privilegepassword" name="privilegepassword"
+                            placeholder="Privilege Password" required>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required>
+                        <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
+                            required>
+                    </div>
+
+                    <!-- Interface Type Dropdown -->
+                    <div class="input-container">
+                        <input type="text" id="interface" name="interface" placeholder="Interface" required>
+                        <select id="interfaceType" name="interfaceType" onchange="toggleIpInput()" style="width: 49%;"
+                            required>
+                            <option value="" disabled selected>Select Interface Type</option>
+                            <option value="Manual">Manual</option>
+                            <option value="DHCP">DHCP</option>
+                        </select>
+                    </div>
+
+                    <!-- IP Address Input Field (shown only if "Manual" is selected) -->
+                    <div id="ipAddressInput">
+                        <input type="text" id="ip_address" name="ip_address" placeholder="Enter IP Address">
+                    </div>
+                    <!-- Subnet Mask Input Field (shown only if "Manual" is selected) -->
+                    <div id="subnetMaskInput">
+                        <input type="text" id="subnet_mask" name="subnet_mask" placeholder="Enter Subnet Mask">
+                    </div>
+
+                    <br><br>
+                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
