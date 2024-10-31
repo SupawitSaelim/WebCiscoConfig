@@ -138,5 +138,10 @@ def device_details_form():
     result = subprocess.run(["node", "static/snmp.js", device_ip], capture_output=True, text=True)
     output = result.stdout if result.returncode == 0 else "Error fetching ports"
 
+    uptime_result = subprocess.run(["node", "static/uptime.js", device_ip], capture_output=True, text=True)
+    uptime_output = uptime_result.stdout if uptime_result.returncode == 0 else "Error fetching uptime"
+
+    print(uptime_output)
+
     cisco_devices = list(device_collection.find())
-    return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output)
+    return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output, uptime=uptime_output)

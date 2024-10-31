@@ -110,7 +110,15 @@
                 <p style="color: red;">No devices found in the database.</p>
                 {% endif %}
 
-                <!-- ส่วนที่เพิ่มเข้ามาเพื่อแสดงผลลัพธ์จาก SNMP -->
+                <!-- แสดงค่า Uptime -->
+                {% if uptime %}
+                <div id="uptime_output">
+                    <h3>Uptime:</h3>
+                    <pre>{{ uptime }}</pre>
+                </div>
+                {% endif %}
+                
+                <!-- Uptime -->
                 {% if output %}
                 <div id="port_output">
                     <h3>Port Descriptions:</h3>
