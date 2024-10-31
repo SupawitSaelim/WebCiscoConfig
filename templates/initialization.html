@@ -32,7 +32,6 @@
             const ipAddressInput = document.getElementById("ipAddressInput");
             const subnetMaskInput = document.getElementById("subnetMaskInput");
 
-            // Show IP and subnet mask input fields if "Manual" is selected, hide otherwise
             if (interfaceType === "Manual") {
                 ipAddressInput.style.display = "block";
                 subnetMaskInput.style.display = "block";
@@ -43,7 +42,35 @@
         }
 
         function showLoader() {
-            document.getElementById('loader').style.display = 'block'; // Show loader
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function validateForm() {
+            var ipField = document.getElementById("ip_address");
+            var ipValue = ipField.value;
+            var ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipPattern.test(ipValue)) {
+                alert("Please enter a valid IPv4 address.");
+                ipField.focus();
+                return false;
+            }
+            var octets = ipValue.split('.');
+            for (var i = 0; i < octets.length; i++) {
+                if (parseInt(octets[i]) < 0 || parseInt(octets[i]) > 255) {
+                    alert("Each octet of the IP address must be between 0 and 255.");
+                    ipField.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function handleSubmit() {
+            if (validateForm()) { // ตรวจสอบฟอร์ม
+                showLoader(); // ถ้าผ่านการตรวจสอบให้แสดง loader
+                return true; // ส่งฟอร์ม
+            }
+            return false; // ไม่ผ่านการตรวจสอบไม่ต้องส่งฟอร์ม
         }
     </script>
 </head>
@@ -124,7 +151,7 @@
             <div class="container">
                 <h1 style="color:#2e4ead;text-align: left;">Device Initialization</h1>
                 <br><br>
-                <form method="post" action="/initialization" onsubmit="showLoader()">
+                <form method="post" action="/initialization" onsubmit="return handleSubmit()">
                     <div class="input-container">
                         <input type="text" name="consoleport" id="consoleport" placeholder="Console port"
                             style="width: 49%;" required>

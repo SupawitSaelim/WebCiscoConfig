@@ -4,5 +4,6 @@ netmiko
 paramiko
 asyncio
 netmiko
+pymongo
 
 #pip install -r requirements.txt
