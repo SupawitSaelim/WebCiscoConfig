@@ -13,8 +13,6 @@ import os
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 
-# เชื่อมต่อกับ MongoDB
-# ใช้พอร์ต 27017 เป็นค่าเริ่มต้นของ MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
@@ -28,8 +26,6 @@ target_ip = ''
 @app.route('/')
 def login_frist():
     return render_template('login.html')
-
-
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
@@ -39,7 +35,9 @@ def login():
         return redirect(url_for('initialization'))
     else:
         return '<script>alert("Incorrect username or password!!"); window.location.href="/";</script>'
-
+@app.route('/logout', methods=['POST'])
+def logout():
+    return render_template('login.html')
 
 ########## Device Initialization ###########################
 @app.route('/initialization_page', methods=['GET'])
@@ -68,7 +66,6 @@ def initialization():
             if not ip_address:
                 flash("Please provide an IP address for Manual configuration.", 'danger')
                 return render_template('initialization.html')
-
         try:
             serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address, subnet_mask)
@@ -113,3 +110,16 @@ def record_mnmg_form():
         return redirect(url_for('record_mnmg_page'))
 
     return render_template('record_mnmg.html')
+
+
+########## Devices Informaion ########################
+@app.route('/devices_informaion_page', methods=['GET'])
+def devices_information():
+    cisco_devices = list(device_collection.find())
+    return render_template('devices_information.html', cisco_devices=cisco_devices)
+@app.route('/delete', methods=['POST'])
+def delete_device():
+    ip_address = request.form.get('ip_address')
+    device_collection.delete_one({"device_info.ip": ip_address}) 
+    flash("Device deleted successfully!", "success")
+    return redirect(url_for('devices_information')) 
