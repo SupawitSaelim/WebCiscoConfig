@@ -121,7 +121,6 @@ def devices_information():
 def delete_device():
     ip_address = request.form.get('ip_address')
     device_collection.delete_one({"device_info.ip": ip_address}) 
-    flash("Device deleted successfully!", "success")
     return redirect(url_for('devices_information')) 
 
 

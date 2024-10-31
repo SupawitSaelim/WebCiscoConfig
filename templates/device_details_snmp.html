@@ -23,7 +23,7 @@
                     <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;" alt="">
                 </div>
                 <ul>
-                    <li><a href="initialization_page">
+                    <li><a href="devices_details_page">
                             <h4>Refresh</h4>
                         </a></li>
                     <form method="POST" action="/logout">
@@ -86,8 +86,31 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <h1 style="text-align: left;color: #2e4ead;">Device Details SNMP</h1>
+                <br><br>
+                <h3>Select Device:</h3>
+                <form method="POST" action="/some_action">
+                    <div class="input-container" style="display: flex; align-items: center;">
+                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                            {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                    <option value="{{ device.device_info.ip }}">
+                                        {{ device.name }} ({{ device.device_info.ip }})
+                                    </option>
+                                {% endfor %}
+                            {% else %}
+                                <option disabled>No devices available</option>
+                            {% endif %}
+                        </select>
+                        <input type="submit" value="Submit" style="padding: 5px 20px; cursor: pointer; border: none; border-radius: 5px; background-color: #2e4ead; color: white;">
+                    </div>
+                </form>
+                {% if not cisco_devices %}
+                    <p style="color: red;">No devices found in the database.</p>
+                {% endif %}
             </div>
         </div>
+        
     </div>
 </body>
 
