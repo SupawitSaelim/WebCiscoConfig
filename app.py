@@ -60,8 +60,8 @@ def initialization():
 
         try:
             serial_script.commands(consoleport, hostname, domainname, privilege_password, ssh_username, ssh_password, interface, ip_address,subnet_mask)
-            flash('Device successfully initialized!', 'success')
+            return render_template('initialization.html', success="Device successfully initialized!") 
         except Exception as e:
-            flash(f"An error occurred: {e}", 'danger')
+            return render_template('initialization.html', error=f"An error occurred: {e}")
 
     return render_template('initialization.html')

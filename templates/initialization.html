@@ -167,6 +167,16 @@
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
+                {% if success %}
+                <script>
+                    alert("{{ success }}");
+                </script>
+                {% endif %}
+                {% if error %}
+                <script>
+                    alert("{{ error }}");
+                </script>
+                {% endif %}
             </div>
         </div>
     </div>
