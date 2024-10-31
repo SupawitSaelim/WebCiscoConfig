@@ -25,6 +25,34 @@
             display: none;
             margin-top: 10px;
         }
+
+        /* Loader Styles */
+        #loader {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            border: 8px solid rgba(255, 255, 255, 0.2);
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 5vw;
+            height: 5vw;
+            max-width: 80px;
+            max-height: 80px;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
     <script>
         function toggleIpInput() {
@@ -41,10 +69,16 @@
                 subnetMaskInput.style.display = "none";
             }
         }
+
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block'; // Show loader
+        }
     </script>
 </head>
 
 <body>
+    <div id="loader"></div> <!-- Loader element -->
+
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger"></div>
@@ -118,7 +152,7 @@
             <div class="container">
                 <h1 style="color:#2e4ead;text-align: left;">Device Initialization</h1>
                 <br><br>
-                <form method="post" action="/initialization">
+                <form method="post" action="/initialization" onsubmit="showLoader()">
                     <div class="input-container">
                         <input type="text" name="consoleport" id="consoleport" placeholder="Console port"
                             style="width: 49%;" required>
