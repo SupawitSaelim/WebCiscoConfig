@@ -36,6 +36,9 @@ def login():
 
 
 ########## Device Initialization ###########################
+@app.route('/initialization_page', methods=['GET'])
+def initialization_page():
+    return render_template('initialization.html')
 @app.route('/initialization', methods=['GET', 'POST'])
 def initialization():
     if request.method == 'POST':
@@ -65,3 +68,23 @@ def initialization():
             return render_template('initialization.html', error=f"An error occurred: {e}")
 
     return render_template('initialization.html')
+
+
+########## Device Record Management ########################
+@app.route('/record_mnmg_page', methods=['GET'])
+def record_mnmg_page():
+    return render_template('record_mnmg.html')
+
+@app.route('/record_mnmg', methods=['GET', 'POST'])
+def record_mnmg_form():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        ip_address = request.form.get('ip_address')
+        privilegepassword = request.form.get('privilegepassword')
+        ssh_username = request.form.get('ssh_username')
+        ssh_password = request.form.get('ssh_password')
+
+        print(name, ip_address, privilegepassword, ssh_username, ssh_password)
+
+    return render_template('record_mnmg.html')
+

@@ -5,12 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
-    <title>Device Initialization</title>
+    <title>Configurations</title>
     <style>
         .input-container {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 10px;
         }
 
         .input-container input[type="text"],
@@ -18,45 +17,17 @@
             flex: 1;
             margin-right: 10px;
         }
-
-        /* Hide the IP input field initially */
-        #ipAddressInput,
-        #subnetMaskInput {
-            display: none;
-            margin-top: 10px;
-        }
     </style>
-    <script>
-        function toggleIpInput() {
-            const interfaceType = document.getElementById("interfaceType").value;
-            const ipAddressInput = document.getElementById("ipAddressInput");
-            const subnetMaskInput = document.getElementById("subnetMaskInput");
-
-            // Show IP and subnet mask input fields if "Manual" is selected, hide otherwise
-            if (interfaceType === "Manual") {
-                ipAddressInput.style.display = "block";
-                subnetMaskInput.style.display = "block";
-            } else {
-                ipAddressInput.style.display = "none";
-                subnetMaskInput.style.display = "none";
-            }
-        }
-
-        function showLoader() {
-            document.getElementById('loader').style.display = 'block'; // Show loader
-        }
-    </script>
 </head>
 
 <body>
-    <div id="loader"></div> <!-- Loader element -->
-
     <div class="wrapper">
         <div class="top_navbar">
-            <div class="hamburger"></div>
+            <div class="hamburger">
+            </div>
             <div class="top_menu">
                 <div class="logo">
-                    <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;" alt="">
+                    <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;;" alt="">
                 </div>
                 <ul>
                     <li><a href="#">
@@ -73,11 +44,12 @@
         </div>
         <div class="sidebar">
             <ul><br>
-                <li><a href="initialization_page" class="active">
+                <li><a href="initialization_page">
                         <span class="icon"><i class="fas fa-book"></i></span>
                         <span class="title">Device Initialization</span>
                     </a></li>
-                <li><a href="record_mnmg_page"><span class="icon"><i class="fas fa-file-video"></i></span>
+                <li><a href="record_mnmg_page" class="active"><span class="icon"><i
+                                class="fas fa-file-video"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-cogs"></i></span>
@@ -122,61 +94,46 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="color:#2e4ead;text-align: left;">Device Initialization</h1>
+                <h1 style="color:#2e4ead;text-align: left;">INSERT INFORMATIONS OF DEVICE</h1>
                 <br><br>
-                <form method="post" action="/initialization" onsubmit="showLoader()">
+                <form method="post" action="/record_mnmg" onsubmit="return validateForm()">
+                    <input type="text" name="name" id="name" placeholder="Name device"
+                        style="width: 49%; margin-right: 100%;" required><br>
                     <div class="input-container">
-                        <input type="text" name="consoleport" id="consoleport" placeholder="Console port"
-                            style="width: 49%;" required>
-                    </div>
-                    <div class="input-container">
-                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;"
-                            required>
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="domainname" name="domainname" placeholder="Domain Name" required>
-                        <input type="text" id="privilegepassword" name="privilegepassword"
-                            placeholder="Privilege Password" required>
+                        <input type="text" id="ip_address" name="ip_address" placeholder="IP Address device"
+                            required><br>
+                        <input type="password" id="privilegepassword" name="privilegepassword" placeholder="Privilege Password"
+                            required><br>
                     </div>
                     <div class="input-container">
                         <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required>
                         <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
                             required>
                     </div>
-
-                    <!-- Interface Type Dropdown -->
-                    <div class="input-container">
-                        <input type="text" id="interface" name="interface" placeholder="Interface" required>
-                        <select id="interfaceType" name="interfaceType" onchange="toggleIpInput()" style="width: 49%;"
-                            required>
-                            <option value="" disabled selected>Select Interface Type</option>
-                            <option value="Manual">Manual</option>
-                            <option value="DHCP">DHCP</option>
-                        </select>
-                    </div>
-
-                    <!-- IP Address Input Field (shown only if "Manual" is selected) -->
-                    <div id="ipAddressInput">
-                        <input type="text" id="ip_address" name="ip_address" placeholder="Enter IP Address">
-                    </div>
-                    <!-- Subnet Mask Input Field (shown only if "Manual" is selected) -->
-                    <div id="subnetMaskInput">
-                        <input type="text" id="subnet_mask" name="subnet_mask" placeholder="Enter Subnet Mask">
-                    </div>
-
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
-                {% if success %}
                 <script>
-                    alert("{{ success }}");
+                    function validateForm() {
+                        var ipField = document.getElementById("ip_address");
+                        var ipValue = ipField.value;
+                        var ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+                        if (!ipPattern.test(ipValue)) {
+                            alert("Please enter a valid IPv4 address.");
+                            ipField.focus();
+                            return false;
+                        }
+                        var octets = ipValue.split('.');
+                        for (var i = 0; i < octets.length; i++) {
+                            if (parseInt(octets[i]) < 0 || parseInt(octets[i]) > 255) {
+                                alert("Each octet of the IP address must be between 0 and 255.");
+                                ipField.focus();
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
                 </script>
-                {% endif %}
-                {% if error %}
-                <script>
-                    alert("{{ error }}");
-                </script>
-                {% endif %}
             </div>
         </div>
     </div>
