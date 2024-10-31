@@ -133,24 +133,15 @@ def device_detials_page():
 @app.route('/get_snmp', methods=['POST'])
 def device_details_form():
     device_ip = request.form.get("device_name")
-    print(device_ip)
-    
     result = subprocess.run(["node", "static/snmp.js", device_ip], capture_output=True, text=True)
     output = result.stdout if result.returncode == 0 else "Error fetching ports"
-
     uptime_result = subprocess.run(["node", "static/uptime.js", device_ip], capture_output=True, text=True)
     uptime_output = uptime_result.stdout if uptime_result.returncode == 0 else "Error fetching uptime"
-
     location_result = subprocess.run(["node", "static/location.js", device_ip], capture_output=True, text=True)
     location_output = location_result.stdout if location_result.returncode == 0 else "Error fetching location"
-
     contact_result = subprocess.run(["node", "static/contact.js", device_ip], capture_output=True, text=True)
     contact_output = contact_result.stdout if contact_result.returncode == 0 else "Error fetching contact"
-
     description_result = subprocess.run(["node", "static/description.js", device_ip], capture_output=True, text=True)
     description_output = description_result.stdout if description_result.returncode == 0 else "Error fetching system description"
-
-    print(uptime_output)
-
     cisco_devices = list(device_collection.find())
     return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output, uptime=uptime_output,location=location_output,contact=contact_output,description=description_output)

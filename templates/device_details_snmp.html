@@ -6,10 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Device Details SNMP</title>
     <style>
+        #loader {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
     </style>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // Show loader when form is submitted
+            return true; // Proceed with form submission
+        }
+    </script>
 </head>
 
 <body>
@@ -89,7 +106,7 @@
                 <h1 style="text-align: left;color: #2e4ead;">Device Details SNMP</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3>
-                <form method="POST" action="/get_snmp">
+                <form method="POST" action="/get_snmp" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
                             {% if cisco_devices %}
