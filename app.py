@@ -112,7 +112,7 @@ def record_mnmg_form():
     return render_template('record_mnmg.html')
 
 
-########## Devices Informaion ########################
+########## Devices Informaion ##############################
 @app.route('/devices_informaion_page', methods=['GET'])
 def devices_information():
     cisco_devices = list(device_collection.find())
@@ -123,3 +123,10 @@ def delete_device():
     device_collection.delete_one({"device_info.ip": ip_address}) 
     flash("Device deleted successfully!", "success")
     return redirect(url_for('devices_information')) 
+
+
+########## Device Details SNMP #############################
+@app.route('/devices_details_page', methods=['GET'])
+def device_detials_page():
+    cisco_devices = list(device_collection.find())
+    return render_template('device_details_snmp.html', cisco_devices=cisco_devices)

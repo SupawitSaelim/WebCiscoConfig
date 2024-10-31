@@ -7,3 +7,4 @@ netmiko
 pymongo
 
 #pip install -r requirements.txt
+#npm install net-snmp
