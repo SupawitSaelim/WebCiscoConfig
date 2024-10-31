@@ -1,6 +1,6 @@
 const snmp = require('net-snmp');
 
-const host = '10.4.15.123';         
+const host = process.argv[2];        
 const community = 'public';          
 const baseOID = '1.3.6.1.2.1.2.2.1.2'; 
 const startIndex = 10001;            

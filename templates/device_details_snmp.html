@@ -87,30 +87,39 @@
         <div class="main_container">
             <div class="container">
                 <h1 style="text-align: left;color: #2e4ead;">Device Details SNMP</h1>
-                <br><br>
+                <br>
                 <h3>Select Device:</h3>
-                <form method="POST" action="/some_action">
+                <form method="POST" action="/get_snmp">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
                             {% if cisco_devices %}
-                                {% for device in cisco_devices %}
-                                    <option value="{{ device.device_info.ip }}">
-                                        {{ device.name }} ({{ device.device_info.ip }})
-                                    </option>
-                                {% endfor %}
+                            {% for device in cisco_devices %}
+                            <option value="{{ device.device_info.ip }}">
+                                {{ device.name }} ({{ device.device_info.ip }})
+                            </option>
+                            {% endfor %}
                             {% else %}
-                                <option disabled>No devices available</option>
+                            <option disabled>No devices available</option>
                             {% endif %}
                         </select>
-                        <input type="submit" value="Submit" style="padding: 5px 20px; cursor: pointer; border: none; border-radius: 5px; background-color: #2e4ead; color: white;">
+                        <input type="submit" value="Submit"
+                            style="padding: 5px 20px; cursor: pointer; border: none; border-radius: 5px; background-color: #2e4ead; color: white;">
                     </div>
                 </form>
                 {% if not cisco_devices %}
-                    <p style="color: red;">No devices found in the database.</p>
+                <p style="color: red;">No devices found in the database.</p>
                 {% endif %}
+
+                <!-- ส่วนที่เพิ่มเข้ามาเพื่อแสดงผลลัพธ์จาก SNMP -->
+                {% if output %}
+                <div id="port_output">
+                    <h3>Port Descriptions:</h3>
+                    <pre>{{ output }}</pre>
+                </div>
+                {% endif %}
+
             </div>
         </div>
-        
     </div>
 </body>
 

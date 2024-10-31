@@ -9,6 +9,7 @@ import asyncio
 import serial_script
 from pymongo import MongoClient
 import os
+import subprocess
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
@@ -129,3 +130,13 @@ def delete_device():
 def device_detials_page():
     cisco_devices = list(device_collection.find())
     return render_template('device_details_snmp.html', cisco_devices=cisco_devices)
+@app.route('/get_snmp', methods=['POST'])
+def device_details_form():
+    device_ip = request.form.get("device_name")
+    print(device_ip)
+    
+    result = subprocess.run(["node", "static/snmp.js", device_ip], capture_output=True, text=True)
+    output = result.stdout if result.returncode == 0 else "Error fetching ports"
+
+    cisco_devices = list(device_collection.find())
+    return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output)
