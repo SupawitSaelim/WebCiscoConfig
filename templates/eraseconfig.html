@@ -1,47 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Devices Information</title>
+    <title>Eraseconfiguration</title>
     <style>
         .input-container {
             display: flex;
-            align-items: flex-start;
+            align-items: flex-start; 
         }
-
         .input-container input[type="text"],
         .input-container input[type="password"] {
             flex: 1;
-            margin-right: 10px;
+            margin-right: 10px; 
         }
     </style>
 </head>
-
 <body>
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
             </div>
             <div class="top_menu">
-                <div class="logo">
-                    <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;" alt="">
-                </div>
-                <ul>
-                    <li><a href="devices_informaion_page">
-                            <h4>Refresh</h4>
-                        </a></li>
-                    <form method="POST" action="/logout">
-                        <button type="submit"
-                            style="color: #2e4ead;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;"
-                            onmouseover="this.style.color='midnightblue';"
-                            onmouseout="this.style.color='#2e4ead';">Logout</button>
-                    </form>
-                </ul>
+            <div class="logo">
+                <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;;" alt="">
+            </div>
+            <ul>
+                <li><a href="erase_config_page"><h4>Refresh</h4></a></li>
+                <form method="POST" action="/logout">
+                    <button type="submit" style="color: #2e4ead;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='midnightblue';" onmouseout="this.style.color='#2e4ead';">Logout</button>
+                </form>
+            </ul>
             </div>
         </div>
         <div class="sidebar">
@@ -53,8 +44,7 @@
                 <li><a href="record_mnmg_page"><span class="icon"><i class="fas fa-file-video"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
-                <li><a href="devices_informaion_page" class="active"><span class="icon"><i
-                                class="fas fa-cogs"></i></span>
+                <li><a href="devices_informaion_page"><span class="icon"><i class="fas fa-cogs"></i></span>
                         <span class="title">Devices Information</span>
                     </a></li>
                 <li class="dropdown">
@@ -80,7 +70,7 @@
                         <li><a href="#">EIGRP</a></li>
                     </ul>
                 </li>
-                <li><a href="erase_config_page"><span class="icon"><i class="fas fa-leaf"></i></span>
+                <li><a href="erase_config_page" class="active"><span class="icon"><i class="fas fa-leaf"></i></span>
                         <span class="title">Erase configuration</span>
                     </a></li>
                 <li><a href="#"><span class="icon"><i class="fas fa-leaf"></i></span>
@@ -96,46 +86,35 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left;color: #2e4ead;">INFORMATION OF DEVICES</h1>
+                <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Erase Startup-Configurations</h1>
                 <br><br>
                 <table>
                     <tr>
                         <th>Name devices</th>
                         <th>IP Address</th>
-                        <th>SSH Username</th>
-                        <th>SSH Password</th>
-                        <th>Secret Password</th>
                         <th>Actions</th>
                     </tr>
                     {% if cisco_devices %}
-                    {% for device in cisco_devices %}
-                    <tr>
-                        <td>{{ device.name }}</td>
-                        <td>{{ device.device_info.ip }}</td>
-                        <td>{{ device.device_info.username }}</td>
-                        <td>{{ device.device_info.password }}</td>
-                        <td>{{ device.device_info.secret }}</td>
-                        <td>
-                            <form method="POST" action="/delete" onsubmit="return confirm('Are you sure you want to delete this device?');">
-                                <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}"> <!-- ส่งค่า IP address -->
-                                <input type="hidden" name="device_index" value="{{ loop.index0 }}">
-                                <button type="submit"
-                                    style="color: tomato;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;"
-                                    onmouseover="this.style.color='red';"
-                                    onmouseout="this.style.color='tomato';">DELETE</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                        {% for device in cisco_devices %}
+                        <tr>
+                            <td>{{ device.name }}</td>
+                            <td>{{ device.device_info.ip }}</td>
+                            <td>
+                                <form method="POST" action="/erase" onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?');">
+                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                    <button type="submit" style="color: tomato;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='red';" onmouseout="this.style.color='tomato';">ERASE</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align: center;">No data available.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: center;">No devices available.</td>
+                        </tr>
                     {% endif %}
                 </table>
             </div>
         </div>
-    </div>
-</body>
-
+        </div>
+    </body>
 </html>

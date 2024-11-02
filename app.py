@@ -10,6 +10,7 @@ import serial_script
 from pymongo import MongoClient
 import os
 import subprocess
+import time
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
@@ -44,8 +45,6 @@ def logout():
 @app.route('/initialization_page', methods=['GET'])
 def initialization_page():
     return render_template('initialization.html')
-
-
 @app.route('/initialization', methods=['GET', 'POST'])
 def initialization():
     if request.method == 'POST':
@@ -125,6 +124,72 @@ def delete_device():
     return redirect(url_for('devices_information')) 
 
 
+########## Erase Configuration #############################
+@app.route('/erase_config_page', methods=['GET'])
+def erase_config_page():
+    cisco_devices = list(device_collection.find())
+    return render_template('eraseconfig.html', cisco_devices=cisco_devices)
+
+@app.route('/erase', methods=['POST'])
+def erase_device():
+    cisco_devices = list(device_collection.find())
+    try:
+        device_index = int(request.form.get('device_index'))
+        if 0 <= device_index < len(cisco_devices):
+            device = cisco_devices[device_index]
+            device_info = device['device_info']
+
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
+
+            shell = ssh_client.invoke_shell()
+            time.sleep(1)
+
+            shell.send('enable\n')
+            time.sleep(1)
+            shell.send(device_info['secret'] + '\n')  # ใช้ enable password ที่ดึงจาก MongoDB
+            time.sleep(1)
+
+            shell.send('config terminal\n')
+            time.sleep(1)
+            shell.send('config-register 0x2102\n')  # ค่าที่ตั้งสำหรับบูต
+            time.sleep(1)
+            shell.send('exit\n')
+            time.sleep(1)
+
+            shell.send('erase startup-config\n')
+            time.sleep(1)
+            shell.send('yes\n')  # ตอบยืนยันการลบ
+            time.sleep(1)
+
+            shell.send('reload\n')
+            time.sleep(1)
+            shell.send('no\n')  # ตอบไม่ต้อง reload ทันที
+            time.sleep(1)
+            shell.send('\n')  # ยืนยัน reload ถามอีกครั้ง
+            time.sleep(1)
+
+            output = shell.recv(65535).decode('utf-8')
+            print(output)
+
+            ssh_client.close()
+
+            device_collection.delete_one({"device_info.ip": device_info['ip']})
+
+            return '<script>alert("Configuration erased successfully! Device will reload."); window.location.href="/erase_config_page";</script>'
+
+        else:
+            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
+
+    except Exception as e:
+        print(e)
+        return '<script>alert("Failed to erase configuration. Please try again."); window.location.href="/erase_config_page";</script>'
+
+
+
+
 ########## Device Details SNMP #############################
 @app.route('/devices_details_page', methods=['GET'])
 def device_detials_page():
@@ -145,3 +210,6 @@ def device_details_form():
     description_output = description_result.stdout if description_result.returncode == 0 else "Error fetching system description"
     cisco_devices = list(device_collection.find())
     return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output, uptime=uptime_output,location=location_output,contact=contact_output,description=description_output)
+
+
+

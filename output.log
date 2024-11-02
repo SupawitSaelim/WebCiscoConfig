@@ -1,0 +1,23 @@
+
+R1>
+R1>terminal width 511
+R1>terminal length 0
+R1>
+R1>
+R1>enable
+Password: 
+R1#
+R1#erase startup-config
+Erasing the nvram filesystem will remove all configuration files! Continue? [confirm]
+[OK]
+Erase of nvram: complete
+R1#reload
+Reload to the ROM monitor disallowed from a telnet line.
+Set the configuration register boot bits to be non-zero.
+
+R1#no
+% Incomplete command.
+
+R1#
+R1#
+R1#exit
