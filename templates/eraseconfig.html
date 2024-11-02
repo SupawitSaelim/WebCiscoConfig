@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <title>Eraseconfiguration</title>
+    <title>Erase Configuration</title>
     <style>
         .input-container {
             display: flex;
@@ -16,6 +16,33 @@
             flex: 1;
             margin-right: 10px; 
         }
+        /* เพิ่ม CSS สำหรับปุ่ม Reload และ Erase */
+        .action-buttons {
+            display: flex; /* ใช้ Flexbox เพื่อให้ปุ่มอยู่ข้างกัน */
+            justify-content: center;
+        }
+        .action-button {
+            padding: 7px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px; /* ระยะห่างระหว่างปุ่ม */
+        }
+        .erase-button {
+            color: tomato;
+        }
+        .reload-button {
+            color: #2e4ead;
+        }
+        .erase-button:hover {
+            color: red;
+        }
+        .reload-button:hover {
+            color: midnightblue;
+        }
     </style>
     <script>
         function showLoader() {
@@ -23,8 +50,8 @@
         }
 
         function handleSubmit() {
-            showLoader(); // Show loader when form is submitted
-            return true; // Continue to submit the form
+            showLoader(); // แสดง loader เมื่อส่งแบบฟอร์ม
+            return true; // ยังคงส่งแบบฟอร์มต่อไป
         }
     </script>
 </head>
@@ -32,18 +59,17 @@
     <div id="loader" style="display: none;"></div>
     <div class="wrapper">
         <div class="top_navbar">
-            <div class="hamburger">
-            </div>
+            <div class="hamburger"></div>
             <div class="top_menu">
-            <div class="logo">
-                <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;;" alt="">
-            </div>
-            <ul>
-                <li><a href="erase_config_page"><h4>Refresh</h4></a></li>
-                <form method="POST" action="/logout">
-                    <button type="submit" style="color: #2e4ead;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='midnightblue';" onmouseout="this.style.color='#2e4ead';">Logout</button>
-                </form>
-            </ul>
+                <div class="logo">
+                    <img src="../static/cisco-logo-transparent-free-png.webp" style="width: 7%;" alt="">
+                </div>
+                <ul>
+                    <li><a href="erase_config_page"><h4>Refresh</h4></a></li>
+                    <form method="POST" action="/logout">
+                        <button type="submit" style="color: #2e4ead;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='midnightblue';" onmouseout="this.style.color='#2e4ead';">Logout</button>
+                    </form>
+                </ul>
             </div>
         </div>
         <div class="sidebar">
@@ -110,11 +136,17 @@
                         <tr>
                             <td>{{ device.name }}</td>
                             <td>{{ device.device_info.ip }}</td>
-                            <td>
-                                <form method="POST" action="/erase" onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?') && handleSubmit();">
-                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
-                                    <button type="submit" style="color: tomato;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='red';" onmouseout="this.style.color='tomato';">ERASE</button>
-                                </form>
+                            <td style="align-items: center;">
+                                <div class="action-buttons" style="align-items: center;"> <!-- เพิ่ม div สำหรับจัดกลุ่มปุ่ม -->
+                                    <form method="POST" action="/erase" onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?') && handleSubmit();">
+                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <button type="submit" class="action-button erase-button">ERASE</button>
+                                    </form>
+                                    <form method="POST" action="/reload" onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
+                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <button type="submit" class="action-button reload-button">RELOAD</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -126,6 +158,6 @@
                 </table>
             </div>
         </div>
-        </div>
-    </body>
+    </div>
+</body>
 </html>

@@ -262,7 +262,7 @@ th {
 
 th:hover{
   transition: background-color 0.2s ease-in-out;
-  background-color: #92a6e2;
+  background-color: #526cba;
   color: white;
 }
 

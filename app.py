@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
 import json
 import os
 from netmiko import ConnectHandler
@@ -187,6 +187,51 @@ def erase_device():
         print(e)
         return '<script>alert("Failed to erase configuration. Please try again."); window.location.href="/erase_config_page";</script>'
 
+@app.route('/reload', methods=['POST'])
+def reload_device():
+    cisco_devices = list(device_collection.find())
+    try:
+        device_index = int(request.form.get('device_index'))
+        if 0 <= device_index < len(cisco_devices):
+            device = cisco_devices[device_index]
+            device_info = device['device_info']
+
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
+
+            shell = ssh_client.invoke_shell()
+            time.sleep(1)
+
+            shell.send('enable\n')
+            time.sleep(1)
+            shell.send(device_info['secret'] + '\n')
+            time.sleep(1)
+
+            shell.send('config terminal\n')
+            time.sleep(1)
+            shell.send('config-register 0x2102\n')
+            time.sleep(1)
+            shell.send('exit\n')
+            time.sleep(1)
+
+            shell.send('reload\n')
+            time.sleep(1)
+            shell.send('\n')
+            time.sleep(1)
+
+            
+            output = shell.recv(65535).decode('utf-8')
+            print(output)
+            ssh_client.close()
+
+            return '<script>alert("Device will reload."); window.location.href="/erase_config_page";</script>'
+        else:
+            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
+    except Exception as e:
+        print(e)
+        return '<script>alert("Failed to reload device. Please try again."); window.location.href="/erase_config_page";</script>'
 
 
 
