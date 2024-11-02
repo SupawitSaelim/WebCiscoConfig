@@ -17,8 +17,19 @@
             margin-right: 10px; 
         }
     </style>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // Show loader when form is submitted
+            return true; // Continue to submit the form
+        }
+    </script>
 </head>
 <body>
+    <div id="loader" style="display: none;"></div>
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -100,7 +111,7 @@
                             <td>{{ device.name }}</td>
                             <td>{{ device.device_info.ip }}</td>
                             <td>
-                                <form method="POST" action="/erase" onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?');">
+                                <form method="POST" action="/erase" onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?') && handleSubmit();">
                                     <input type="hidden" name="device_index" value="{{ loop.index0 }}">
                                     <button type="submit" style="color: tomato;padding: 7px 20px;border: none;border-radius: 5px;background-color:white;font-size:16px;cursor: pointer;font-weight:bold;" onmouseover="this.style.color='red';" onmouseout="this.style.color='tomato';">ERASE</button>
                                 </form>
