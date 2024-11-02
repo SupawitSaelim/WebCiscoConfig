@@ -198,7 +198,6 @@ def reload_device():
 
             ssh_client = paramiko.SSHClient()
             ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
             ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
 
             shell = ssh_client.invoke_shell()
@@ -211,7 +210,7 @@ def reload_device():
 
             shell.send('config terminal\n')
             time.sleep(1)
-            shell.send('config-register 0x2102\n')
+            shell.send('config-register 0x2102\n')  # ค่าที่ตั้งสำหรับบูต
             time.sleep(1)
             shell.send('exit\n')
             time.sleep(1)
@@ -221,17 +220,86 @@ def reload_device():
             shell.send('\n')
             time.sleep(1)
 
-            
+            output = shell.recv(65535).decode('utf-8')
+            print(output)
+
+            if "Save?" in output or "modified." in output:
+                return '''
+                    <script>
+                        var userResponse = confirm("System configuration has been modified. Save?");
+                        var response = userResponse ? "yes" : "no";
+
+                        showLoader();
+                        fetch("/handle_save_response", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "device_index=" + encodeURIComponent("''' + str(device_index) + '''") + "&save_response=" + encodeURIComponent(response)
+                        }).then(() => {
+                            alert("Configuration response has been sent.");
+                            window.location.href = "/erase_config_page";
+                        }).catch(() => {
+                            alert("Failed to send response. Please try again.");
+                        });
+                    </script>
+                '''
+            else:
+                ssh_client.close()
+                return '<script>alert("Device will reload without saving."); window.location.href="/erase_config_page";</script>'
+        
+        else:
+            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
+    
+    except Exception as e:
+        print(e)
+        return '<script>alert("Failed to reload device. Please try again."); window.location.href="/erase_config_page";</script>', 500
+
+@app.route('/handle_save_response', methods=['POST'])
+def handle_save_response():
+    cisco_devices = list(device_collection.find())
+    try:
+        device_index = int(request.form.get('device_index'))
+        save_response = request.form.get('save_response')
+        
+        if 0 <= device_index < len(cisco_devices):
+            device = cisco_devices[device_index]
+            device_info = device['device_info']
+
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
+
+            shell = ssh_client.invoke_shell()
+            time.sleep(1)
+
+            shell.send('enable\n')
+            time.sleep(1)
+            shell.send(device_info['secret'] + '\n')
+            time.sleep(1)
+
+            shell.send('config terminal\n')
+            time.sleep(1)
+            shell.send('config-register 0x2102\n') 
+            time.sleep(1)
+            shell.send('exit\n')
+            time.sleep(1)
+
+            shell.send('reload\n')
+            time.sleep(1)
+
+            shell.send(save_response + '\n')  # ส่ง "yes" หรือ "no" ไปยังอุปกรณ์
+            time.sleep(1)
+            shell.send('\n')
+            time.sleep(1)
+
             output = shell.recv(65535).decode('utf-8')
             print(output)
             ssh_client.close()
-
-            return '<script>alert("Device will reload."); window.location.href="/erase_config_page";</script>'
+            return '<script>alert("Response sent to device."); window.location.href="/erase_config_page";</script>'
         else:
             return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
     except Exception as e:
         print(e)
-        return '<script>alert("Failed to reload device. Please try again."); window.location.href="/erase_config_page";</script>'
+        return '<script>alert("Failed to handle save response. Please try again."); window.location.href="/erase_config_page";</script>', 500
 
 
 
