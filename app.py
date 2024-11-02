@@ -229,7 +229,6 @@ def reload_device():
                         var userResponse = confirm("System configuration has been modified. Save?");
                         var response = userResponse ? "yes" : "no";
 
-                        showLoader();
                         fetch("/handle_save_response", {
                             method: "POST",
                             headers: { "Content-Type": "application/x-www-form-urlencoded" },
