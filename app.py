@@ -225,28 +225,121 @@ def reload_device():
 
             if "Save?" in output or "modified." in output:
                 return '''
-                    <script>
-                        var userResponse = confirm("System configuration has been modified. Save?");
-                        var response = userResponse ? "yes" : "no";
+                <div id="loader" style="display:none;"></div>
+                <div id="confirmModal" style="display:none;">
+                    <div class="modal-content">
+                        <p>System configuration has been modified. Save?</p>
+                        <button id="yesButton" style="background-color: #2e4ead; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Yes</button>
+                        <button id="noButton" style="background-color: tomato; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">No</button>
+                    </div>
+                </div>
+                <script>
+                    function showLoader() {
+                        document.getElementById('loader').style.display = 'block'; // แสดง loader
+                    }
 
+                    function hideLoader() {
+                        document.getElementById('loader').style.display = 'none'; // ซ่อน loader
+                    }
+
+                    function showConfirmModal() {
+                        document.getElementById('confirmModal').style.display = 'flex'; // แสดง modal
+                    }
+
+                    document.getElementById('yesButton').addEventListener('click', function() {
+                        handleResponse("yes");
+                    });
+
+                    document.getElementById('noButton').addEventListener('click', function() {
+                        handleResponse("no");
+                    });
+
+                    function handleResponse(response) {
+                        showLoader(); // แสดง loader เมื่อผู้ใช้คลิก
                         fetch("/handle_save_response", {
                             method: "POST",
                             headers: { "Content-Type": "application/x-www-form-urlencoded" },
                             body: "device_index=" + encodeURIComponent("''' + str(device_index) + '''") + "&save_response=" + encodeURIComponent(response)
                         }).then(() => {
                             alert("Configuration response has been sent.");
+                            hideLoader(); // ซ่อน loader หลังจากส่งข้อมูลเสร็จ
                             window.location.href = "/erase_config_page";
                         }).catch(() => {
                             alert("Failed to send response. Please try again.");
+                            hideLoader(); // ซ่อน loader หากมีข้อผิดพลาด
                         });
-                    </script>
-                '''
+
+                        hideModal(); // ซ่อน modal หลังจากเลือกแล้ว
+                    }
+
+                    function hideModal() {
+                        document.getElementById('confirmModal').style.display = 'none'; // ซ่อน modal
+                    }
+
+                    // แสดง modal เมื่อโหลดหน้า
+                    window.onload = function() {
+                        showConfirmModal();
+                    };
+                </script>
+                <style>
+                    * {
+                    font-family: 'Roboto', sans-serif;
+                    }
+                    #confirmModal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .modal-content {
+                        background-color: white;
+                        padding: 20px;
+                        border-radius: 5px;
+                        text-align: center;
+                    }
+
+                    /* Loader Styles */
+                    #loader {
+                        display: none;
+                        position: fixed; /* ใช้ fixed เพื่อให้ loader ติดอยู่ที่ตำแหน่ง */
+                        top: 50%; /* วางอยู่ที่ 50% ของความสูง */
+                        left: 50%; /* วางอยู่ที่ 50% ของความกว้าง */
+                        transform: translate(-50%, -50%); /* ปรับตำแหน่งให้แน่ใจว่ามันอยู่กลาง */
+                        z-index: 9999;
+                        border: 8px solid rgba(255, 255, 255, 0.2);
+                        border-top: 8px solid #3498db;
+                        border-radius: 50%;
+                        width: 5vw;
+                        height: 5vw;
+                        max-width: 80px;
+                        max-height: 80px;
+                        animation: spin 1.5s linear infinite;
+                        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+                    }
+
+                    @keyframes spin {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+
+                    100% {
+                        transform: rotate(360deg);
+                        }
+                    }
+                </style>
+            '''
             else:
                 ssh_client.close()
                 return '<script>alert("Device will reload without saving."); window.location.href="/erase_config_page";</script>'
         
         else:
-            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
+            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</>'
     
     except Exception as e:
         print(e)
