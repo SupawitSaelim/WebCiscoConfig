@@ -1,17 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
-import json
 import os
-from netmiko import ConnectHandler
+from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 import paramiko
 import threading
 from flask import Flask, render_template, request, redirect, url_for
-import asyncio
 import serial_script
 from pymongo import MongoClient
 import os
 import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
+from bson import ObjectId
 
 
 app = Flask(__name__, template_folder='templates')
@@ -141,13 +140,77 @@ def delete_device():
     device_collection.delete_one({"device_info.ip": ip_address}) 
     return redirect(url_for('devices_information')) 
 
+
+
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
+def basic_settings_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('basic_settings.html', cisco_devices=cisco_devices)
+
+def configure_device(device, hostname, secret_password, banner):
+    device_info = device["device_info"]
+    
+    try:
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        if hostname:
+            output = net_connect.send_config_set([f'hostname {hostname}'])
+            print(f"Hostname output for {device['name']}:", output)
+            device_collection.update_one({"_id": ObjectId(device["_id"])}, {"$set": {"name": hostname}})
+        
+        if secret_password:
+            output = net_connect.send_config_set([f'enable secret {secret_password}'])
+            print(f"Enable secret output for {device['name']}:", output)
+        
+        if banner:
+            output = net_connect.send_config_set([f'banner motd # {banner} #'])
+            print(f"Banner output for {device['name']}:", output)
+        
+        net_connect.disconnect()
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error connecting to {device['name']}: {e}")
+        flash(f"Error connecting to {device['name']}: {str(e)}", "error")
+
+@app.route('/basic_settings', methods=['GET', 'POST'])
 def basic_settings():
     try:
         cisco_devices = list(device_collection.find())
     except ServerSelectionTimeoutError:
         cisco_devices = None  
+
+    if request.method == 'POST':
+        device_name = request.form.get('device_name')
+        hostname = request.form.get('hostname')
+        secret_password = request.form.get('secret_password')
+        banner = request.form.get('banner')
+        many_hostname = request.form.get('many_hostname')
+        
+        # สร้างรายการชื่ออุปกรณ์ที่ต้องการกำหนดค่า
+        device_names = [device_name] if not many_hostname else [name.strip() for name in many_hostname.split(',')]
+        threads = []
+
+        for name in device_names:
+            # ค้นหาอุปกรณ์ในฐานข้อมูล
+            device = device_collection.find_one({"device_info.ip": name}) if not many_hostname else device_collection.find_one({"name": name})
+            
+            if device:
+                thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner))
+                threads.append(thread)
+                thread.start()
+            else:
+                print(f"Device {name} not found in database")
+                flash(f"Device {name} not found in database", "error")
+        
+        for thread in threads:
+            thread.join()
+
+        return redirect(url_for('basic_settings_page'))
+
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
 
 
