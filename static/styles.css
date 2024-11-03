@@ -136,10 +136,10 @@ body{
   display: block;
 }
 
-.wrapper .main_container{
-  width: (100% - 200px);
+.wrapper .main_container {
+  width: calc(100% - 220px); /* เปลี่ยนจาก 200px เป็น 220px เพื่อคำนึงถึงความกว้างของ sidebar */
   margin-top: 70px;
-  margin-left: 200px;
+  margin-left: 220px; /* เปลี่ยนจาก 200px เป็น 220px */
   padding: 15px;
   transition: all 0.3s ease;
 }
@@ -180,13 +180,14 @@ body{
 }
 
 .container {
-    max-width: 100%;
-    margin: 0 auto;
-    margin-top: 50px;
-    background-color: white;
-    padding: 60px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  max-width: 100%;
+  margin: 0 auto;
+  margin-top: 1px;
+  background-color: white;
+  padding: 60px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: calc(100% - 10px); /* ทำให้มีความกว้างที่เหลือจาก sidebar */
 }
 
 h1 {
