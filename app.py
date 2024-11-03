@@ -141,6 +141,15 @@ def delete_device():
     device_collection.delete_one({"device_info.ip": ip_address}) 
     return redirect(url_for('devices_information')) 
 
+########## Basic Settings ##################################
+@app.route('/basic_settings_page', methods=['GET'])
+def basic_settings():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('basic_settings.html', cisco_devices=cisco_devices)
+
 
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])

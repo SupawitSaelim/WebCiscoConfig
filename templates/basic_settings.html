@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Device Details SNMP</title>
+    <title>Basic Settings</title>
     <style>
     </style>
     <script src="../static/time.js" defer></script>
@@ -28,7 +28,7 @@
                     <span id="datetime" style="font-size: 18px; font-weight: bold;"></span>
                 </div>
                 <ul>
-                    <li><a href="initialization_page">
+                    <li><a href="basic_settings_page">
                             <h4>Refresh</h4>
                         </a></li>
                     <form method="POST" action="/logout">
@@ -50,7 +50,7 @@
                         <span class="icon"><i class="fas fa-folder"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
-                <li><a href="devices_informaion_page" class="active">
+                <li><a href="devices_informaion_page">
                         <span class="icon"><i class="fas fa-info-circle"></i></span>
                         <span class="title">Devices Information</span>
                     </a></li>
@@ -60,7 +60,7 @@
                         <span class="title">Configurations</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="basic_settings_page">Basic Settings</a></li>
+                        <li><a href="basic_settings_page" class="active">Basic Settings</a></li>
                         <li><a href="#">Network Interface Configuration</a></li>
                         <li><a href="#">Management Settings</a></li>
                     </ul>
