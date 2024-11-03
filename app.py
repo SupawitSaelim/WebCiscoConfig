@@ -398,9 +398,76 @@ def handle_save_response():
 
 
 ########## Show Configuration ##############################
+def execute_command(shell, command, wait_time=1):
+    """ส่งคำสั่งไปยัง shell และรอผลลัพธ์"""
+    shell.send(command + '\n')
+    time.sleep(wait_time)  # รอเวลาสำหรับการประมวลผลคำสั่ง
+    output = shell.recv(65535).decode('utf-8')
+    return output
+
 @app.route('/show_config_page', methods=['GET'])
 def show_config_page():
     cisco_devices = list(device_collection.find())
+    return render_template('showconfig.html', cisco_devices=cisco_devices)
+
+@app.route('/show-config', methods=['POST', 'GET'])
+def show_config():
+    cisco_devices = list(device_collection.find())
+    print(cisco_devices)
+    if request.method == 'POST':
+        device_name = request.form.get('device_name')
+        selected_commands = request.form.getlist('selected_commands')
+
+        print("Device Name:", device_name)
+        print("Selected Commands:", selected_commands)
+
+        device = device_collection.find_one({"name": device_name})
+        print(device)
+
+        if device:
+            device_info = device['device_info']
+            try:
+                config_data = ""
+
+                ssh_client = paramiko.SSHClient()
+                ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
+
+                shell = ssh_client.invoke_shell()
+                time.sleep(1)
+
+                execute_command(shell, 'enable')
+                execute_command(shell, device_info['secret'])  # ใช้ secret แทน enable password
+
+                commands_to_execute = {
+                    "show_running_config": 'show running-config',
+                    "show_version": 'show version',
+                    "show_interfaces": 'show interfaces',
+                    "show_ip_interface_brief": 'show ip interface brief',
+                    "show_ip_route": 'show ip route',
+                    "show_vlan": 'show vlan',
+                    "show_cdp_neighbors": 'show cdp neighbors',
+                    "show_ip_protocols": 'show ip protocols',
+                    "show_mac_address_table": 'show mac address-table dynamic',
+                    "show_clock": 'show clock',
+                    "show_logging": 'show logging',
+                    "show_interfaces_trunk": 'show interfaces trunk'
+                }
+
+                for command in selected_commands:
+                    if command in commands_to_execute:
+                        output = execute_command(shell, commands_to_execute[command])
+                        config_data += f"<span style='color: #2e4ead; font-size: 1em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
+
+                ssh_client.close()  # ปิดการเชื่อมต่อ SSH
+                print(config_data)
+                return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
+
+            except Exception as e:
+                print(e)
+                error_message = "ไม่สามารถดึงข้อมูลการกำหนดค่าได้ กรุณาลองใหม่อีกครั้ง"
+                return render_template('showconfig.html', cisco_devices=cisco_devices, error_message=error_message)
+
     return render_template('showconfig.html', cisco_devices=cisco_devices)
 
 

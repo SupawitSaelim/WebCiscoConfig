@@ -284,8 +284,7 @@
                         <option value="" disabled {% if cisco_devices|length == 0 %}selected{% endif %}>Select a device</option>
                         {% if cisco_devices %}
                             {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}"
-                                {% if cisco_devices|length == 1 %}selected{% endif %}>
+                            <option value="{{ device.name }}" {% if cisco_devices|length == 1 %}selected{% endif %}>
                                 {{ device.name }} ({{ device.device_info.ip }})
                             </option>
                             {% endfor %}
@@ -295,7 +294,6 @@
                     </select>
                     <br><br><br>
                     <br><br>
-
                     <div class="checkbox-container">
                         <div class="checkbox-wrapper-23">
                             <!-- Checkbox 1 -->
@@ -427,14 +425,15 @@
                             </div>
                         </div>
 
-                        <input type="number" id="vlan_id" name="vlan_id" placeholder="vlan id" minlength="1"
-                            maxlength="4000">
+                        <!-- <input type="number" id="vlan_id" name="vlan_id" placeholder="vlan id" minlength="1"
+                            maxlength="4000"> -->
                     </div><br><br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
                 <div>
                     <h2 style="color: #2e4ead;">CONFIGURATIONS OUTPUT</h2><br><br>
-                    <pre>{{ config_data }}</pre>
+                    <pre class="blue-pre" style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">{{ config_data | safe }}</pre>
+                    <!-- <pre style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">{{ config_data }}</pre> -->
                 </div>
             </div>
         </div>
