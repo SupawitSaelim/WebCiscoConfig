@@ -437,7 +437,8 @@ def show_config():
                 time.sleep(1)
 
                 execute_command(shell, 'enable')
-                execute_command(shell, device_info['secret'])  # ใช้ secret แทน enable password
+                execute_command(shell, device_info['secret'])
+                execute_command(shell, 'terminal length 0')
 
                 commands_to_execute = {
                     "show_running_config": 'show running-config',
@@ -457,9 +458,9 @@ def show_config():
                 for command in selected_commands:
                     if command in commands_to_execute:
                         output = execute_command(shell, commands_to_execute[command])
-                        config_data += f"<span style='color: #2e4ead; font-size: 1em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
+                        config_data += f"<span style='color: #2e4ead; font-size: 1.2em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
 
-                ssh_client.close()  # ปิดการเชื่อมต่อ SSH
+                ssh_client.close() 
                 print(config_data)
                 return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
 
