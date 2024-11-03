@@ -195,9 +195,20 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // แสดง loader เมื่อส่งแบบฟอร์ม
+            return true; // ยังคงส่งแบบฟอร์มต่อไป
+        }
+    </script>
 </head>
 
 <body>
+    <div id="loader" style="display: none;"></div>
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -284,7 +295,7 @@
         <div class="main_container">
             <div class="container">
                 <h1 style="text-align: left;color: #2e4ead;">SHOW CONFIGURATIONS</h1><br><br>
-                <form method="POST" action="/show-config">
+                <form method="POST" action="/show-config" onsubmit="return handleSubmit();">
                     <select name="device_name" required>
                         <option value="" disabled {% if cisco_devices|length == 0 %}selected{% endif %}>Select a device</option>
                         {% if cisco_devices %}
