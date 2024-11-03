@@ -397,6 +397,14 @@ def handle_save_response():
 
 
 
+########## Show Configuration ##############################
+@app.route('/show_config_page', methods=['GET'])
+def show_config_page():
+    cisco_devices = list(device_collection.find())
+    return render_template('showconfig.html', cisco_devices=cisco_devices)
+
+
+
 ########## Device Details SNMP #############################
 @app.route('/devices_details_page', methods=['GET'])
 def device_detials_page():
