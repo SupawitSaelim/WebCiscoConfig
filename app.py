@@ -208,12 +208,21 @@ def reload_device():
             shell.send(device_info['secret'] + '\n')
             time.sleep(1)
 
-            shell.send('config terminal\n')
+            shell.send('reload\n')
             time.sleep(1)
-            shell.send('config-register 0x2102\n')  # ค่าที่ตั้งสำหรับบูต
+            shell.send('\n')
             time.sleep(1)
-            shell.send('exit\n')
-            time.sleep(1)
+
+            output = shell.recv(65535).decode('utf-8')
+            print(output)
+
+            if "telnet" in output or "register" in output:
+                shell.send('config terminal\n')
+                time.sleep(1)
+                shell.send('config-register 0x2102\n')  # ค่าที่ตั้งสำหรับบูต
+                time.sleep(1)
+                shell.send('exit\n')
+                time.sleep(1)
 
             shell.send('reload\n')
             time.sleep(1)
@@ -366,13 +375,6 @@ def handle_save_response():
             shell.send('enable\n')
             time.sleep(1)
             shell.send(device_info['secret'] + '\n')
-            time.sleep(1)
-
-            shell.send('config terminal\n')
-            time.sleep(1)
-            shell.send('config-register 0x2102\n') 
-            time.sleep(1)
-            shell.send('exit\n')
             time.sleep(1)
 
             shell.send('reload\n')
