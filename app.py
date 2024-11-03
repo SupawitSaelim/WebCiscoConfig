@@ -11,6 +11,8 @@ from pymongo import MongoClient
 import os
 import subprocess
 import time
+from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
+
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
@@ -22,6 +24,19 @@ device_collection = db['devices']  # กำหนดชื่อคอลเล�
 port_status = {}
 port_oids = {}
 target_ip = ''
+
+
+########## MongoDB Status ###################################
+def check_mongo_connection():
+    try:
+        client.admin.command('ping')
+        return 'connected'
+    except (ConnectionFailure, ServerSelectionTimeoutError):
+        return 'disconnected'
+@app.route('/mongo_status')
+def mongo_status():
+    status = check_mongo_connection()
+    return jsonify({"status": status})
 
 
 ########## login Page #######################################
@@ -115,7 +130,10 @@ def record_mnmg_form():
 ########## Devices Informaion ##############################
 @app.route('/devices_informaion_page', methods=['GET'])
 def devices_information():
-    cisco_devices = list(device_collection.find())
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
     return render_template('devices_information.html', cisco_devices=cisco_devices)
 @app.route('/delete', methods=['POST'])
 def delete_device():
@@ -127,7 +145,10 @@ def delete_device():
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
 def erase_config_page():
-    cisco_devices = list(device_collection.find())
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
     return render_template('eraseconfig.html', cisco_devices=cisco_devices)
 
 @app.route('/erase', methods=['POST'])
@@ -407,7 +428,10 @@ def execute_command(shell, command, wait_time=1):
 
 @app.route('/show_config_page', methods=['GET'])
 def show_config_page():
-    cisco_devices = list(device_collection.find())
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = []  
     return render_template('showconfig.html', cisco_devices=cisco_devices)
 
 @app.route('/show-config', methods=['POST', 'GET'])
@@ -476,7 +500,10 @@ def show_config():
 ########## Device Details SNMP #############################
 @app.route('/devices_details_page', methods=['GET'])
 def device_detials_page():
-    cisco_devices = list(device_collection.find())
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = []  
     return render_template('device_details_snmp.html', cisco_devices=cisco_devices)
 @app.route('/get_snmp', methods=['POST'])
 def device_details_form():

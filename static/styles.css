@@ -376,3 +376,18 @@ input[type="submit"]:hover {
       transform: rotate(360deg);
   }
 }
+
+/* Status MongoDB */
+.status-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+.status-connected {
+  background-color: green;
+}
+.status-disconnected {
+  background-color: red;
+}

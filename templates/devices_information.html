@@ -21,12 +21,15 @@
         }
     </style>
     <script src="../static/time.js" defer></script>
+    <script src="../static/mongoStatus.js"></script>
 </head>
 
 <body>
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
+                <span id="mongo-status-indicator" class="status-indicator status-disconnected"
+                    title="Checking connection..."></span>
             </div>
             <div class="top_menu">
                 <div class="logo">
