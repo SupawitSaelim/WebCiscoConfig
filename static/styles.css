@@ -92,6 +92,7 @@ body{
   height: calc(100% - 80px);
   border-bottom-left-radius: 20px;
   transition: all 0.3s ease;
+  transition: color 0.3s ease; /* เพิ่มการเปลี่ยนสีแบบนุ่มนวล */
 }
 
 .wrapper .sidebar ul li a{
