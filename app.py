@@ -166,6 +166,7 @@ def configure_device(device, hostname, secret_password, banner):
         
         if secret_password:
             output = net_connect.send_config_set([f'enable secret {secret_password}'])
+            device_collection.update_one({"_id": ObjectId(device["_id"])}, {"$set": {"device_info.secret": secret_password}})
             print(f"Enable secret output for {device['name']}:", output)
         
         if banner:
@@ -185,19 +186,24 @@ def basic_settings():
         cisco_devices = None  
 
     if request.method == 'POST':
-        device_name = request.form.get('device_name')
+        device_name = request.form.get('device_name')  # เพิ่มการดึงข้อมูลจาก dropdown
         hostname = request.form.get('hostname')
         secret_password = request.form.get('secret_password')
         banner = request.form.get('banner')
         many_hostname = request.form.get('many_hostname')
-
+        
         device_ips = []
+        device_names_processed = set()
 
         if many_hostname:
             device_names = [name.strip() for name in many_hostname.split(',')]
             for name in device_names:
+                if name in device_names_processed:
+                    continue  
+
                 devices = device_collection.find({"name": name})
                 found_any = False
+
                 for device in devices:
                     ip_address = device["device_info"]["ip"]
                     if ip_address not in device_ips:
@@ -205,12 +211,21 @@ def basic_settings():
                         found_any = True
                     else:
                         print(f"Duplicate IP detected for device {name} with IP {ip_address}")
-                        return '<script>alert("Duplicate IP detected for device {name} with IP {ip_address}"); window.location.href="/basic_settings";</script>'
+                        return f'<script>alert("Duplicate IP detected for device {name} with IP {ip_address}"); window.location.href="/basic_settings";</script>'
+
                 if not found_any:
                     print(f"Device {name} not found in database")
-                    return '<script>alert("Device {name} not found in database"); window.location.href="/basic_settings";</script>'
+                    return f'<script>alert("Device {name} not found in database"); window.location.href="/basic_settings";</script>'
+                
+                device_names_processed.add(name)
+
         elif device_name:
-            device_ips = [device_name]
+            device = device_collection.find_one({"device_info.ip": device_name})
+            if device:
+                device_ips.append(device["device_info"]["ip"])
+            else:
+                print(f"Device with IP {device_name} not found in database")
+                return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/basic_settings";</script>'
 
         threads = []
         print("Device IPs to configure:", device_ips)
@@ -232,6 +247,7 @@ def basic_settings():
         return redirect(url_for('basic_settings_page'))
 
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
+
 
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])

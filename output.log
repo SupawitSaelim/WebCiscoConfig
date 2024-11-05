@@ -1,29 +1,19 @@
- Test5 
-Test5>
-Test5>terminal width 511
-Test5>terminal length 0
-Test5>
-Test5>
-Test5>enable
+ Testing5 
+RT1>
+RT1>terminal width 511
+RT1>terminal length 0
+RT1>
+RT1>
+RT1>enable
 Password: 
-Test5#
-Test5#
-Test5#configure terminal
+RT1#
+RT1#
+RT1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-Test5(config)#
-Test5(config)#hostname Test5
-Test5(config)#
-Test5(config)#end
-Test5#
-Test5#
-Test5#
-Test5#configure terminal
-Enter configuration commands, one per line.  End with CNTL/Z.
-Test5(config)#
-Test5(config)#banner motd # Test5 #
-Test5(config)#
-Test5(config)#end
-Test5#
-Test5#
-Test5#exit
-Test5#exit
+RT1(config)#
+RT1(config)#enable secret cisco
+RT1(config)#
+RT1(config)#end
+RT1#
+RT1#
+RT1#exit
