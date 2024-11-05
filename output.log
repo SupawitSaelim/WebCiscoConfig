@@ -1,29 +1,29 @@
- test from web2 
-Test1>
-Test1>terminal width 511
-Test1>terminal length 0
-Test1>
-Test1>
-Test1>enable
+ Test5 
+Test5>
+Test5>terminal width 511
+Test5>terminal length 0
+Test5>
+Test5>
+Test5>enable
 Password: 
-Test1#
-Test1#
-Test1#configure terminal
+Test5#
+Test5#
+Test5#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-Test1(config)#
-Test1(config)#hostname Test3
-Test3(co
-Test3#
-Test3#configure terminal
+Test5(config)#
+Test5(config)#hostname Test5
+Test5(config)#
+Test5(config)#end
+Test5#
+Test5#
+Test5#
+Test5#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-Test3(config)#
-Test3(config)#banner motd # Testing from Web #
-Test3(config)#
-Test3(config)#end
-Test3#
-Test3#
-Test3#exit
-(config)#end
-Test3#
-Test3#
-Test3#exit
+Test5(config)#
+Test5(config)#banner motd # Test5 #
+Test5(config)#
+Test5(config)#end
+Test5#
+Test5#
+Test5#exit
+Test5#exit

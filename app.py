@@ -162,6 +162,7 @@ def configure_device(device, hostname, secret_password, banner):
             output = net_connect.send_config_set([f'hostname {hostname}'])
             print(f"Hostname output for {device['name']}:", output)
             device_collection.update_one({"_id": ObjectId(device["_id"])}, {"$set": {"name": hostname}})
+            net_connect.set_base_prompt()
         
         if secret_password:
             output = net_connect.send_config_set([f'enable secret {secret_password}'])
@@ -174,7 +175,7 @@ def configure_device(device, hostname, secret_password, banner):
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
-        flash(f"Error connecting to {device['name']}: {str(e)}", "error")
+        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/basic_settings";</script>'
 
 @app.route('/basic_settings', methods=['GET', 'POST'])
 def basic_settings():
@@ -189,22 +190,41 @@ def basic_settings():
         secret_password = request.form.get('secret_password')
         banner = request.form.get('banner')
         many_hostname = request.form.get('many_hostname')
-        
-        # สร้างรายการชื่ออุปกรณ์ที่ต้องการกำหนดค่า
-        device_names = [device_name] if not many_hostname else [name.strip() for name in many_hostname.split(',')]
-        threads = []
 
-        for name in device_names:
-            # ค้นหาอุปกรณ์ในฐานข้อมูล
-            device = device_collection.find_one({"device_info.ip": name}) if not many_hostname else device_collection.find_one({"name": name})
+        device_ips = []
+
+        if many_hostname:
+            device_names = [name.strip() for name in many_hostname.split(',')]
+            for name in device_names:
+                devices = device_collection.find({"name": name})
+                found_any = False
+                for device in devices:
+                    ip_address = device["device_info"]["ip"]
+                    if ip_address not in device_ips:
+                        device_ips.append(ip_address)
+                        found_any = True
+                    else:
+                        print(f"Duplicate IP detected for device {name} with IP {ip_address}")
+                        return '<script>alert("Duplicate IP detected for device {name} with IP {ip_address}"); window.location.href="/basic_settings";</script>'
+                if not found_any:
+                    print(f"Device {name} not found in database")
+                    return '<script>alert("Device {name} not found in database"); window.location.href="/basic_settings";</script>'
+        elif device_name:
+            device_ips = [device_name]
+
+        threads = []
+        print("Device IPs to configure:", device_ips)
+        
+        for ip in device_ips:
+            device = device_collection.find_one({"device_info.ip": ip})
             
             if device:
                 thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner))
                 threads.append(thread)
                 thread.start()
             else:
-                print(f"Device {name} not found in database")
-                flash(f"Device {name} not found in database", "error")
+                print(f"Device with IP {ip} not found in database")
+                return f'<script>alert("Device with IP {ip} not found in database"); window.location.href="/basic_settings";</script>'
         
         for thread in threads:
             thread.join()
@@ -212,7 +232,6 @@ def basic_settings():
         return redirect(url_for('basic_settings_page'))
 
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
-
 
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
