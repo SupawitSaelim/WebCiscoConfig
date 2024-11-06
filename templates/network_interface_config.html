@@ -7,11 +7,47 @@
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Device Details SNMP</title>
+    <title>Network Interface Settings</title>
     <style>
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
+            manyHostnameInput.addEventListener("input", function () {
+                if (manyHostnameInput.value.trim() !== "") {
+                    deviceDropdown.style.display = "none";
+                } else {
+                    deviceDropdown.style.display = "block";
+                }
+            });
+
+            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
+            deviceDropdown.addEventListener("change", function () {
+                if (deviceDropdown.value === "") {
+                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
+                    manyHostnameInput.style.display = "block";
+                } else {
+                    manyHostnameInput.style.display = "none";
+                }
+            });
+        });
+
+    </script>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // Show loader when form is submitted
+            return true; // Proceed with form submission
+        }
+    </script>
 </head>
 
 <body>
@@ -29,7 +65,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="initialization_page" title="Refresh"
+                        <a href="network_interface_page" title="Refresh"
                             style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
@@ -55,7 +91,7 @@
                         <span class="icon"><i class="fas fa-folder"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
-                <li><a href="devices_informaion_page" class="active">
+                <li><a href="devices_informaion_page">
                         <span class="icon"><i class="fas fa-info-circle"></i></span>
                         <span class="title">Devices Information</span>
                     </a></li>
@@ -66,7 +102,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a href="basic_settings_page">Basic Settings</a></li>
-                        <li><a href="network_interface_page">Network Interface Configuration</a></li>
+                        <li><a href="network_interface_page" class="active">Network Interface Configuration</a></li>
                         <li><a href="#">Management Settings</a></li>
                     </ul>
                 </li>
@@ -102,6 +138,42 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">network interface SETTINGS</h1>
+                <br>
+                <h3 style="color: #2e4ead;">Select Device:</h3><br>
+                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                    <div class="input-container" style="display: flex; align-items: center;">
+                        <!-- Dropdown with ID for JavaScript to access -->
+                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                            <option value="">None</option>
+                            {% if cisco_devices %}
+                            {% for device in cisco_devices %}
+                            <option value="{{ device.device_info.ip }}">
+                                {{ device.name }} ({{ device.device_info.ip }})
+                            </option>
+                            {% endfor %}
+                            {% else %}
+                            <option disabled>No devices available</option>
+                            {% endif %}
+                        </select>
+                    </div><br><br>
+
+                    <label for="many_name" style="text-align: left;">
+                        If more than one device, input names of devices here (separate by comma)
+                    </label>
+                    <!-- Input field for many_hostname with ID -->
+                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                        placeholder="Example: sw1,sw2,sw3">
+                    <br><br>
+
+                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
+                        maxlength="25">
+                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
+                        minlength="3" maxlength="20">
+                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
+                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                </form>
+
             </div>
         </div>
     </div>

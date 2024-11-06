@@ -224,6 +224,17 @@ def basic_settings():
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
 
 
+########## Network Interface Settings ######################
+@app.route('/network_interface_page', methods=['GET'])
+def network_interface_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('network_interface_config.html', cisco_devices=cisco_devices)
+
+
+
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
 def erase_config_page():
