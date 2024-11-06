@@ -9,6 +9,54 @@
     <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Network Interface Settings</title>
     <style>
+        .checkbox-wrapper-22 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-wrapper-22 .switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+
+        .checkbox-wrapper-22 .switch input {
+            display: none;
+        }
+
+        .checkbox-wrapper-22 .slider {
+            background-color: #ccc;
+            border-radius: 34px;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+        }
+
+        .checkbox-wrapper-22 .slider:before {
+            background-color: #fff;
+            border-radius: 50%;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+        }
+
+        .checkbox-wrapper-22 input:checked+.slider {
+            background-color: #4caf50;
+        }
+
+        .checkbox-wrapper-22 input:checked+.slider:before {
+            transform: translateX(26px);
+        }
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
@@ -17,7 +65,6 @@
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
 
-            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -26,7 +73,6 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
                     // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
@@ -39,6 +85,35 @@
 
     </script>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to toggle IPv4 switches
+            document.getElementById('enable_ipv4').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('disable_ipv4').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                }
+            });
+    
+            document.getElementById('disable_ipv4').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('enable_ipv4').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                }
+            });
+    
+            // Function to toggle IPv6 switches
+            document.getElementById('enable_ipv6').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('disable_ipv6').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                }
+            });
+    
+            document.getElementById('disable_ipv6').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('enable_ipv6').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                }
+            });
+        });
+    </script>
+    <script>
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
@@ -49,7 +124,6 @@
         }
     </script>
 </head>
-
 <body>
     <div id="loader"></div> <!-- Loader element -->
 
@@ -166,12 +240,47 @@
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
 
-                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="25">
-                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
-                        minlength="3" maxlength="20">
-                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
+                    <h3 style="color: #2e4ead; text-align: left;">IPv4</h3>
+                    <br>
+                    <input type="text" id="interfaces_ipv4" name="interfaces_ipv4" placeholder="Network Interfaces"
+                        minlength="3" maxlength="25">
+                    <input type="text" id="ip_address_ipv4" name="ip_address_ipv4" placeholder="IP Address">
+                    <input type="text" id="subnet_mask_ipv4" name="subnet_mask_ipv4" placeholder="Subnet Mask">
+                    <div class="checkbox-wrapper-22">
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_ipv4" name="enable_ipv4">
+                            <span class="slider"></span>
+                        </label>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_ipv4" name="disable_ipv4">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <br><br>
+
+                    <h3 style="color: #2e4ead; text-align: left;">IPv6</h3>
+                    <br>
+                    <input type="text" id="interfaces_ipv6" name="interfaces_ipv6" placeholder="Network Interfaces"
+                        minlength="3" maxlength="25">
+                    <input type="text" id="ip_address_ipv6" name="ip_address_ipv6" placeholder="IP Address">
+                    <div class="checkbox-wrapper-22">
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_ipv6" name="enable_ipv6">
+                            <span class="slider"></span>
+                        </label>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_ipv6" name="disable_ipv6">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
+
                 </form>
 
             </div>
