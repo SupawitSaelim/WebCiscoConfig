@@ -38,6 +38,16 @@
         });
 
     </script>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // Show loader when form is submitted
+            return true; // Proceed with form submission
+        }
+    </script>
 </head>
 
 <body>

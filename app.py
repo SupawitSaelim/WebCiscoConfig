@@ -11,6 +11,8 @@ import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
+from device_config import configure_device
+
 
 
 app = Flask(__name__, template_folder='templates')
@@ -151,33 +153,6 @@ def basic_settings_page():
         cisco_devices = None  
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
 
-def configure_device(device, hostname, secret_password, banner):
-    device_info = device["device_info"]
-    
-    try:
-        net_connect = ConnectHandler(**device_info)
-        net_connect.enable()
-
-        if hostname:
-            output = net_connect.send_config_set([f'hostname {hostname}'])
-            print(f"Hostname output for {device['name']}:", output)
-            device_collection.update_one({"_id": ObjectId(device["_id"])}, {"$set": {"name": hostname}})
-            net_connect.set_base_prompt()
-        
-        if secret_password:
-            output = net_connect.send_config_set([f'enable secret {secret_password}'])
-            device_collection.update_one({"_id": ObjectId(device["_id"])}, {"$set": {"device_info.secret": secret_password}})
-            print(f"Enable secret output for {device['name']}:", output)
-        
-        if banner:
-            output = net_connect.send_config_set([f'banner motd # {banner} #'])
-            print(f"Banner output for {device['name']}:", output)
-        
-        net_connect.disconnect()
-    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error connecting to {device['name']}: {e}")
-        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/basic_settings";</script>'
-
 @app.route('/basic_settings', methods=['GET', 'POST'])
 def basic_settings():
     try:
@@ -186,7 +161,7 @@ def basic_settings():
         cisco_devices = None  
 
     if request.method == 'POST':
-        device_name = request.form.get('device_name')  # เพิ่มการดึงข้อมูลจาก dropdown
+        device_name = request.form.get('device_name')  
         hostname = request.form.get('hostname')
         secret_password = request.form.get('secret_password')
         banner = request.form.get('banner')
@@ -234,7 +209,7 @@ def basic_settings():
             device = device_collection.find_one({"device_info.ip": ip})
             
             if device:
-                thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner))
+                thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner, device_collection))
                 threads.append(thread)
                 thread.start()
             else:

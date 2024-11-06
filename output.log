@@ -1,19 +1,19 @@
- Testing5 
-RT1>
-RT1>terminal width 511
-RT1>terminal length 0
-RT1>
-RT1>
-RT1>enable
+ Testing from split func 
+SW1>
+SW1>terminal width 511
+SW1>terminal length 0
+SW1>
+SW1>
+SW1>enable
 Password: 
-RT1#
-RT1#
-RT1#configure terminal
+SW1#
+SW1#
+SW1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-RT1(config)#
-RT1(config)#enable secret cisco
-RT1(config)#
-RT1(config)#end
-RT1#
-RT1#
-RT1#exit
+SW1(config)#
+SW1(config)#banner motd # Testing Loader #
+SW1(config)#
+SW1(config)#end
+SW1#
+SW1#
+SW1#exit
