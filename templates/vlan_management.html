@@ -103,7 +103,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="basic_settings_page">Basic Settings</a></li>
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
-                        <li><a href="vlan_settigs_page" class="active">VLAN Management</a></li>
+                        <li><a href="vlan_settings_page" class="active">VLAN Management</a></li>
                         <li><a href="#">Management Settings</a></li>
                     </ul>
                 </li>
@@ -142,7 +142,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">vlan Management</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/vlan_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -167,11 +167,8 @@
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
 
-                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="25">
-                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
-                        minlength="3" maxlength="20">
-                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
+                    <h3 style="color: #2e4ead; text-align: left;">Create VLANs</h3><br>
+                    <input type="text" id="vlan_id" name="vlan_id" placeholder="vlan ID like 9-20">
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
 

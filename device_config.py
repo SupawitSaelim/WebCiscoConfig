@@ -1,6 +1,7 @@
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 from pymongo import MongoClient
 from bson import ObjectId
+import time
 
 def configure_device(device, hostname, secret_password, banner, device_collection):
     device_info = device["device_info"]
@@ -96,3 +97,21 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/network_interface_page";</script>'
+
+
+def create_vlan_on_device(device, vlan_id):
+    device_info = device["device_info"]
+
+    try:
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        vlan_config_command = f"vlan {vlan_id}"
+        output = net_connect.send_config_set([vlan_config_command])
+        print(f"VLAN {vlan_id} creation output for {device['name']}:", output)
+
+        net_connect.disconnect()
+
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error connecting to {device['name']}: {e}")
+        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/vlan_settings";</script>'
