@@ -5,25 +5,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Record MNMG.</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
+    <title>VLAN Management</title>
     <style>
-        .input-container {
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .input-container input[type="text"],
-        .input-container input[type="password"] {
-            flex: 1;
-            margin-right: 10px;
-        }
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
+            manyHostnameInput.addEventListener("input", function () {
+                if (manyHostnameInput.value.trim() !== "") {
+                    deviceDropdown.style.display = "none";
+                } else {
+                    deviceDropdown.style.display = "block";
+                }
+            });
+
+            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
+            deviceDropdown.addEventListener("change", function () {
+                if (deviceDropdown.value === "") {
+                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
+                    manyHostnameInput.style.display = "block";
+                } else {
+                    manyHostnameInput.style.display = "none";
+                }
+            });
+        });
+
+    </script>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function handleSubmit() {
+            showLoader(); // Show loader when form is submitted
+            return true; // Proceed with form submission
+        }
+    </script>
 </head>
 
 <body>
+    <div id="loader"></div> <!-- Loader element -->
+
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -36,13 +65,15 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="record_mnmg_page" title="Refresh" style="display: inline-flex; align-items: center;">
+                        <a href="vlan_settigs_page" title="Refresh"
+                            style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
                     </li>
                     <form method="POST" action="/logout" style="display: inline;">
-                        <button type="submit" title="Logout" style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
+                        <button type="submit" title="Logout"
+                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
                             <i class="fas fa-sign-out-alt" style="font-size: 24px; margin-right: 8px;"></i>
                             <span style="display: none;">Logout</span>
                         </button>
@@ -56,7 +87,7 @@
                         <span class="icon"><i class="fas fa-play-circle"></i></span>
                         <span class="title">Device Initialization</span>
                     </a></li>
-                <li><a href="record_mnmg_page" class="active">
+                <li><a href="record_mnmg_page">
                         <span class="icon"><i class="fas fa-folder"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
@@ -72,7 +103,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="basic_settings_page">Basic Settings</a></li>
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
-                        <li><a href="vlan_settigs_page">VLAN Management</a></li>
+                        <li><a href="vlan_settigs_page" class="active">VLAN Management</a></li>
                         <li><a href="#">Management Settings</a></li>
                     </ul>
                 </li>
@@ -108,55 +139,42 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="color:#2e4ead;text-align: left;">INSERT INFORMATIONS OF DEVICE</h1>
-                <br><br>
-                <form method="post" action="/record_mnmg" onsubmit="return validateForm()">
-                    <input type="text" name="name" id="name" placeholder="Name device"
-                        style="width: 49%; margin-right: 100%;" required><br>
-                    <div class="input-container">
-                        <input type="text" id="ip_address" name="ip_address" placeholder="IP Address device"
-                            required><br>
-                        <input type="password" id="privilegepassword" name="privilegepassword" placeholder="Privilege Password"
-                            required><br>
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required>
-                        <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
-                            required>
-                    </div>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">vlan Management</h1>
+                <br>
+                <h3 style="color: #2e4ead;">Select Device:</h3><br>
+                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                    <div class="input-container" style="display: flex; align-items: center;">
+                        <!-- Dropdown with ID for JavaScript to access -->
+                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                            <option value="">None</option>
+                            {% if cisco_devices %}
+                            {% for device in cisco_devices %}
+                            <option value="{{ device.device_info.ip }}">
+                                {{ device.name }} ({{ device.device_info.ip }})
+                            </option>
+                            {% endfor %}
+                            {% else %}
+                            <option disabled>No devices available</option>
+                            {% endif %}
+                        </select>
+                    </div><br><br>
+
+                    <label for="many_name" style="text-align: left;">
+                        If more than one device, input names of devices here (separate by comma)
+                    </label>
+                    <!-- Input field for many_hostname with ID -->
+                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                        placeholder="Example: sw1,sw2,sw3">
                     <br><br>
+
+                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
+                        maxlength="25">
+                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
+                        minlength="3" maxlength="20">
+                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
-                <script>
-                    function validateForm() {
-                        var ipField = document.getElementById("ip_address");
-                        var ipValue = ipField.value;
-                        var ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-                        if (!ipPattern.test(ipValue)) {
-                            alert("Please enter a valid IPv4 address.");
-                            ipField.focus();
-                            return false;
-                        }
-                        var octets = ipValue.split('.');
-                        for (var i = 0; i < octets.length; i++) {
-                            if (parseInt(octets[i]) < 0 || parseInt(octets[i]) > 255) {
-                                alert("Each octet of the IP address must be between 0 and 255.");
-                                ipField.focus();
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
 
-                    // Display flash messages as alerts
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}"); // Show flash message
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-                </script>
             </div>
         </div>
     </div>

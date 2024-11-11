@@ -345,6 +345,14 @@ def network_interface_settings():
     return render_template('network_interface_config.html', cisco_devices=cisco_devices)
 
 
+########## VLAN Management Settings ########################
+@app.route('/vlan_settigs_page', methods=['GET'])
+def vlan_settigs_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('vlan_management.html', cisco_devices=cisco_devices)
 
 
 ########## Erase Configuration #############################
