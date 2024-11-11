@@ -246,6 +246,8 @@ def network_interface_settings():
         
         # ข้อมูล IPv4
         interfaces_ipv4 = request.form.get('interfaces_ipv4')
+        config_type = request.form.get('config_type')  
+        dhcp_ipv4 = (config_type == 'dhcp_ipv4')
         ip_address_ipv4 = request.form.get('ip_address_ipv4')
         subnet_mask_ipv4 = request.form.get('subnet_mask_ipv4')
         enable_ipv4 = request.form.get('enable_ipv4') == 'on'
@@ -254,16 +256,16 @@ def network_interface_settings():
         
         # ข้อมูล IPv6
         interfaces_ipv6 = request.form.get('interfaces_ipv6')
+        dhcp_ipv6 = request.form.get('config_type_ipv6') == 'dhcp_ipv6'  
+        ip_address_ipv6 = request.form.get('ip_address_ipv6')
         ip_address_ipv6 = request.form.get('ip_address_ipv6')
         enable_ipv6 = request.form.get('enable_ipv6') == 'on'
         disable_ipv6 = request.form.get('disable_ipv6') == 'on'
         delete_ipv6 = request.form.get('delete_ipv6') == 'on'
 
-        # Speed and Duplex
         interfaces_du = request.form.get('interfaces_du')
         speed_duplex = request.form.get('speed_duplex')
         
-        # ตรวจสอบอุปกรณ์ที่เลือก
         device_ips = []
         device_names_processed = set()
 
@@ -302,6 +304,7 @@ def network_interface_settings():
         threads = []
         print("Device IPs to configure:", device_ips)
         
+        
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
             
@@ -311,12 +314,14 @@ def network_interface_settings():
                     args=(
                         device,
                         interfaces_ipv4,
+                        dhcp_ipv4,
                         ip_address_ipv4,
                         subnet_mask_ipv4,
                         enable_ipv4,
                         disable_ipv4,
                         delete_ipv4,
                         interfaces_ipv6,
+                        dhcp_ipv6,
                         ip_address_ipv6,
                         enable_ipv6,
                         disable_ipv6,

@@ -30,9 +30,9 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/basic_settings";</script>'
 
 
-def configure_network_interface(device, interfaces_ipv4, ip_address_ipv4, subnet_mask_ipv4, 
+def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ipv4, subnet_mask_ipv4, 
                                 enable_ipv4, disable_ipv4, delete_ipv4,
-                                interfaces_ipv6, ip_address_ipv6, enable_ipv6, 
+                                interfaces_ipv6,dhcp_ipv6, ip_address_ipv6, enable_ipv6, 
                                 disable_ipv6, delete_ipv6, interfaces_du,speed_duplex, device_collection):
     device_info = device["device_info"]
     
@@ -42,6 +42,11 @@ def configure_network_interface(device, interfaces_ipv4, ip_address_ipv4, subnet
 
         output = net_connect.send_config_set(["ipv6 unicast-routing"])
         print(f"IPv6 unicast-routing Config for {device['name']}:", output)
+
+        if dhcp_ipv4:
+            ipv4_config = "ip address dhcp"
+            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
+            print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
         if ip_address_ipv4: 
             ipv4_config = f"ip address {ip_address_ipv4} {subnet_mask_ipv4}"
@@ -60,6 +65,11 @@ def configure_network_interface(device, interfaces_ipv4, ip_address_ipv4, subnet
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no ip address"])
             print(f"Delete IPv4 for {device['name']}:", output)
 
+
+        if dhcp_ipv6:
+            ipv6_config = "ipv6 address dhcp"
+            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
+            print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
         if ip_address_ipv6: 
             ipv6_config = f"ipv6 address {ip_address_ipv6}"

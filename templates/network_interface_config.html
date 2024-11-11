@@ -72,6 +72,62 @@
             return true; // Proceed with form submission
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dhcpRadio = document.getElementById('dhcp');
+            const manualRadio = document.getElementById('manual');
+            const ipAddressField = document.getElementById('ip_address_ipv4');
+            const subnetMaskField = document.getElementById('subnet_mask_ipv4');
+
+            // Initially, hide the IP and subnet fields for DHCP
+            if (dhcpRadio.checked) {
+                ipAddressField.style.display = 'none';
+                subnetMaskField.style.display = 'none';
+            }
+
+            // Show or hide fields based on selection
+            dhcpRadio.addEventListener('change', function () {
+                if (dhcpRadio.checked) {
+                    ipAddressField.style.display = 'none';
+                    subnetMaskField.style.display = 'none';
+                }
+            });
+
+            manualRadio.addEventListener('change', function () {
+                if (manualRadio.checked) {
+                    ipAddressField.style.display = 'block';
+                    subnetMaskField.style.display = 'block';
+                }
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const dhcpRadioIpv6 = document.getElementById('dhcp_ipv6');
+            const manualRadioIpv6 = document.getElementById('manual_ipv6');
+            const ipAddressFieldIpv6 = document.getElementById('ip_address_ipv6');
+
+            // Initially, hide the IP field for DHCP IPv6
+            if (dhcpRadioIpv6.checked) {
+                ipAddressFieldIpv6.style.display = 'none';
+            }
+
+            // Show or hide IP address field based on selection
+            dhcpRadioIpv6.addEventListener('change', function () {
+                if (dhcpRadioIpv6.checked) {
+                    ipAddressFieldIpv6.style.display = 'none';  // Hide IP address field for DHCP
+                }
+            });
+
+            manualRadioIpv6.addEventListener('change', function () {
+                if (manualRadioIpv6.checked) {
+                    ipAddressFieldIpv6.style.display = 'block';  // Show IP address field for manual configuration
+                }
+            });
+        });
+
+    </script>
+
+
 </head>
 
 <body>
@@ -192,8 +248,15 @@
 
                     <h3 style="color: #2e4ead; text-align: left;">IPv4</h3>
                     <br>
+
+                    <br>
                     <input type="text" id="interfaces_ipv4" name="interfaces_ipv4" placeholder="Network Interfaces"
                         minlength="3" maxlength="25">
+                    <div class="input-container" style="text-align: left;">
+                        <label for="config_type">Configuration Type: </label>
+                        <input type="radio" id="dhcp" name="config_type" value="dhcp_ipv4"> DHCP
+                        <input type="radio" id="manual" name="config_type" value="manual" checked> Manual
+                    </div><br>
                     <input type="text" id="ip_address_ipv4" name="ip_address_ipv4" placeholder="IP Address">
                     <input type="text" id="subnet_mask_ipv4" name="subnet_mask_ipv4" placeholder="Subnet Mask">
                     <div class="checkbox-wrapper-22">
@@ -219,7 +282,12 @@
                     <br>
                     <input type="text" id="interfaces_ipv6" name="interfaces_ipv6" placeholder="Network Interfaces"
                         minlength="3" maxlength="25">
-                    <input type="text" id="ip_address_ipv6" name="ip_address_ipv6" placeholder="IP Address">
+                    <div class="input-container" style="text-align: left;">
+                        <label for="config_type_ipv6">Configuration Type: </label>
+                        <input type="radio" id="dhcp_ipv6" name="config_type_ipv6" value="dhcp_ipv6"> DHCP
+                        <input type="radio" id="manual_ipv6" name="config_type_ipv6" value="manual_ipv6" checked> Manual
+                    </div><br>
+                    <input type="text" id="ip_address_ipv6" name="ip_address_ipv6" placeholder="IP Address/Subnet Mask">
                     <div class="checkbox-wrapper-22">
                         <label>Enable</label>
                         <label class="switch">
