@@ -6,58 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Network Interface Settings</title>
-    <style>
-        .checkbox-wrapper-22 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-wrapper-22 .switch {
-            display: inline-block;
-            height: 34px;
-            position: relative;
-            width: 60px;
-        }
-
-        .checkbox-wrapper-22 .switch input {
-            display: none;
-        }
-
-        .checkbox-wrapper-22 .slider {
-            background-color: #ccc;
-            border-radius: 34px;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-        }
-
-        .checkbox-wrapper-22 .slider:before {
-            background-color: #fff;
-            border-radius: 50%;
-            bottom: 4px;
-            content: "";
-            height: 26px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 26px;
-        }
-
-        .checkbox-wrapper-22 input:checked+.slider {
-            background-color: #4caf50;
-        }
-
-        .checkbox-wrapper-22 input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-    </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <script>
@@ -92,20 +41,20 @@
                     document.getElementById('disable_ipv4').checked = false; // ปิด Disable เมื่อ Enable เปิด
                 }
             });
-    
+
             document.getElementById('disable_ipv4').addEventListener('change', function () {
                 if (this.checked) {
                     document.getElementById('enable_ipv4').checked = false; // ปิด Enable เมื่อ Disable เปิด
                 }
             });
-    
+
             // Function to toggle IPv6 switches
             document.getElementById('enable_ipv6').addEventListener('change', function () {
                 if (this.checked) {
                     document.getElementById('disable_ipv6').checked = false; // ปิด Disable เมื่อ Enable เปิด
                 }
             });
-    
+
             document.getElementById('disable_ipv6').addEventListener('change', function () {
                 if (this.checked) {
                     document.getElementById('enable_ipv6').checked = false; // ปิด Enable เมื่อ Disable เปิด
@@ -124,6 +73,7 @@
         }
     </script>
 </head>
+
 <body>
     <div id="loader"></div> <!-- Loader element -->
 
@@ -215,7 +165,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">network interface SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/network_interface_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -257,6 +207,11 @@
                             <input type="checkbox" id="disable_ipv4" name="disable_ipv4">
                             <span class="slider"></span>
                         </label>
+                        <label>Delete IP</label>
+                        <label class="switch">
+                            <input type="checkbox" id="delete_ipv4" name="delete_ipv4">
+                            <span class="slider"></span>
+                        </label>
                     </div>
                     <br><br>
 
@@ -276,9 +231,22 @@
                             <input type="checkbox" id="disable_ipv6" name="disable_ipv6">
                             <span class="slider"></span>
                         </label>
+                        <label>Delete IP</label>
+                        <label class="switch">
+                            <input type="checkbox" id="delete_ipv6" name="delete_ipv6">
+                            <span class="slider"></span>
+                        </label>
                     </div>
-
+                    <br><br>
+                    <h3 style="color: #2e4ead; text-align: left;">Duplex</h3>
                     <br>
+                    <input type="text" id="interfaces_du" name="interfaces_du" placeholder="Network Interfaces"
+                        minlength="3" maxlength="25">
+                    <select id="speed_duplex" name="speed_duplex">
+                        <option value="auto">Auto-Negotiation(default)</option>
+                        <option value="full">Full</option>
+                        <option value="half">Half</option>
+                    </select>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
 
                 </form>

@@ -81,6 +81,59 @@ body{
 .wrapper .top_navbar .top_menu ul li a:hover i{
   color: midnightblue
 }
+.sidebar {
+  z-index: 1;
+  position: relative;
+}
+
+.checkbox-wrapper-22 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-wrapper-22 .switch {
+  display: inline-block;
+  height: 34px;
+  position: relative;
+  width: 60px;
+}
+
+.checkbox-wrapper-22 .switch input {
+  display: none;
+}
+
+.checkbox-wrapper-22 .slider {
+  background-color: #ccc;
+  border-radius: 34px;
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: .4s;
+}
+
+.checkbox-wrapper-22 .slider:before {
+  background-color: #fff;
+  border-radius: 50%;
+  bottom: 4px;
+  content: "";
+  height: 26px;
+  left: 4px;
+  position: absolute;
+  transition: .4s;
+  width: 26px;
+}
+
+.checkbox-wrapper-22 input:checked+.slider {
+  background-color: #4caf50;
+}
+
+.checkbox-wrapper-22 input:checked+.slider:before {
+  transform: translateX(26px);
+}
 
 .wrapper .sidebar{
   position: fixed;

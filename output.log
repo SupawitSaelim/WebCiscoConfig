@@ -1,19 +1,22 @@
- Testing from split func 
-SW1>
-SW1>terminal width 511
-SW1>terminal length 0
-SW1>
-SW1>
-SW1>enable
+
+SW2>
+SW2>terminal width 511
+SW2>terminal length 0
+SW2>
+SW2>
+SW2>enable
 Password: 
-SW1#
-SW1#
-SW1#configure terminal
+SW2#
+SW2#
+SW2#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW1(config)#
-SW1(config)#banner motd # Testing Loader #
-SW1(config)#
-SW1(config)#end
-SW1#
+SW2(config)#
+SW2(config)#banner motd # Testing from Flask #
+SW2(config)#
+SW2(config)#end
+SW2#
+SW2#
+SW2#exit
+#
 SW1#
 SW1#exit
