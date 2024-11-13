@@ -11,7 +11,7 @@ import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
-from device_config import configure_device, configure_network_interface, create_vlan_on_device
+from device_config import configure_device, configure_network_interface, manage_vlan_on_device
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -364,31 +364,48 @@ def vlan_settings():
     if request.method == 'POST':
         device_name = request.form.get('device_name')  
         many_hostname = request.form.get('many_hostname')  
-        vlan_id = request.form.get('vlan_id')  # รับข้อมูล VLAN ID
+        vlan_id = request.form.get('vlan_id')
+        vlan_id_del = request.form.get('vlan_id_del')  
 
         device_ips = []
         device_names_processed = set()
 
-        # ตรวจสอบและแยกช่วง VLAN ID (เช่น 9-20) เป็นตัวเลข
+        # สร้างรายการ VLAN สำหรับการสร้าง
         vlan_range = []
-        if '-' in vlan_id:
-            start_vlan, end_vlan = vlan_id.split('-')
-            try:
-                start_vlan = int(start_vlan)
-                end_vlan = int(end_vlan)
-                vlan_range = list(range(start_vlan, end_vlan + 1))
-            except ValueError:
-                print(f"Invalid VLAN range: {vlan_id}")
-                return f'<script>alert("Invalid VLAN range: {vlan_id}"); window.location.href="/vlan_settings";</script>'
-        else:
-            # ถ้าผู้ใช้กรอกเฉพาะ VLAN เดียว
-            try:
-                vlan_range = [int(vlan_id)]
-            except ValueError:
-                print(f"Invalid VLAN ID: {vlan_id}")
-                return f'<script>alert("Invalid VLAN ID: {vlan_id}"); window.location.href="/vlan_settings";</script>'
+        if vlan_id:
+            vlan_entries = vlan_id.split(',')
+            for entry in vlan_entries:
+                entry = entry.strip()
+                if '-' in entry:
+                    try:
+                        start_vlan, end_vlan = entry.split('-')
+                        vlan_range.extend(range(int(start_vlan), int(end_vlan) + 1))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN range: {entry}"); window.location.href="/vlan_settings";</script>'
+                else:
+                    try:
+                        vlan_range.append(int(entry))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN ID: {entry}"); window.location.href="/vlan_settings";</script>'
+        
+        # สร้างรายการ VLAN สำหรับการลบ
+        vlan_range_del = []
+        if vlan_id_del:
+            vlan_entries_del = vlan_id_del.split(',')
+            for entry in vlan_entries_del:
+                entry = entry.strip()
+                if '-' in entry:
+                    try:
+                        start_vlan, end_vlan = entry.split('-')
+                        vlan_range_del.extend(range(int(start_vlan), int(end_vlan) + 1))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN delete range: {entry}"); window.location.href="/vlan_settings";</script>'
+                else:
+                    try:
+                        vlan_range_del.append(int(entry))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN delete ID: {entry}"); window.location.href="/vlan_settings";</script>'
 
-        print(f"VLAN range to configure: {vlan_range}")
 
         # ตรวจสอบว่า user กรอกชื่ออุปกรณ์หรือไม่
         if many_hostname:
@@ -423,20 +440,21 @@ def vlan_settings():
                 print(f"Device with IP {device_name} not found in database")
                 return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/vlan_settings";</script>'
 
-        # เริ่มการตั้งค่าทุก VLAN ในช่วงที่ผู้ใช้กรอก
+        # เริ่มสร้างและลบ VLAN โดยใช้ threading
         threads = []
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
-            
             if device:
                 for vlan in vlan_range:
-                    time.sleep(0.5)
-                    thread = threading.Thread(target=create_vlan_on_device, args=(device, vlan))
+                    time.sleep(0.7)
+                    thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan, "create"))
                     threads.append(thread)
                     thread.start()
-            else:
-                print(f"Device with IP {ip} not found in database")
-                return f'<script>alert("Device with IP {ip} not found in database"); window.location.href="/vlan_settings";</script>'
+                for vlan in vlan_range_del:
+                    time.sleep(0.7)
+                    thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan, "delete"))
+                    threads.append(thread)
+                    thread.start()
 
         for thread in threads:
             thread.join()
