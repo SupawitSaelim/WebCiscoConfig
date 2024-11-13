@@ -367,6 +367,9 @@ def vlan_settings():
         vlan_id = request.form.get('vlan_id')
         vlan_id_del = request.form.get('vlan_id_del')  
 
+        vlan_ids_to_change = request.form.getlist('vlan_ids_change[]')
+        vlan_names_to_change = request.form.getlist('vlan_names_change[]')
+
         device_ips = []
         device_names_processed = set()
 
@@ -403,6 +406,11 @@ def vlan_settings():
                         vlan_range_del.append(int(entry))
                     except ValueError:
                         return f'<script>alert("Invalid VLAN delete ID: {entry}"); window.location.href="/vlan_settings";</script>'
+        
+        vlan_changes = []
+        for vlan_id, vlan_name in zip(vlan_ids_to_change, vlan_names_to_change):
+            vlan_changes.append((vlan_id.strip(), vlan_name.strip()))
+        print(vlan_changes)
 
         if many_hostname:
             device_names = [name.strip() for name in many_hostname.split(',')]
@@ -440,7 +448,7 @@ def vlan_settings():
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
             if device:
-                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del))
+                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del, vlan_changes))
                 threads.append(thread)
                 thread.start()
 

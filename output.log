@@ -8,7 +8,49 @@ SW2>enable
 Password: 
 SW2#
 SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#vlan 99
+SW2(config-vlan)#
+SW2(config-vlan)#end
+SW2#
+SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#vlan 100
+SW2(config-vlan)#
+SW2(config-vlan)#end
+SW2#
+SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#no vlan 33
+SW2(config)#
+SW2(config)#end
+SW2#
+SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#vlan 99
+SW2(config-vlan)#name Sales
+SW2(config-vlan)#
+SW2(config-vlan)#end
+SW2#
+SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#vlan 100
+SW2(config-vlan)#name Engineer
+SW2(config-vlan)#
+SW2(config-vlan)#end
+SW2#
+SW2#
 SW2#exit
-#
+
 SW1#
 SW1#exit

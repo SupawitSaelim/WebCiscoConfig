@@ -12,6 +12,14 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <style>
+        .vlan_pair {
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
@@ -26,10 +34,8 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
                     manyHostnameInput.style.display = "block";
                 } else {
                     manyHostnameInput.style.display = "none";
@@ -46,6 +52,19 @@
         function handleSubmit() {
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
+        }
+    </script>
+    <script>
+        // Function to add a new pair of VLAN ID and VLAN Name for changing
+        function addVlanChangePair() {
+            let container = document.getElementById('vlan_change_pairs');
+            let newPair = document.createElement('div');
+            newPair.classList.add('vlan_pair');
+            newPair.innerHTML = `
+                <input type="text" name="vlan_ids_change[]" placeholder="VLAN ID" style="margin-right: 10px;">
+                <input type="text" name="vlan_names_change[]" placeholder="New VLAN Name">
+            `;
+            container.appendChild(newPair);
         }
     </script>
 </head>
@@ -65,8 +84,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="vlan_settigs_page" title="Refresh"
-                            style="display: inline-flex; align-items: center;">
+                        <a href="vlan_settigs_page" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -169,6 +187,18 @@
 
                     <h3 style="color: #2e4ead; text-align: left;">Create VLANs</h3><br>
                     <input type="text" id="vlan_id" name="vlan_id" placeholder="vlan ID like 9-20">
+                    <h3 style="color: #2e4ead; text-align: left;">Change VLAN Names</h3><br>
+                    <label for="vlan_change_name" style="text-align: left;">VLAN ID and New Name</label><br>
+
+                    <!-- Multiple pairs of VLAN ID and New Name -->
+                    <div id="vlan_change_pairs">
+                        <div class="vlan_pair">
+                            <input type="text" name="vlan_ids_change[]" placeholder="VLAN ID">
+                            <input type="text" name="vlan_names_change[]" placeholder="New VLAN Name">
+                        </div>
+                    </div>
+                    <button type="button" onclick="addVlanChangePair()">Add more VLANs to change</button><br><br>
+
                     <h3 style="color: #2e4ead; text-align: left;">Delete VLANs</h3><br>
                     <input type="text" id="vlan_id_del" name="vlan_id_del" placeholder="vlan ID">
 
