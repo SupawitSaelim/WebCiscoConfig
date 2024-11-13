@@ -99,19 +99,19 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/network_interface_page";</script>'
 
 
-def manage_vlan_on_device(device, vlan_id, action):
+def manage_vlan_on_device(device, vlan_range, vlan_range_del):
     device_info = device["device_info"]
 
     try:
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        if action == "create":
+        for vlan_id in vlan_range:
             vlan_config_command = f"vlan {vlan_id}"
             output = net_connect.send_config_set([vlan_config_command])
             print(f"VLAN {vlan_id} creation output for {device['name']}:", output)
 
-        elif action == "delete":
+        for vlan_id in vlan_range_del:
             vlan_delete_command = f"no vlan {vlan_id}"
             output = net_connect.send_config_set([vlan_delete_command])
             print(f"VLAN {vlan_id} deletion output for {device['name']}:", output)

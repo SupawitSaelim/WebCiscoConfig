@@ -370,7 +370,6 @@ def vlan_settings():
         device_ips = []
         device_names_processed = set()
 
-        # สร้างรายการ VLAN สำหรับการสร้าง
         vlan_range = []
         if vlan_id:
             vlan_entries = vlan_id.split(',')
@@ -388,7 +387,6 @@ def vlan_settings():
                     except ValueError:
                         return f'<script>alert("Invalid VLAN ID: {entry}"); window.location.href="/vlan_settings";</script>'
         
-        # สร้างรายการ VLAN สำหรับการลบ
         vlan_range_del = []
         if vlan_id_del:
             vlan_entries_del = vlan_id_del.split(',')
@@ -406,8 +404,6 @@ def vlan_settings():
                     except ValueError:
                         return f'<script>alert("Invalid VLAN delete ID: {entry}"); window.location.href="/vlan_settings";</script>'
 
-
-        # ตรวจสอบว่า user กรอกชื่ออุปกรณ์หรือไม่
         if many_hostname:
             device_names = [name.strip() for name in many_hostname.split(',')]
             for name in device_names:
@@ -440,21 +436,13 @@ def vlan_settings():
                 print(f"Device with IP {device_name} not found in database")
                 return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/vlan_settings";</script>'
 
-        # เริ่มสร้างและลบ VLAN โดยใช้ threading
         threads = []
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
             if device:
-                for vlan in vlan_range:
-                    time.sleep(0.7)
-                    thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan, "create"))
-                    threads.append(thread)
-                    thread.start()
-                for vlan in vlan_range_del:
-                    time.sleep(0.7)
-                    thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan, "delete"))
-                    threads.append(thread)
-                    thread.start()
+                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del))
+                threads.append(thread)
+                thread.start()
 
         for thread in threads:
             thread.join()
