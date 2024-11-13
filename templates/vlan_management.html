@@ -67,6 +67,38 @@
             container.appendChild(newPair);
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // ฟังก์ชันในการแสดง/ซ่อนช่องกรอก
+            function toggleVlanInputFields() {
+                const enableVlanField = document.getElementById('vlan_id_enable');
+                const disableVlanField = document.getElementById('vlan_id_disable');
+                
+                if (document.getElementById('enable_vlans').checked) {
+                    enableVlanField.style.display = 'block';
+                    disableVlanField.style.display = 'none'; 
+                } else if (document.getElementById('disable_vlans').checked) {
+                    disableVlanField.style.display = 'block';
+                    enableVlanField.style.display = 'none'; 
+                } else {
+                    enableVlanField.style.display = 'none';
+                    disableVlanField.style.display = 'none';
+                }
+            }
+    
+            document.getElementById('enable_vlans').addEventListener('change', function () {
+                document.getElementById('disable_vlans').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                toggleVlanInputFields(); // อัพเดตการแสดงช่องกรอก
+            });
+    
+            document.getElementById('disable_vlans').addEventListener('change', function () {
+                document.getElementById('enable_vlans').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                toggleVlanInputFields(); // อัพเดตการแสดงช่องกรอก
+            });
+    
+            toggleVlanInputFields();
+        });
+    </script>
 </head>
 
 <body>
@@ -197,8 +229,33 @@
                             <input type="text" name="vlan_names_change[]" placeholder="New VLAN Name">
                         </div>
                     </div>
-                    <button type="button" onclick="addVlanChangePair()">Add more VLANs to change</button><br><br>
+                    <button type="button" style="background-color: #2e4ead; /* สีน้ำเงิน */
+                    color: white;              
+                    border: none;              
+                    border-radius: 5px;        
+                    padding: 10px 20px;       
+                    font-size: 14px;           
+                    cursor: pointer;          
+                    display: block;           
+                    margin-left: 0;" onclick="addVlanChangePair()">Add more VLANs to change</button><br><br>
+                    <h3 style="color: #2e4ead; text-align: left;">VLAN Enable / Disable</h3><br>
 
+                    <div class="checkbox-wrapper-22">
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_vlans" name="enable_vlans">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_vlans" name="disable_vlans">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <input type="text" id="vlan_id_enable" name="vlan_id_enable" placeholder="Enter VLAN ID for Enable" style="display: none; width: 30%;">
+                        <input type="text" id="vlan_id_disable" name="vlan_id_disable" placeholder="Enter VLAN ID for Disable" style="display: none; width: 30%;">
+                    </div>
                     <h3 style="color: #2e4ead; text-align: left;">Delete VLANs</h3><br>
                     <input type="text" id="vlan_id_del" name="vlan_id_del" placeholder="vlan ID">
 

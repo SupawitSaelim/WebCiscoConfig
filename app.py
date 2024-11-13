@@ -370,6 +370,11 @@ def vlan_settings():
         vlan_ids_to_change = request.form.getlist('vlan_ids_change[]')
         vlan_names_to_change = request.form.getlist('vlan_names_change[]')
 
+        enable_vlans = request.form.get('enable_vlans')  
+        disable_vlans = request.form.get('disable_vlans')  
+        vlan_id_enable = request.form.get('vlan_id_enable')  
+        vlan_id_disable = request.form.get('vlan_id_disable')
+
         device_ips = []
         device_names_processed = set()
 
@@ -410,7 +415,40 @@ def vlan_settings():
         vlan_changes = []
         for vlan_id, vlan_name in zip(vlan_ids_to_change, vlan_names_to_change):
             vlan_changes.append((vlan_id.strip(), vlan_name.strip()))
-        print(vlan_changes)
+
+        vlan_range_enable = []
+        if enable_vlans and vlan_id_enable:
+            vlan_entries_enable = vlan_id_enable.split(',')
+            for entry in vlan_entries_enable:
+                entry = entry.strip()
+                if '-' in entry:  
+                    try:
+                        start_vlan, end_vlan = entry.split('-')
+                        vlan_range_enable.extend(range(int(start_vlan), int(end_vlan) + 1))  # ขยายช่วง VLAN
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN range for Enable: {entry}"); window.location.href="/vlan_settings";</script>'
+                else:  # ถ้าไม่ใช่ช่วงให้เพิ่มแค่ VLAN ที่ระบุ
+                    try:
+                        vlan_range_enable.append(int(entry))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN ID for Enable: {entry}"); window.location.href="/vlan_settings";</script>'
+
+        vlan_range_disable = []
+        if disable_vlans and vlan_id_disable:
+            vlan_entries_disable = vlan_id_disable.split(',')
+            for entry in vlan_entries_disable:
+                entry = entry.strip()
+                if '-' in entry:  # ตรวจสอบว่ามีการใช้ช่วงหรือไม่
+                    try:
+                        start_vlan, end_vlan = entry.split('-')
+                        vlan_range_disable.extend(range(int(start_vlan), int(end_vlan) + 1))  # ขยายช่วง VLAN
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN range for Disable: {entry}"); window.location.href="/vlan_settings";</script>'
+                else:  # ถ้าไม่ใช่ช่วงให้เพิ่มแค่ VLAN ที่ระบุ
+                    try:
+                        vlan_range_disable.append(int(entry))
+                    except ValueError:
+                        return f'<script>alert("Invalid VLAN ID for Disable: {entry}"); window.location.href="/vlan_settings";</script>'
 
         if many_hostname:
             device_names = [name.strip() for name in many_hostname.split(',')]
@@ -448,7 +486,7 @@ def vlan_settings():
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
             if device:
-                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del, vlan_changes))
+                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable))
                 threads.append(thread)
                 thread.start()
 

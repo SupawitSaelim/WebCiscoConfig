@@ -99,7 +99,7 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/network_interface_page";</script>'
 
 
-def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes):
+def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable):
     device_info = device["device_info"]
 
     try:
@@ -116,12 +116,25 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes):
             output = net_connect.send_config_set([vlan_delete_command])
             print(f"VLAN {vlan_id} deletion output for {device['name']}:", output)
         
-        for vlan_id, new_name in vlan_changes:
-            print(vlan_id, new_name)
-            vlan_rename_command1 = f"vlan {vlan_id}"
-            vlan_rename_command2 = f"name {new_name}"
-            output = net_connect.send_config_set([vlan_rename_command1, vlan_rename_command2])
-            print(f"VLAN {vlan_id} renamed to {new_name} on {device['name']}:", output)
+        if vlan_changes:
+            print(vlan_changes)
+            for vlan_id, new_name in vlan_changes:
+                if vlan_id and new_name:
+                    vlan_rename_command1 = f"vlan {vlan_id}"
+                    vlan_rename_command2 = f"name {new_name}"
+                    output = net_connect.send_config_set([vlan_rename_command1, vlan_rename_command2])
+                    print(f"VLAN {vlan_id} renamed to {new_name} on {device['name']}:", output)
+
+        for vlan_id in vlan_range_enable:
+            vlan_enable_command = f"vlan {vlan_id}"
+            output = net_connect.send_config_set([vlan_enable_command,"no sh"])
+            print(f"VLAN {vlan_id} enabled on {device['name']}:", output)
+
+        for vlan_id in vlan_range_disable:
+            vlan_disable_command = f"vlan {vlan_id}"
+            output = net_connect.send_config_set([vlan_disable_command,"sh"])
+            print(f"VLAN {vlan_id} disabled on {device['name']}:", output)
+
 
         net_connect.disconnect()
 
