@@ -515,7 +515,14 @@ def vlan_settings():
     return render_template('vlan_management.html', cisco_devices=cisco_devices)
 
 
-
+########## Management Settings #############################
+@app.route('/management_settings_page', methods=['GET'])
+def management_settings_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('management_settings.html', cisco_devices=cisco_devices)
 
 
 ########## Erase Configuration #############################
