@@ -375,6 +375,17 @@ def vlan_settings():
         vlan_id_enable = request.form.get('vlan_id_enable')  
         vlan_id_disable = request.form.get('vlan_id_disable')
 
+        access_vlans = request.form.get('access_vlans')
+        access_interface = request.form.get('access_interface')
+        access_vlan_id = request.form.get('access_vlan_id')
+        disable_dtp = request.form.get('disable_dtp')  
+
+        trunk_ports = request.form.get('trunk_ports')
+        trunk_mode_select = request.form.get('trunk_mode_select')
+        trunk_interface = request.form.get('trunk_interface')
+        trunk_native = request.form.get('trunk_native')
+        allow_vlan = request.form.get('allow_vlan')
+
         device_ips = []
         device_names_processed = set()
 
@@ -486,7 +497,13 @@ def vlan_settings():
         for ip in device_ips:
             device = device_collection.find_one({"device_info.ip": ip})
             if device:
-                thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable))
+                # thread = threading.Thread(target=manage_vlan_on_device, args=(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable))
+                thread = threading.Thread(target=manage_vlan_on_device, args=(
+                    device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable, 
+                    access_vlans, access_interface, access_vlan_id, disable_dtp, 
+                    trunk_ports, trunk_mode_select, trunk_interface, trunk_native,
+                    allow_vlan
+                ))
                 threads.append(thread)
                 thread.start()
 

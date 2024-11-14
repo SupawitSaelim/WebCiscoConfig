@@ -23,6 +23,7 @@ body{
   display: flex;
   position: fixed;
   top: 10px;
+  z-index: 1000;
 }
 
 .wrapper .top_navbar .hamburger{

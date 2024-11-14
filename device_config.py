@@ -99,7 +99,9 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/network_interface_page";</script>'
 
 
-def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable):
+def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable,
+                          access_vlans, access_interface, access_vlan_id, disable_dtp,
+                          trunk_ports, trunk_mode_select, trunk_interface, trunk_native, allow_vlan):
     device_info = device["device_info"]
 
     try:
@@ -117,7 +119,6 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
             print(f"VLAN {vlan_id} deletion output for {device['name']}:", output)
         
         if vlan_changes:
-            print(vlan_changes)
             for vlan_id, new_name in vlan_changes:
                 if vlan_id and new_name:
                     vlan_rename_command1 = f"vlan {vlan_id}"
@@ -134,6 +135,39 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
             vlan_disable_command = f"vlan {vlan_id}"
             output = net_connect.send_config_set([vlan_disable_command,"sh"])
             print(f"VLAN {vlan_id} disabled on {device['name']}:", output)
+
+        if access_vlans and access_interface and access_vlan_id:
+            access_config_commands = [
+                f"interface range {access_interface}",
+                f"switchport mode access",
+                f"switchport access vlan {access_vlan_id}"
+            ]
+            if disable_dtp:
+                access_config_commands.append("switchport nonegotiate")  # ปิด DTP
+                output = net_connect.send_config_set(access_config_commands)
+                print(f"Access VLAN configuration output for {device['name']}:", output)
+
+        if disable_dtp and access_interface:
+                access_dtp_commands = ([f"interface range {access_interface}","switchport nonegotiate"])  # ปิด DTP
+                output = net_connect.send_config_set(access_dtp_commands)
+                print(f"Access VLAN configuration output for {device['name']}:", output)
+
+        if trunk_ports and trunk_interface and trunk_mode_select:
+            trunk_config_commands = [
+                f"interface range {trunk_interface}",
+                "switchport trunk encapsulation dot1q",
+                "switchport mode trunk",
+            ]
+            if trunk_mode_select in ["auto", "desirable"]:
+                trunk_config_commands.append("no switchport nonegotiate")
+                trunk_config_commands.append(f"switchport mode dynamic {trunk_mode_select}")
+            if trunk_native:
+                trunk_config_commands.append(f'switchport trunk native vlan {trunk_native}')
+            if allow_vlan:
+                trunk_config_commands.append(f'sw tr allow vlan {allow_vlan}')
+            output = net_connect.send_config_set(trunk_config_commands)
+            print(f"Trunk Mode configuration output for {device['name']}:", output)
+
 
 
         net_connect.disconnect()
