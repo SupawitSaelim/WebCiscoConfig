@@ -175,3 +175,60 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
         return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/vlan_settings";</script>'
+
+
+
+def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
+                          password_console, exec_timeout_console, logging_sync_console, authen_method_con):
+    device_info = device["device_info"]
+
+    try:
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        vty_commands = ["line vty 0 4"]
+        if password_vty:
+            vty_commands.append(f"password {password_vty}")
+
+        if authen_method:
+            vty_commands.append(f"{authen_method}")
+
+        if exec_timeout_vty:
+            vty_commands.append(f"exec-timeout {exec_timeout_vty}")
+
+        if login_method:
+            if login_method.lower() in ["ssh", "telnet"]:
+                vty_commands.append(f"transport input {login_method}")
+            elif login_method.lower() == "none":
+                vty_commands.append("transport input none")
+            else:
+                vty_commands.append("transport input all")
+
+        if logging_sync_vty:
+            vty_commands.append("loggin synchronous")
+
+        if vty_commands:
+            output = net_connect.send_config_set(vty_commands)
+            print(f"VTY Configuration for {device['name']}:", output)
+
+        console_commands = ["line console 0"]
+        if password_console:
+            console_commands.append(f"password {password_console}")
+            console_commands.append("login")
+
+        if exec_timeout_console:
+            console_commands.append(f"exec-timeout {exec_timeout_console}")
+
+        if logging_sync_console:
+            console_commands.append("loggin synchronous")
+        
+        if authen_method_con:
+            vty_commands.append(f"{authen_method}")
+
+        if len(console_commands) > 1:
+            output = net_connect.send_config_set(console_commands)
+            print(f"Console Configuration for {device['name']}:", output)
+
+        net_connect.disconnect()
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error connecting to {device['name']}: {e}")

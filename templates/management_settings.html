@@ -8,6 +8,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Management Settings</title>
     <style>
+        /* Two Column */
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            width: 48%;
+            /* Adjust this percentage to control the width of each column */
+        }
+
+        .form-group label {
+            display: block;
+            text-align: left;
+            color: #2e4ead;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+        }
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
@@ -139,7 +162,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Management SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/management_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -162,11 +185,68 @@
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
-
-                    <!-- <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="25"> -->
+                    <!-- VTY -->
+                    <h3 style="color: #2e4ead; text-align: left;">VTY (Virtual Terminal Lines) Configuration</h3><br>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <input type="text" id="password_vty" name="password_vty"
+                                placeholder="Enter Password"><br><br>
+                            <label for="authen_method">Authentication Method</label>
+                            <select id="authen_method_select" name="authen_method_select">
+                                <option value="">Not Select</option>
+                                <option value="login">VTY Password</option>
+                                <option value="login local">Local User</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="exec_timeout_vty" name="exec_timeout_vty"
+                                placeholder="Exec Timeout (in minutes)"><br><br>
+                            <label for="login_method">Login Method</label>
+                            <select id="login_method_select" name="login_method_select">
+                                <option value="">Not Select</option>
+                                <option value="all">All</option>
+                                <option value="ssh">SSH</option>
+                                <option value="telnet">Telnet</option>
+                                <option value="none">None(No protocols)</option>
+                            </select>
+                            <div class="checkbox-wrapper-22" style="margin-left: 0%;">
+                                <label>Enable Synchronized message output</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="logging_sync_vty" name="logging_sync_vty">
+                                    <span class="slider"></span>
+                                </label>
+                                <br>
+                            </div>
+                        </div>
+                    </div><br><br>
+                    <!-- Console -->
+                    <h3 style="color: #2e4ead; text-align: left;">Console Configuration</h3><br>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <input type="text" id="password_console" name="password_console"
+                                placeholder="Enter Password"><br><br>
+                                <label for="authen_method_console">Authentication Method</label>
+                                <select id="authen_method_console_select" name="authen_method_console_select">
+                                    <option value="">None</option>
+                                    <option value="login">Console Password</option>
+                                    <option value="login local">Local User</option>
+                                </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="exec_timeout_console" name="exec_timeout_console"
+                                placeholder="Exec Timeout (in minutes)"><br><br>
+                            <div class="checkbox-wrapper-22" style="margin-left: 0%;">
+                                <label>Enable Synchronized message output</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="loggin_sync" name="logging_sync_con">
+                                    <span class="slider"></span>
+                                </label>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
-
             </div>
         </div>
     </div>
