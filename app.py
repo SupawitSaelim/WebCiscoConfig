@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
-import os
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 import paramiko
 import threading
 from flask import Flask, render_template, request, redirect, url_for
 import serial_script
 from pymongo import MongoClient
-import os
 import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
@@ -550,6 +548,12 @@ def management_settings():
     time_zone_name = request.form.get("time_zone_name")
     hour_offset = request.form.get("hour_offset")
 
+    snmp_ro = request.form.get("snmp_ro")
+    snmp_rw = request.form.get("snmp_rw")
+    snmp_contact = request.form.get("snmp_contact")
+    snmp_location = request.form.get("snmp_location")
+
+
     device_ips = []
 
     if device_name:
@@ -576,7 +580,7 @@ def management_settings():
                 args=(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                     password_console, exec_timeout_console, logging_sync_console, authen_method_con,
                     pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
-                    ntp_server, time_zone_name, hour_offset)
+                    ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location)
             )
             threads.append(thread)
             thread.start()
@@ -954,10 +958,12 @@ def device_detials_page():
 @app.route('/get_snmp', methods=['POST'])
 def device_details_form():
     device_ip = request.form.get("device_name")
+    print(device_ip)
     result = subprocess.run(["node", "static/snmp.js", device_ip], capture_output=True, text=True)
     output = result.stdout if result.returncode == 0 else "Error fetching ports"
     uptime_result = subprocess.run(["node", "static/uptime.js", device_ip], capture_output=True, text=True)
     uptime_output = uptime_result.stdout if uptime_result.returncode == 0 else "Error fetching uptime"
+    print(uptime_output)
     location_result = subprocess.run(["node", "static/location.js", device_ip], capture_output=True, text=True)
     location_output = location_result.stdout if location_result.returncode == 0 else "Error fetching location"
     contact_result = subprocess.run(["node", "static/contact.js", device_ip], capture_output=True, text=True)

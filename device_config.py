@@ -183,7 +183,7 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
 def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                           password_console, exec_timeout_console, logging_sync_console, authen_method_con,
                           pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
-                          ntp_server, time_zone_name, hour_offset):
+                          ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location):
     device_info = device["device_info"]
 
     try:
@@ -264,6 +264,20 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
         if time_zone_name and hour_offset:
             timezone_output = net_connect.send_config_set(f"clock timezone {time_zone_name} {hour_offset}")
             print(f"Time Zone Configuration for {device['name']}:", timezone_output)
+
+        snmp_commands = []
+        if snmp_ro:
+            snmp_commands.append(f"snmp-server community {snmp_ro} RO")
+        if snmp_rw:
+            snmp_commands.append(f"snmp-server community {snmp_rw} RW")
+        if snmp_contact:
+            snmp_commands.append(f"snmp-server contact {snmp_contact}")
+        if snmp_location:
+            snmp_commands.append(f"snmp-server location {snmp_location}")
+        
+        if snmp_commands:
+            output = net_connect.send_config_set(snmp_commands)
+            print(f"SNMP Configuration for {device['name']}:", output)
 
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
