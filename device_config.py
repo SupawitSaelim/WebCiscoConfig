@@ -1,7 +1,6 @@
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 from pymongo import MongoClient
 from bson import ObjectId
-import time
 
 def configure_device(device, hostname, secret_password, banner, device_collection):
     device_info = device["device_info"]
@@ -146,6 +145,9 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
                 access_config_commands.append("switchport nonegotiate")  # ปิด DTP
                 output = net_connect.send_config_set(access_config_commands)
                 print(f"Access VLAN configuration output for {device['name']}:", output)
+            else :
+                output = net_connect.send_config_set(access_config_commands)
+                print(f"Access VLAN configuration output for {device['name']}:", output)
 
         if disable_dtp and access_interface:
                 access_dtp_commands = ([f"interface range {access_interface}","switchport nonegotiate"])  # ปิด DTP
@@ -179,7 +181,9 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
 
 
 def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
-                          password_console, exec_timeout_console, logging_sync_console, authen_method_con):
+                          password_console, exec_timeout_console, logging_sync_console, authen_method_con,
+                          pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
+                          ntp_server, time_zone_name, hour_offset):
     device_info = device["device_info"]
 
     try:
@@ -228,6 +232,38 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
         if len(console_commands) > 1:
             output = net_connect.send_config_set(console_commands)
             print(f"Console Configuration for {device['name']}:", output)
+
+        dhcp_commands = []
+        if pool_name:
+            dhcp_commands.append(f"ip dhcp pool {pool_name}")
+            if network and dhcp_subnet:
+                dhcp_commands.append(f"network {network} {dhcp_subnet}")
+            if default_router:
+                dhcp_commands.append(f"default-router {default_router}")
+            if dns_server:
+                dhcp_commands.append(f"dns-server {dns_server}")
+            if domain_name:
+                dhcp_commands.append(f"domain-name {domain_name}")
+        if dhcp_exclude:
+            dhcp_exclude_list = dhcp_exclude.split(',')
+            for exclude_range in dhcp_exclude_list:
+                exclude_range = exclude_range.strip()
+                if '-' in exclude_range:
+                    start_ip, end_ip = exclude_range.split('-')
+                    dhcp_commands.append(f"ip dhcp excluded-address {start_ip.strip()} {end_ip.strip()}")
+                else:
+                    dhcp_commands.append(f"ip dhcp excluded-address {exclude_range}")
+        if dhcp_commands:
+            output = net_connect.send_config_set(dhcp_commands)
+            print(f"DHCP Configuration for {device['name']}:", output)
+        
+        if ntp_server:
+            ntp_output = net_connect.send_config_set([f"ntp server {ntp_server}"])
+            print(f"NTP Configuration for {device['name']}:", ntp_output)
+
+        if time_zone_name and hour_offset:
+            timezone_output = net_connect.send_config_set(f"clock timezone {time_zone_name} {hour_offset}")
+            print(f"Time Zone Configuration for {device['name']}:", timezone_output)
 
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:

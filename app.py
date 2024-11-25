@@ -538,6 +538,17 @@ def management_settings():
     logging_sync_console = request.form.get("logging_sync_con") == "on"
     authen_method_con = request.form.get("authen_method_console_select")
 
+    pool_name = request.form.get("pool_name")
+    network = request.form.get("network")
+    dhcp_subnet = request.form.get("dhcp_subnet")
+    dhcp_exclude = request.form.get("dhcp_exclude")
+    default_router = request.form.get("default_router")
+    dns_server = request.form.get("dns_server")
+    domain_name = request.form.get("domain_name")
+
+    ntp_server = request.form.get("ntp_server")
+    time_zone_name = request.form.get("time_zone_name")
+    hour_offset = request.form.get("hour_offset")
 
     device_ips = []
 
@@ -563,7 +574,9 @@ def management_settings():
             thread = threading.Thread(
                 target=configure_vty_console,
                 args=(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
-                      password_console, exec_timeout_console, logging_sync_console, authen_method_con)
+                    password_console, exec_timeout_console, logging_sync_console, authen_method_con,
+                    pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
+                    ntp_server, time_zone_name, hour_offset)
             )
             threads.append(thread)
             thread.start()

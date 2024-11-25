@@ -225,12 +225,12 @@
                         <div class="form-group">
                             <input type="text" id="password_console" name="password_console"
                                 placeholder="Enter Password"><br><br>
-                                <label for="authen_method_console">Authentication Method</label>
-                                <select id="authen_method_console_select" name="authen_method_console_select">
-                                    <option value="">None</option>
-                                    <option value="login">Console Password</option>
-                                    <option value="login local">Local User</option>
-                                </select>
+                            <label for="authen_method_console">Authentication Method</label>
+                            <select id="authen_method_console_select" name="authen_method_console_select">
+                                <option value="">Not Select</option>
+                                <option value="login">Console Password</option>
+                                <option value="login local">Local User</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <input type="text" id="exec_timeout_console" name="exec_timeout_console"
@@ -244,7 +244,71 @@
                                 <br>
                             </div>
                         </div>
+                    </div><br><br>
+                    <!-- DHCP -->
+                    <h3 style="color: #2e4ead; text-align: left;">DHCP Management</h3><br>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <input type="text" id="pool_name" name="pool_name"
+                                placeholder="Enter DHCP Pool Name"><br><br>
+                            <input type="text" id="network" name="network"
+                                placeholder="Enter Network (e.g., 192.168.1.0)"><br><br>
+                            <input type="text" id="dhcp_exclude" name="dhcp_exclude"
+                                placeholder="Enter IP DHCP Exclude Range (e.g., 192.168.1.1-192.168.1.10)"><br><br>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="default_router" name="default_router"
+                                placeholder="Enter Default Router (e.g., 192.168.1.1)"><br><br>
+                            <input type="text" id="dhcp_subnet" name="dhcp_subnet"
+                                placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"><br><br>
+                            <input type="text" id="dns_server" name="dns_server"
+                                placeholder="Enter DNS Server (e.g., 8.8.8.8)"><br><br>
+                        </div>
                     </div>
+                    <input type="text" id="domain_name" name="domain_name"
+                        placeholder="Enter Domain Name (e.g., example.com)"><br><br>
+
+                    <!-- NTP -->
+                    <h3 style="color: #2e4ead; text-align: left;">NTP Configuration</h3><br>
+                    <input type="text" id="ntp_server" name="ntp_server"
+                        placeholder="Enter NTP Server (e.g., 202.28.18.72)">
+                    <div class="form-container">
+                        <div class="form-group">
+                            <input type="text" id="time_zone_name" name="time_zone_name"
+                                placeholder="Enter Time Zone Name (e.g., UTC)"><br><br>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" id="hour_offset" name="hour_offset" min="-23" max="23"
+                                placeholder="Enter Hour Offset (-23 to 23)"><br><br>
+                        </div>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Setting</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Description</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Effect</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">NTP Server</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Configures time synchronization using
+                                    an NTP server</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Synchronizes the device’s time with
+                                    the NTP server (usually UTC)</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Time Zone</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Sets the local time zone for the
+                                    device</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Adjusts the device’s time to match the
+                                    local time zone (e.g., UTC+7)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
             </div>
