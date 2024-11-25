@@ -594,6 +594,21 @@ def management_settings():
 
     return redirect(url_for('management_settings_page'))
 
+########## Spanning Tree Protocol ##############################
+@app.route('/stp_page', methods=['GET'])
+def stp_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('stp.html', cisco_devices=cisco_devices)
+# @app.route('/delete', methods=['POST'])
+# def delete_device():
+#     ip_address = request.form.get('ip_address')
+#     device_collection.delete_one({"device_info.ip": ip_address}) 
+#     return redirect(url_for('devices_information')) 
+
+
 
 
 ########## Erase Configuration #############################

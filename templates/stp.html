@@ -65,7 +65,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="basic_settings_page" title="Refresh"
+                        <a href="stp_page" title="Refresh"
                             style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
@@ -101,11 +101,11 @@
                         <span class="title">Configurations</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="basic_settings_page" class="active">Basic Settings</a></li>
+                        <li><a href="basic_settings_page">Basic Settings</a></li>
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
                         <li><a href="vlan_settings_page">VLAN Management</a></li>
                         <li><a href="management_settings_page">Management Settings</a></li>
-                        <li><a href="stp_page">Spanning Tree Protocol</a></li>
+                        <li><a href="stp_page" class="active">Spanning Tree Protocol</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
@@ -140,7 +140,7 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">BASIC SETTINGS</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Spanning tree SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
@@ -163,7 +163,7 @@
                     <label for="many_name" style="text-align: left;">
                         If more than one device, input names of devices here (separate by comma)
                     </label>
-                    <!-- Input field for many_hostname with ID -->
+                    <!-- Input field for many_hostname with ID
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
@@ -173,7 +173,7 @@
                     <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
                         minlength="3" maxlength="20">
                     <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit"> -->
                 </form>
 
             </div>
