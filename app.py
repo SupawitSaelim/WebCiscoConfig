@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 
-client = MongoClient('mongodb://172.16.99.5:27017/')
+client = MongoClient('mongodb://10.0.0.3:27017/')
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
 
