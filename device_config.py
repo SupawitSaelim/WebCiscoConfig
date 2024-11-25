@@ -300,7 +300,21 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
             output = net_connect.send_config_set(lldp_commands)
             print(f"LLDP Configuration for {device['name']}:", output)
 
-
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
+
+
+
+def configure_spanning_tree(device, root_primary, root_vlan_id):
+    try:
+        net_connect = ConnectHandler(**device["device_info"])
+        net_connect.enable()
+
+        if root_primary and root_vlan_id:
+            output = net_connect.send_config_set(f"spanning-tree vlan {root_vlan_id} root primary")
+            print(f"Spanning Tree Configuration for {device['name']}:", output)
+            
+        net_connect.disconnect()
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error configuring spanning tree on {device['name']}: {e}")

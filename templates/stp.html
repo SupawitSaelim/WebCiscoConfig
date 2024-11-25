@@ -17,7 +17,6 @@
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
 
-            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -26,7 +25,6 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
                     // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
@@ -36,7 +34,6 @@
                 }
             });
         });
-
     </script>
     <script>
         function showLoader() {
@@ -48,6 +45,20 @@
             return true; // Proceed with form submission
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleRootFields();
+            document.getElementById('root_primary').addEventListener('change', toggleRootFields); // เรียกใช้เมื่อ checkbox เปลี่ยน
+        });
+    
+        function toggleRootFields() {
+            const rootPrimaryCheckbox = document.getElementById('root_primary');
+            const rootFields = document.getElementById('root_primary_fields');
+    
+            rootFields.style.display = rootPrimaryCheckbox.checked ? 'block' : 'none';
+        }
+    </script>
+
 </head>
 
 <body>
@@ -65,8 +76,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="stp_page" title="Refresh"
-                            style="display: inline-flex; align-items: center;">
+                        <a href="stp_page" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -143,7 +153,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Spanning tree SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/stp_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -163,17 +173,32 @@
                     <label for="many_name" style="text-align: left;">
                         If more than one device, input names of devices here (separate by comma)
                     </label>
-                    <!-- Input field for many_hostname with ID
+                    <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
-
-                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="25">
-                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
-                        minlength="3" maxlength="20">
-                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
-                    <input style="margin-left: 90%;" type="submit" value="Submit"> -->
+                    <h3 style="color: #2e4ead;text-align: left;">Spanning Tree Mode</h3><br>
+                    <select id="speed_duplex" name="speed_duplex">
+                        <option value="">None</option>
+                        <option value="pvst">Per-Vlan spanning tree mode (pvst)</option>
+                        <option value="rapid-pvst">Per-Vlan rapid spanning tree mode (rapid-pvst)</option>
+                    </select><br><br>
+                    <h3 style="color: #2e4ead;text-align: left;">Optional</h3><br>
+                    <h3 style="color: #2e4ead;text-align: left;">Root Primary Bridge</h3>
+                    <div class="checkbox-wrapper-22">
+                        <label>Root Primary</label>
+                        <label class="switch">
+                            <input type="checkbox" id="root_primary" name="root_primary">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                    </div>
+                    <!-- Hidden fields for VLAN ID -->
+                    <div id="root_primary_fields" style="display: none;">
+                        <input type="text" id="root_vlan_id" name="root_vlan_id" placeholder="Enter VLAN ID (e.g., 1)">
+                        <br>
+                    </div>
+                    <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
 
             </div>

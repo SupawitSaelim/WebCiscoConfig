@@ -1,27 +1,19 @@
- Testing from Flask 
-RT1>
-RT1>terminal width 511
-RT1>terminal length 0
-RT1>
-RT1>
-RT1>enable
+
+SW2>
+SW2>terminal width 511
+SW2>terminal length 0
+SW2>
+SW2>
+SW2>enable
 Password: 
-RT1#
-RT1#
-RT1#configure terminal
+SW2#
+SW2#
+SW2#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-RT1(config)#
-RT1(config)#cdp run
-RT1(config)#
-RT1(config)#end
-RT1#
-RT1#
-RT1#configure terminal
-Enter configuration commands, one per line.  End with CNTL/Z.
-RT1(config)#
-RT1(config)#no lldp run
-RT1(config)#
-RT1(config)#end
-RT1#
-RT1#
-RT1#exit
+SW2(config)#
+SW2(config)#spanning-tree vlan 99 root primary
+SW2(config)#
+SW2(config)#end
+SW2#
+SW2#
+SW2#exit
