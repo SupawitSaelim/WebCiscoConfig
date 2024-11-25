@@ -31,6 +31,7 @@
             padding: 8px;
             margin: 5px 0;
         }
+
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
@@ -49,7 +50,6 @@
 
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
                     manyHostnameInput.style.display = "block";
                 } else {
                     manyHostnameInput.style.display = "none";
@@ -67,6 +67,37 @@
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('enable_cdp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('disable_cdp').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                }
+            });
+
+            document.getElementById('disable_cdp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('enable_cdp').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                }
+            });
+
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('enable_lldp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('disable_lldp').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                }
+            });
+
+            document.getElementById('disable_lldp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('enable_lldp').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                }
+            });
+
+        });
     </script>
 </head>
 
@@ -325,9 +356,36 @@
                         </div>
                     </div>
 
-
-
-
+                    <div class="checkbox-wrapper-22">
+                        <label style="color: #2e4ead;font-weight: 1000;">CDP</label>
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_cdp" name="enable_cdp">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_cdp" name="disable_cdp">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                    </div>
+                    <div class="checkbox-wrapper-22">
+                        <label style="color: #2e4ead;font-weight: 1000;">LLDP</label>
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_lldp" name="enable_lldp">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_lldp" name="disable_lldp">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                    </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
             </div>

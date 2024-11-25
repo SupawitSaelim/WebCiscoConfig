@@ -183,7 +183,8 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
 def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                           password_console, exec_timeout_console, logging_sync_console, authen_method_con,
                           pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
-                          ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location):
+                          ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location,
+                          enable_cdp, disable_cdp, enable_lldp, disable_lldp):
     device_info = device["device_info"]
 
     try:
@@ -278,6 +279,27 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
         if snmp_commands:
             output = net_connect.send_config_set(snmp_commands)
             print(f"SNMP Configuration for {device['name']}:", output)
+
+        cdp_commands = []
+        if enable_cdp:
+            cdp_commands.append("cdp run")
+        elif disable_cdp:
+            cdp_commands.append("no cdp run")
+
+        if cdp_commands:
+            output = net_connect.send_config_set(cdp_commands)
+            print(f"CDP Configuration for {device['name']}:", output)
+
+        lldp_commands = []
+        if enable_lldp:
+            lldp_commands.append("lldp run")
+        elif disable_lldp:
+            lldp_commands.append("no lldp run")
+
+        if lldp_commands:
+            output = net_connect.send_config_set(lldp_commands)
+            print(f"LLDP Configuration for {device['name']}:", output)
+
 
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:

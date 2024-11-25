@@ -553,6 +553,10 @@ def management_settings():
     snmp_contact = request.form.get("snmp_contact")
     snmp_location = request.form.get("snmp_location")
 
+    enable_cdp = request.form.get("enable_cdp") == "on"
+    disable_cdp = request.form.get("disable_cdp") == "on"
+    enable_lldp = request.form.get("enable_lldp") == "on"
+    disable_lldp = request.form.get("disable_lldp") == "on"
 
     device_ips = []
 
@@ -580,8 +584,8 @@ def management_settings():
                 args=(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                     password_console, exec_timeout_console, logging_sync_console, authen_method_con,
                     pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
-                    ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location)
-            )
+                    ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location,
+                    enable_cdp, disable_cdp, enable_lldp, disable_lldp))
             threads.append(thread)
             thread.start()
 

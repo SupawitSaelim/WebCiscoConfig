@@ -11,10 +11,15 @@ RT1#
 RT1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
 RT1(config)#
-RT1(config)#snmp-server community public RO
-RT1(config)#snmp-server community private RW
-RT1(config)#snmp-server contact test
-RT1(config)#snmp-server location test
+RT1(config)#cdp run
+RT1(config)#
+RT1(config)#end
+RT1#
+RT1#
+RT1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT1(config)#
+RT1(config)#no lldp run
 RT1(config)#
 RT1(config)#end
 RT1#
