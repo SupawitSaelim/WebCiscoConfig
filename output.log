@@ -1,33 +1,30 @@
-
-SW2>
-SW2>terminal width 511
-SW2>terminal length 0
-SW2>
-SW2>
-SW2>enable
+ Testing Loader 
+SW1>
+SW1>terminal width 511
+SW1>terminal length 0
+SW1>
+SW1>
+SW1>enable
 Password: 
-SW2#
-SW2#
-SW2#configure terminal
+SW1#
+SW1#
+SW1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW2(config)#
-SW2(config)#line vty 0 4
-SW2(config-line)#transport input all
-SW2(config-line)#
-SW2(config-line)#end
-SW2#
-SW2#
-SW2#configure terminal
+SW1(config)#
+SW1(config)#line vty 0 4
+SW1(config-line)#exec-timeout 3
+SW1(config-line)#loggin synchronous
+SW1(config-line)#
+SW1(config-line)#end
+SW1#
+SW1#
+SW1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW2(config)#
-SW2(config)#line console 0
-SW2(config-line)#exec-timeout 3
-SW2(config-line)#loggin synchronous
-SW2(config-line)#
-SW2(config-line)#end
-SW2#
-SW2#
-SW2#exit
-#
+SW1(config)#
+SW1(config)#line console 0
+SW1(config-line)#exec-timeout 4
+SW1(config-line)#
+SW1(config-line)#end
+SW1#
 SW1#
 SW1#exit

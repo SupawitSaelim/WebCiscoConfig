@@ -207,7 +207,7 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
         if logging_sync_vty:
             vty_commands.append("loggin synchronous")
 
-        if vty_commands:
+        if len(vty_commands) > 1:
             output = net_connect.send_config_set(vty_commands)
             print(f"VTY Configuration for {device['name']}:", output)
 
@@ -223,7 +223,7 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
             console_commands.append("loggin synchronous")
         
         if authen_method_con:
-            vty_commands.append(f"{authen_method}")
+            console_commands.append(f"{authen_method_con}")
 
         if len(console_commands) > 1:
             output = net_connect.send_config_set(console_commands)
