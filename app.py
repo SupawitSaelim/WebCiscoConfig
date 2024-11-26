@@ -10,9 +10,8 @@ import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
 from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree, configure_etherchannel
-from routing_config import configure_static_route
+from routing_config import configure_static_route, configure_rip_route
 from concurrent.futures import ThreadPoolExecutor
-
 
 
 app = Flask(__name__, template_folder='templates')
@@ -776,8 +775,47 @@ def rip_page():
     except ServerSelectionTimeoutError:
         cisco_devices = None  
     return render_template('ripv2.html', cisco_devices=cisco_devices)
-# @app.route('/static_settings', methods=['POST'])
-# def static_settings():
+@app.route('/rip_settings', methods=['POST'])
+def rip_settings():
+    device_name = request.form.get("device_name")
+    many_hostname = request.form.get("many_hostname")
+
+    destination_networks = request.form.getlist("destination_networks[]")
+    auto_summary = request.form.get("auto_summary")
+    remove_destination_networks = request.form.getlist("remove_destination_networks[]")
+    disable_rip = request.form.get("disable_rip")
+
+    device_ips = []
+    if device_name:
+        device = device_collection.find_one({"device_info.ip": device_name})
+        if device:
+            device_ips.append(device["device_info"]["ip"])
+        else:
+            return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/management_settings_page";</script>'
+
+    if many_hostname:
+        for host in many_hostname.split(','):
+            device = device_collection.find_one({"name": host.strip()})
+            if device:
+                device_ips.append(device["device_info"]["ip"])
+            else:
+                return f'<script>alert("Device {host} not found in database"); window.location.href="/management_settings_page";</script>'
+
+    threads = []
+    for ip in device_ips:
+        device = device_collection.find_one({"device_info.ip": ip})
+        if device:
+            thread = threading.Thread(
+                target=configure_rip_route,
+                args=(device, destination_networks, auto_summary, remove_destination_networks, disable_rip)
+            )
+            threads.append(thread)
+            thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    return redirect(url_for('rip_page'))
 
 
 ########## Erase Configuration #############################

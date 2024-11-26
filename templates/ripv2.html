@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Basic Settings</title>
-    <style>
-    </style>
+    <title>Routing Configuration</title>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <style>
@@ -55,16 +52,12 @@
             let container = document.getElementById('route_networks_container');
 
             let newPair = document.createElement('div');
-            newPair.classList.add('form-container', 'route_pair'); // Add appropriate classes for styling
+            newPair.classList.add('form-container', 'route_pair');
 
             newPair.innerHTML = `
         <div class="form-group">
             <input type="text" name="destination_networks[]"
-                placeholder="Destination Network">
-        </div>
-        <div class="form-group">
-            <input type="text" name="exit_interfaces_or_next_hops[]"
-                placeholder="Exit Interface or Next Hop IP">
+                placeholder="Network">
         </div>
     `;
 
@@ -80,11 +73,7 @@
             newPair.innerHTML = `
                 <div class="form-group">
                     <input type="text" name="remove_destination_networks[]"
-                        placeholder="Destination Network to Remove">
-                </div>
-                <div class="form-group">
-                    <input type="text" name="remove_exit_interfaces_or_next_hops[]"
-                        placeholder="Exit Interface or Next Hop IP to Remove">
+                        placeholder="Network to Remove">
                 </div>
             `;
 
@@ -132,42 +121,36 @@
             return true; // ถ้าผ่านการตรวจสอบแล้ว
         }
 
-        function validateSubnetMask() {
-            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"]');
-            let isValid = true;
-
-            destinationNetworks.forEach((input) => {
-                const value = input.value.trim();
-                if (value && !value.includes('/')) {
-                    alert("Please enter a valid subnet mask (e.g., 192.168.1.0/24) in all Destination Network fields.");
-                    isValid = false;
-                }
-            });
-
-            return isValid; 
-        }
-
         function handleSubmit(event) {
             if (!validateDeviceSelection()) {
-                event.preventDefault();  
+                event.preventDefault();
                 return;
             }
 
-            if (!validateSubnetMask()) {
-                event.preventDefault();  
-                return;
-            }
-
-            showLoader(); 
+            showLoader();
         }
 
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.querySelector("form");  // หาฟอร์ม
             form.addEventListener("submit", handleSubmit);  // ใช้ handleSubmit เมื่อฟอร์มจะถูกส่ง
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('auto_summary_enable').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('auto_summary_disable').checked = false;
+                }
+            });
+
+            document.getElementById('auto_summary_disable').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('auto_summary_enable').checked = false;
+                }
+            });
+        });
+
     </script>
 </head>
-
 <body>
     <div id="loader"></div> <!-- Loader element -->
 
@@ -261,7 +244,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">RIPv2 Routing</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/static_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/rip_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -284,61 +267,67 @@
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3">
-                    <br><br>
+                    <br>
 
-                    <!-- Static route -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Static Route Configuration
+                    <!-- network -->
+                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">RIP Networks
                     </h3>
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Destination Network (e.g., 192.168.1.0/24)">
-                            </div>
-                            <div class="form-group">
-                                <input type="text" name="exit_interfaces_or_next_hops[]"
-                                    placeholder="Exit Interface (e.g., fa0/1) or Next Hop IP (e.g., 192.168.1.1)">
+                                    placeholder="Network (e.g., 192.168.1.0)">
                             </div>
                         </div>
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
                         onclick="addRoutePair()">Add more networks to route</button>
-                    <br><br>
+                    <br>
 
-                    <!-- Default Route -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Default Route
-                        <input type="text" id="default_route" name="default_route"
-                            placeholder="Exit interface or IP next hop">
-                        <div class="checkbox-wrapper-22">
-                            <label style="font-size: small;color: #2e4ead;">Remove Default Route</label>
-                            <label class="switch">
-                                <input type="checkbox" id="remove_default" name="remove_default">
-                                <span class="slider"></span>
-                            </label>
-                            <br>
-                        </div><br>
+                    <!-- auto - sum (สำหรับ RIP) -->
+                    <div class="checkbox-wrapper-22">
+                        <label style="color: #2e4ead; font-weight: bold;">Auto-Summary</label>
+                        <label>Enable</label>
+                        <label class="switch" title="Enable Auto-Summary in RIP">
+                            <input type="checkbox" id="auto_summary_enable" name="auto_summary" value="Enable">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                        <label>Disable</label>
+                        <label class="switch" title="Disable Auto-Summary in RIP">
+                            <input type="checkbox" id="auto_summary_disable" name="auto_summary" value="Disable">
+                            <span class="slider"></span>
+                        </label>
+                        <br>
+                    </div>
+                    <br>
 
-                        <!-- Remove Static Route -->
-                        <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove Static Route
-                        </h3>
-                        <div id="remove_networks_container">
-                            <div class="form-container route_pair">
-                                <div class="form-group">
-                                    <input type="text" name="remove_destination_networks[]"
-                                        placeholder="Destination Network to Remove">
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" name="remove_exit_interfaces_or_next_hops[]"
-                                        placeholder="Exit Interface or Next Hop IP to Remove">
-                                </div>
+                    <!-- Remove network Route -->
+                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove Static Route
+                    </h3>
+                    <div id="remove_networks_container">
+                        <div class="form-container route_pair">
+                            <div class="form-group">
+                                <input type="text" name="remove_destination_networks[]"
+                                    placeholder="Network to Remove">
                             </div>
                         </div>
-                        <button type="button"
-                            style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                            onclick="addRemoveRoutePair()">Add more networks to remove</button>
-                        <br><br>
-                        <input style="margin-left: 90%;" type="submit" value="Submit">
+                    </div>
+                    <button type="button"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                        onclick="addRemoveRoutePair()">Add more networks to remove</button><br>
+
+                    <!-- Disalbe RIP -->
+                    <div class="checkbox-wrapper-22">
+                        <label style="color: #2e4ead; font-weight: bold;">Disable RIP</label>
+                        <label class="switch" title="Disable RIP Routing Protocol">
+                            <input type="checkbox" id="disable_rip" name="disable_rip" value="true">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <br><br>
+                    <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
             </div>
         </div>

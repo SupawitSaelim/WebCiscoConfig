@@ -17,7 +17,6 @@
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
 
-            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -26,10 +25,8 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
                     manyHostnameInput.style.display = "block";
                 } else {
                     manyHostnameInput.style.display = "none";
@@ -77,7 +74,6 @@
         });
     </script>
     <style>
-        /* Two Column */
         .form-container {
             display: flex;
             justify-content: space-between;
@@ -85,7 +81,6 @@
 
         .form-group {
             width: 48%;
-            /* Adjust this percentage to control the width of each column */
         }
 
         .form-group label {

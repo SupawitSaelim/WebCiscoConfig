@@ -65,3 +65,42 @@ def configure_static_route(device, destination_networks, exit_interfaces_or_next
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error configuring static route on {device['name']}: {e}")
+
+
+def configure_rip_route(device, destination_networks, auto_summary, remove_destination_networks, disable_rip):
+    try:
+        device_info = device["device_info"]
+        device_info['timeout'] = 10 
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        config_commands = ['router rip']
+        if destination_networks:
+            destination_networks = [net for net in destination_networks if net.strip()]  
+            for network in destination_networks:
+                command = f"network {network}"
+                config_commands.append(command)
+        
+        if auto_summary == "Enable":
+            config_commands.append("auto-summary")
+        elif auto_summary == "Disable":
+            config_commands.append("no auto-summary")
+
+        if remove_destination_networks:
+            remove_destination_networks = [net for net in remove_destination_networks if net.strip()]  
+            for network in remove_destination_networks:
+                command = f"no network {network}"
+                config_commands.append(command)
+
+        if len(config_commands) > 1:
+            output = net_connect.send_config_set(config_commands)
+            print(f"RIP Configuration for {device['name']}:", output)
+        
+        if disable_rip:
+            output = net_connect.send_config_set("no router rip")
+            print(f"RIP Configuration for {device['name']}:", output)
+
+        net_connect.disconnect()
+
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error configuring RIP on {device['name']}: {e}")
