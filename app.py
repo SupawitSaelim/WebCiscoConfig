@@ -594,7 +594,7 @@ def management_settings():
 
     return redirect(url_for('management_settings_page'))
 
-########## Spanning Tree Protocol ##############################
+########## Spanning Tree Protocol ###########################
 @app.route('/stp_page', methods=['GET'])
 def stp_page():
     try:
@@ -653,6 +653,52 @@ def stp_settings():
 
     return redirect(url_for('stp_page'))
 
+
+########## Aggregation Protocols ###########################
+@app.route('/etherchannel', methods=['GET'])
+def etherchannel():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('etherchannel.html', cisco_devices=cisco_devices)
+@app.route('/etherchannel_settings', methods=['POST'])
+def etherchannel_settings():
+    device_name = request.form.get("device_name")
+    many_hostname = request.form.get("many_hostname")
+
+    device_ips = []
+
+    if device_name:
+        device = device_collection.find_one({"device_info.ip": device_name})
+        if device:
+            device_ips.append(device["device_info"]["ip"])
+        else:
+            return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/management_settings_page";</script>'
+
+    if many_hostname:
+        for host in many_hostname.split(','):
+            device = device_collection.find_one({"name": host.strip()})
+            if device:
+                device_ips.append(device["device_info"]["ip"])
+            else:
+                return f'<script>alert("Device {host} not found in database"); window.location.href="/management_settings_page";</script>'
+
+    threads = []
+    for ip in device_ips:
+        device = device_collection.find_one({"device_info.ip": ip})
+        if device:
+            thread = threading.Thread(
+                target=configure_spanning_tree,
+                args=(device)
+            )
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    return redirect(url_for('stp_page'))
 
 
 
