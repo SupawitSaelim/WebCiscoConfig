@@ -9,7 +9,7 @@ import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
-from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree
+from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree, configure_etherchannel
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -666,6 +666,15 @@ def etherchannel():
 def etherchannel_settings():
     device_name = request.form.get("device_name")
     many_hostname = request.form.get("many_hostname")
+    etherchannel_interfaces = request.form.get("etherchannel_interfaces")
+    channel_group_number = request.form.get("channel_group_number")
+    pagp_mode = request.form.getlist("pagp_mode") 
+
+    etherchannel_interfaces_lacp = request.form.get("etherchannel_interfaces_lacp")
+    channel_group_number_lacp = request.form.get("channel_group_number_lacp")
+    lacp_mode = request.form.getlist("lacp_mode")
+
+    etherchannel_interfaces_lacp_delete = request.form.get("etherchannel_interfaces_lacp_delete")
 
     device_ips = []
 
@@ -689,8 +698,10 @@ def etherchannel_settings():
         device = device_collection.find_one({"device_info.ip": ip})
         if device:
             thread = threading.Thread(
-                target=configure_spanning_tree,
-                args=(device)
+                target=configure_etherchannel, 
+                args=(device, etherchannel_interfaces, channel_group_number, pagp_mode,
+                      etherchannel_interfaces_lacp, channel_group_number_lacp, lacp_mode,
+                      etherchannel_interfaces_lacp_delete)
             )
         threads.append(thread)
         thread.start()
@@ -698,7 +709,7 @@ def etherchannel_settings():
     for thread in threads:
         thread.join()
 
-    return redirect(url_for('stp_page'))
+    return redirect(url_for('etherchannel'))
 
 
 
@@ -1036,7 +1047,8 @@ def show_config():
                     "show_mac_address_table": 'show mac address-table dynamic',
                     "show_clock": 'show clock',
                     "show_logging": 'show logging',
-                    "show_interfaces_trunk": 'show interfaces trunk'
+                    "show_interfaces_trunk": 'show interfaces trunk',
+                    "show_etherch_sum": 'show etherch sum'
                 }
 
                 for command in selected_commands:
