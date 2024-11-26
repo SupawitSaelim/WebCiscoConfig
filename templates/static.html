@@ -17,6 +17,7 @@
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
 
+            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -25,6 +26,7 @@
                 }
             });
 
+            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
                     // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
@@ -34,6 +36,7 @@
                 }
             });
         });
+
     </script>
     <script>
         function showLoader() {
@@ -44,65 +47,6 @@
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            toggleRootFields();
-            document.getElementById('root_primary').addEventListener('change', toggleRootFields); // เรียกใช้เมื่อ checkbox เปลี่ยน
-        });
-
-        function toggleRootFields() {
-            const rootPrimaryCheckbox = document.getElementById('root_primary');
-            const rootFields = document.getElementById('root_primary_fields');
-
-            rootFields.style.display = rootPrimaryCheckbox.checked ? 'block' : 'none';
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById('root_primary').addEventListener('change', function () {
-                const rootPrimaryFields = document.getElementById('root_primary_fields');
-                rootPrimaryFields.style.display = this.checked ? 'block' : 'none';
-            });
-
-            document.getElementById('root_secondary').addEventListener('change', function () {
-                const rootSecondaryFields = document.getElementById('root_secondary_fields');
-                rootSecondaryFields.style.display = this.checked ? 'block' : 'none';
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // ฟังก์ชันในการแสดง/ซ่อนช่องกรอกสำหรับ PortFast
-            function togglePortFastInputFields() {
-                const enablePortFastField = document.getElementById('portfast_int_enable');
-                const disablePortFastField = document.getElementById('portfast_int_disable');
-
-                if (document.getElementById('portfast_enable').checked) {
-                    enablePortFastField.style.display = 'block';
-                    disablePortFastField.style.display = 'none';
-                } else if (document.getElementById('portfast_disable').checked) {
-                    disablePortFastField.style.display = 'block';
-                    enablePortFastField.style.display = 'none';
-                } else {
-                    enablePortFastField.style.display = 'none';
-                    disablePortFastField.style.display = 'none';
-                }
-            }
-
-            document.getElementById('portfast_enable').addEventListener('change', function () {
-                document.getElementById('portfast_disable').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                togglePortFastInputFields(); // อัพเดตการแสดงช่องกรอก
-            });
-
-            document.getElementById('portfast_disable').addEventListener('change', function () {
-                document.getElementById('portfast_enable').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                togglePortFastInputFields(); // อัพเดตการแสดงช่องกรอก
-            });
-
-            togglePortFastInputFields();
-        });
-
     </script>
 </head>
 
@@ -121,7 +65,8 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="stp_page" title="Refresh" style="display: inline-flex; align-items: center;">
+                        <a href="static_page" title="Refresh"
+                            style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -160,7 +105,7 @@
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
                         <li><a href="vlan_settings_page">VLAN Management</a></li>
                         <li><a href="management_settings_page">Management Settings</a></li>
-                        <li><a href="stp_page" class="active">Spanning Tree Protocol</a></li>
+                        <li><a href="stp_page">Spanning Tree Protocol</a></li>
                         <li><a href="etherchannel">Aggregation Protocols</a></li>
                     </ul>
                 </li>
@@ -170,7 +115,7 @@
                         <span class="title">Routing Configuration</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="static_page">Static Route</a></li>
+                        <li><a href="static_page" class="active">Static Route</a></li>
                         <li><a href="#">OSPF</a></li>
                         <li><a href="#">RIPv2</a></li>
                         <li><a href="#">EIGRP</a></li>
@@ -196,10 +141,10 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Spanning tree SETTINGS</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">static route</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/stp_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -223,66 +168,15 @@
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
-                    <h3 style="color: #2e4ead;text-align: left;">Spanning Tree Mode</h3><br>
-                    <select id="stp_mode" name="stp_mode">
-                        <option value="">None</option>
-                        <option value="pvst">Per-Vlan spanning tree mode (pvst)</option>
-                        <option value="rapid-pvst">Per-Vlan rapid spanning tree mode (rapid-pvst)</option>
-                    </select><br><br>
-                    <h3 style="color: #2e4ead;text-align: left;">Optional</h3><br>
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead;">Root Primary</label>
-                        <label class="switch">
-                            <input type="checkbox" id="root_primary" name="root_primary">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                    </div>
-                    <!-- Hidden fields for VLAN ID -->
-                    <div id="root_primary_fields" style="display: none;">
-                        <input type="text" id="root_vlan_id" name="root_vlan_id"
-                            placeholder="Enter VLAN ID (e.g., 1-5,7)">
-                        <br>
-                    </div>
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead;">Root Secondary</label>
-                        <label class="switch">
-                            <input type="checkbox" id="root_secondary" name="root_secondary">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                    </div>
-                    <!-- Hidden fields for VLAN ID -->
-                    <div id="root_secondary_fields" style="display: none;">
-                        <input type="text" id="root_secondary_vlan_id" name="root_secondary_vlan_id"
-                            placeholder="Enter VLAN ID (e.g., 1-5,7)">
-                        <br>
-                    </div><br><br>
 
-                    <!-- PortFast -->
-                    <h3 style="color: #2e4ead;text-align: left;">PortFast Configuration</h3><br>
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch" title="BPDU-Guard will be enabled">
-                            <input type="checkbox" id="portfast_enable" name="portfast_enable">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="portfast_disable" name="portfast_disable">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <!-- Input fields for VLAN IDs -->
-                        <input type="text" id="portfast_int_enable" name="portfast_int_enable"
-                            placeholder="Enter Interfaces for Enable PortFast (e.g.,e2/0-3,e1/1)" style="display: none; width: 30%;">
-                        <input type="text" id="portfast_int_disable" name="portfast_int_disable"
-                            placeholder="Enter Interfaces for Disable PortFast (e.g.,e2/0-3,e1/1)" style="display: none; width: 30%;">
-                    </div>
-
+                    <!-- <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
+                        maxlength="25">
+                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
+                        minlength="3" maxlength="20">
+                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner"> -->
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
+
             </div>
         </div>
     </div>

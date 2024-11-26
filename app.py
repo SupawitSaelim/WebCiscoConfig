@@ -712,6 +712,15 @@ def etherchannel_settings():
     return redirect(url_for('etherchannel'))
 
 
+########## Static Route ####################################
+@app.route('/static_page', methods=['GET'])
+def static_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('static.html', cisco_devices=cisco_devices)
+
 
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
