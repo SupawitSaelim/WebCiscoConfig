@@ -106,7 +106,6 @@
 
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
                     manyHostnameInput.style.display = "block";
                 } else {
                     manyHostnameInput.style.display = "none";
@@ -145,21 +144,21 @@
                 }
             });
 
-            return isValid; // ถ้าทุกช่องถูกต้องจะคืนค่า true
+            return isValid; 
         }
 
         function handleSubmit(event) {
             if (!validateDeviceSelection()) {
-                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                event.preventDefault();  
                 return;
             }
 
             if (!validateSubnetMask()) {
-                event.preventDefault();  // ถ้าผิดพลาดจะหยุดการส่งฟอร์ม
+                event.preventDefault();  
                 return;
             }
 
-            showLoader(); // แสดง loader เมื่อฟอร์มถูกส่ง
+            showLoader(); 
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -184,7 +183,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="static_page" title="Refresh" style="display: inline-flex; align-items: center;">
+                        <a href="rip_page" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -233,9 +232,9 @@
                         <span class="title">Routing Configuration</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="static_page" class="active">Static Route</a></li>
+                        <li><a href="static_page">Static Route</a></li>
                         <li><a href="#">OSPF</a></li>
-                        <li><a href="rip_page">RIPv2</a></li>
+                        <li><a href="rip_page" class="active">RIPv2</a></li>
                         <li><a href="#">EIGRP</a></li>
                     </ul>
                 </li>
@@ -259,7 +258,7 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">static route</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">RIPv2 Routing</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/static_settings" onsubmit="return handleSubmit()">

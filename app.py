@@ -768,6 +768,18 @@ def static_settings():
     return redirect(url_for('static_page')) 
 
 
+########## RIPv2 Route #####################################
+@app.route('/rip_page', methods=['GET'])
+def rip_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('ripv2.html', cisco_devices=cisco_devices)
+# @app.route('/static_settings', methods=['POST'])
+# def static_settings():
+
+
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
 def erase_config_page():
