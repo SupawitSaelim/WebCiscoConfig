@@ -1,4 +1,3 @@
-
 SW2>
 SW2>terminal width 511
 SW2>terminal length 0
@@ -11,9 +10,18 @@ SW2#
 SW2#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
 SW2(config)#
-SW2(config)#spanning-tree vlan 99 root primary
+SW2(config)#spanning-tree vlan 99-100 root secondary
 SW2(config)#
 SW2(config)#end
+SW2#
+SW2#
+SW2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#
+SW2(config)#int range e2/0-3,e1/1
+SW2(config-if-range)#no spanning-tree portfast
+SW2(config-if-range)#
+SW2(config-if-range)#end
 SW2#
 SW2#
 SW2#exit

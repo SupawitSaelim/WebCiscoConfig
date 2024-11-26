@@ -306,15 +306,42 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
 
 
 
-def configure_spanning_tree(device, root_primary, root_vlan_id):
+def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_secondary, root_secondary_vlan_id,
+                            portfast_enable, portfast_disable, portfast_int_enable, portfast_int_disable):
     try:
         net_connect = ConnectHandler(**device["device_info"])
         net_connect.enable()
 
+        if stp_mode == "pvst":
+            output = net_connect.send_config_set(f"spanning-tree mode {stp_mode}")
+            print(f"Spanning Tree Configuration for {device['name']}:", output)
+        elif stp_mode == "rapid-pvst":
+            output = net_connect.send_config_set(f"spanning-tree mode {stp_mode}")
+            print(f"Spanning Tree Configuration for {device['name']}:", output)
+
         if root_primary and root_vlan_id:
             output = net_connect.send_config_set(f"spanning-tree vlan {root_vlan_id} root primary")
             print(f"Spanning Tree Configuration for {device['name']}:", output)
-            
+        
+        if root_secondary and root_secondary_vlan_id:
+            output = net_connect.send_config_set(f"spanning-tree vlan {root_secondary_vlan_id} root secondary")
+            print(f"Spanning Tree Configuration for {device['name']}:", output)
+        
+        if portfast_enable and portfast_int_enable:
+            ena_int = []
+            ena_int.append(f"int range {portfast_int_enable}")
+            ena_int.append("spanning-tree portfast")
+            ena_int.append("spanning-tree bpduguard enable")
+            output = net_connect.send_config_set(ena_int)
+            print(f"Enabled PortFast for interfaces {portfast_int_enable} on device {device['name']}:", output)
+
+        if portfast_int_disable and portfast_int_disable:
+            dis_int = []
+            dis_int.append(f"int range {portfast_int_disable}")
+            dis_int.append("no spanning-tree portfast")
+            output = net_connect.send_config_set(dis_int)
+            print(f"Disable PortFast for interfaces {portfast_int_enable} on device {device['name']}:", output)
+
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error configuring spanning tree on {device['name']}: {e}")
