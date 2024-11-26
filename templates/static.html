@@ -12,12 +12,90 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <style>
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            width: 48%;
+        }
+
+        .form-group label {
+            display: block;
+            text-align: left;
+            color: #2e4ead;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+        }
+
+        #route_networks_container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .route_pair {
+            display: flex;
+            gap: 10px;
+        }
+
+        .route_pair .form-group {
+            flex: 1;
+        }
+    </style>
+    <script>
+        function addRoutePair() {
+            let container = document.getElementById('route_networks_container');
+
+            let newPair = document.createElement('div');
+            newPair.classList.add('form-container', 'route_pair'); // Add appropriate classes for styling
+
+            newPair.innerHTML = `
+        <div class="form-group">
+            <input type="text" name="destination_networks[]"
+                placeholder="Destination Network">
+        </div>
+        <div class="form-group">
+            <input type="text" name="exit_interfaces_or_next_hops[]"
+                placeholder="Exit Interface or Next Hop IP">
+        </div>
+    `;
+
+            container.appendChild(newPair);
+        }
+
+        function addRemoveRoutePair() {
+            let container = document.getElementById('remove_networks_container');
+
+            let newPair = document.createElement('div');
+            newPair.classList.add('form-container', 'route_pair');
+
+            newPair.innerHTML = `
+                <div class="form-group">
+                    <input type="text" name="remove_destination_networks[]"
+                        placeholder="Destination Network to Remove">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="remove_exit_interfaces_or_next_hops[]"
+                        placeholder="Exit Interface or Next Hop IP to Remove">
+                </div>
+            `;
+
+            container.appendChild(newPair);
+        }
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
 
-            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -26,7 +104,6 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
                     // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
@@ -37,16 +114,58 @@
             });
         });
 
-    </script>
-    <script>
         function showLoader() {
-            document.getElementById('loader').style.display = 'block';
+            document.getElementById('loader').style.display = 'block'; // แสดง loader
         }
 
-        function handleSubmit() {
-            showLoader(); // Show loader when form is submitted
-            return true; // Proceed with form submission
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none'; // ซ่อน loader
         }
+
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true; // ถ้าผ่านการตรวจสอบแล้ว
+        }
+
+        function validateSubnetMask() {
+            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"]');
+            let isValid = true;
+
+            destinationNetworks.forEach((input) => {
+                const value = input.value.trim();
+                if (value && !value.includes('/')) {
+                    alert("Please enter a valid subnet mask (e.g., 192.168.1.0/24) in all Destination Network fields.");
+                    isValid = false;
+                }
+            });
+
+            return isValid; // ถ้าทุกช่องถูกต้องจะคืนค่า true
+        }
+
+        function handleSubmit(event) {
+            if (!validateDeviceSelection()) {
+                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                return;
+            }
+
+            if (!validateSubnetMask()) {
+                event.preventDefault();  // ถ้าผิดพลาดจะหยุดการส่งฟอร์ม
+                return;
+            }
+
+            showLoader(); // แสดง loader เมื่อฟอร์มถูกส่ง
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");  // หาฟอร์ม
+            form.addEventListener("submit", handleSubmit);  // ใช้ handleSubmit เมื่อฟอร์มจะถูกส่ง
+        });
     </script>
 </head>
 
@@ -65,8 +184,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="static_page" title="Refresh"
-                            style="display: inline-flex; align-items: center;">
+                        <a href="static_page" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -144,7 +262,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">static route</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/static_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -169,14 +287,60 @@
                         placeholder="Example: sw1,sw2,sw3">
                     <br><br>
 
-                    <!-- <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="25">
-                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
-                        minlength="3" maxlength="20">
-                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner"> -->
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
-                </form>
+                    <!-- Static route -->
+                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Static Route Configuration
+                    </h3>
+                    <div id="route_networks_container">
+                        <div class="form-container route_pair">
+                            <div class="form-group">
+                                <input type="text" name="destination_networks[]"
+                                    placeholder="Destination Network (e.g., 192.168.1.0/24)">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="exit_interfaces_or_next_hops[]"
+                                    placeholder="Exit Interface (e.g., fa0/1) or Next Hop IP (e.g., 192.168.1.1)">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                        onclick="addRoutePair()">Add more networks to route</button>
+                    <br><br>
 
+                    <!-- Default Route -->
+                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Default Route
+                        <input type="text" id="default_route" name="default_route"
+                            placeholder="Exit interface or IP next hop">
+                        <div class="checkbox-wrapper-22">
+                            <label style="font-size: small;color: #2e4ead;">Remove Default Route</label>
+                            <label class="switch">
+                                <input type="checkbox" id="remove_default" name="remove_default">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                        </div><br>
+
+                        <!-- Remove Static Route -->
+                        <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove Static Route
+                        </h3>
+                        <div id="remove_networks_container">
+                            <div class="form-container route_pair">
+                                <div class="form-group">
+                                    <input type="text" name="remove_destination_networks[]"
+                                        placeholder="Destination Network to Remove">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="remove_exit_interfaces_or_next_hops[]"
+                                        placeholder="Exit Interface or Next Hop IP to Remove">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button"
+                            style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                            onclick="addRemoveRoutePair()">Add more networks to remove</button>
+                        <br><br>
+                        <input style="margin-left: 90%;" type="submit" value="Submit">
+                </form>
             </div>
         </div>
     </div>

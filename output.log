@@ -1,24 +1,27 @@
-
-SW2>
-SW2>terminal width 511
-SW2>terminal length 0
-SW2>
-SW2>
-SW2>enable
+ Testing from Flask 
+RT1>
+RT1>terminal width 511
+RT1>terminal length 0
+RT1>
+RT1>
+RT1>enable
 Password: 
-SW2#
-SW2#
-SW2#configure terminal
+RT1#
+RT1#
+RT1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW2(config)#
-SW2(config)#no int po2
-SW2(config)#
-SW2(config)#end
-SW2#
-SW2#
-SW2#exit
-
-SW1(config)#end
-SW1#
-SW1#
-SW1#exit
+RT1(config)#
+RT1(config)#no ip route 7.7.7.0 255.255.255.0 e0/1
+RT1(config)#
+RT1(config)#end
+RT1#
+RT1#
+RT1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT1(config)#
+RT1(config)#no ip route 9.9.0.0 255.255.0.0 7.7.7.2
+RT1(config)#
+RT1(config)#end
+RT1#
+RT1#
+RT1#exit
