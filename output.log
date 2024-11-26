@@ -11,7 +11,35 @@ RT1#
 RT1#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
 RT1(config)#
-RT1(config)#no router rip
+RT1(config)#router ospf 1
+RT1(config-router)#network 7.7.7.0 255.255.255.0 area 0
+RT1(config-router)#network 192.168.10.0 255.255.255.0 area 5
+RT1(config-router)#
+RT1(config-router)#end
+RT1#
+RT1#
+RT1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT1(config)#
+RT1(config)#router ospf 1
+RT1(config-router)#router-id 1.1.1.2
+RT1(config-router)#
+RT1(config-router)#end
+RT1#
+RT1#
+RT1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT1(config)#
+RT1(config)#router ospf 1
+RT1(config-router)#no network 7.7.7.0 255.255.255.0 area 0
+RT1(config-router)#
+RT1(config-router)#end
+RT1#
+RT1#
+RT1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT1(config)#
+RT1(config)#no router ospf 1
 RT1(config)#
 RT1(config)#end
 RT1#

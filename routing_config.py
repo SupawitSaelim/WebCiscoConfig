@@ -104,3 +104,66 @@ def configure_rip_route(device, destination_networks, auto_summary, remove_desti
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error configuring RIP on {device['name']}: {e}")
+
+
+def configure_ospf_route(device, process_id, destination_networks, ospf_areas, router_id, 
+                         remove_destination_networks,remove_ospf_areas, delete_process_id, 
+                         process_id_input):
+    try:
+        device_info = device["device_info"]
+        device_info['timeout'] = 10 
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        config_commands = []
+        if process_id:
+            config_commands.append(f"router ospf {process_id}")
+        
+        if destination_networks and ospf_areas and process_id:
+            for network, area in zip(destination_networks, ospf_areas):
+                if network.strip() and area.strip():
+                    if '/' in network:  
+                        network_ip, cidr = network.split('/')
+                        subnet_mask = convert_cidr_to_netmask(cidr)
+                        command = f"network {network_ip} {subnet_mask} area {area}"
+                        config_commands.append(command)
+
+        if len(config_commands)> 1:
+            if config_commands:
+                output = net_connect.send_config_set(config_commands)
+                print(f"OSPF Configuration for {device['name']}:", output)
+
+        if router_id and process_id:
+            output = net_connect.send_config_set([f"router ospf {process_id}",f"router-id {router_id}"])
+            print(f"OSPF Configuration for {device['name']}:", output)
+
+        # Remove Part
+        config_commands_remove = []
+        if remove_destination_networks and remove_ospf_areas and process_id:
+            config_commands_remove.append(f"router ospf {process_id}")
+            for network, area in zip(remove_destination_networks, remove_ospf_areas):
+                if network.strip() and area.strip():
+                    if '/' in network:
+                        network_ip, cidr = network.split('/')
+                        subnet_mask = convert_cidr_to_netmask(cidr)
+                        command = f"no network {network_ip} {subnet_mask} area {area}"
+                        config_commands_remove.append(command)
+
+        if len(config_commands_remove) >1 :
+            output = net_connect.send_config_set(config_commands_remove)
+            print(f"OSPF Configuration for {device['name']}:", output)
+
+
+        if delete_process_id and process_id_input:
+            process_ids = process_id_input.split(',')
+            for process_id in process_ids:
+                process_id = process_id.strip() 
+                output = net_connect.send_config_set(f"no router ospf {process_id}")
+                print(f"OSPF Configuration for {device['name']} (Process ID: {process_id}):", output)
+
+        net_connect.disconnect()
+
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error configuring OSPF on {device['name']}: {e}")
+
+
