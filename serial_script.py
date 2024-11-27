@@ -2,7 +2,6 @@ import serial
 import time
 
 def send_command(ser, command):
-    """Send a command to the device and return the output."""
     ser.write(command.encode() + b'\r\n')  #
     time.sleep(3)
     output = ser.read_all().decode('utf-8')  # อ่านผลลัพธ์ที่ได้
@@ -10,9 +9,6 @@ def send_command(ser, command):
     return ser.read_all().decode('utf-8')  
 
 def convert_cidr_to_netmask(cidr):
-    """Convert a CIDR notation to a subnet mask."""
-    print(f"cidr = {cidr}")  # ตรวจสอบค่าที่เข้ามา
-
     if '/' in cidr:
         ip, bits = cidr.split('/')  # แยก IP และ CIDR
         bits = int(bits)  
@@ -30,7 +26,6 @@ def convert_cidr_to_netmask(cidr):
     return '.'.join(map(str, netmask))
 
 def commands(consoleport, hostname, domainname, privilege_password, ssh_username, ssh_password, interface, ip_address):
-    """Initialize the device with the given parameters."""
     print(consoleport, hostname, domainname, privilege_password, ssh_username, ssh_password, interface, ip_address)
     ser = serial.Serial(port=consoleport, baudrate=9600, timeout=3)
     

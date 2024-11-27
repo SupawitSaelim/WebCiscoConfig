@@ -21,11 +21,6 @@ client = MongoClient('mongodb://10.0.0.3:27017/')
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
 
-port_status = {}
-port_oids = {}
-target_ip = ''
-
-
 ########## MongoDB Status ###################################
 def check_mongo_connection():
     try:
@@ -63,7 +58,6 @@ def initialization_page():
 @app.route('/initialization', methods=['GET', 'POST'])
 def initialization():
     if request.method == 'POST':
-        # Retrieve values from the form
         consoleport = request.form.get('consoleport')
         hostname = request.form.get('hostname')
         domainname = request.form.get('domainname')
@@ -81,9 +75,35 @@ def initialization():
                 flash("Please provide an IP address for Manual configuration.", 'danger')
                 return render_template('initialization.html')
         try:
-            serial_script.commands(consoleport, hostname, domainname, privilege_password,
+            if ip_address != "dhcp":
+                if "/" in ip_address:
+                    ip_address_split = ip_address.split('/')[0]
+                device_data = {
+                    "name": hostname, 
+                    "device_info": {
+                        "device_type": "cisco_ios",
+                        "ip": ip_address_split,
+                        "username": ssh_username,
+                        "password": ssh_password,
+                        "secret": privilege_password,
+                        "session_log": "output.log"
+                    }
+                }
+
+                existing_device = device_collection.find_one({"device_info.ip": ip_address})
+                if existing_device:
+                    flash("This IP address is already in use. Please enter a different IP address.", "danger")
+                    return render_template('initialization.html')
+                device_collection.insert_one(device_data)
+
+                # call serial ####
+                serial_script.commands(consoleport, hostname, domainname, privilege_password,
+                                   ssh_username, ssh_password, interface, ip_address)
+            else:
+                serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address)
             return render_template('initialization.html', success="Device successfully initialized!")
+            
         except Exception as e:
             return render_template('initialization.html', error=f"An error occurred: {e}")
 
@@ -1245,13 +1265,6 @@ def handle_save_response():
 
 
 ########## Show Configuration ##############################
-def execute_command(shell, command, wait_time=1):
-    """ส่งคำสั่งไปยัง shell และรอผลลัพธ์"""
-    shell.send(command + '\n')
-    time.sleep(wait_time)  # รอเวลาสำหรับการประมวลผลคำสั่ง
-    output = shell.recv(65535).decode('utf-8')
-    return output
-
 @app.route('/show_config_page', methods=['GET'])
 def show_config_page():
     try:
@@ -1276,7 +1289,6 @@ def show_config():
             try:
                 config_data = ""
 
-                # ใช้ netmiko สำหรับการเชื่อมต่อ
                 device_info = {
                     "device_type": "cisco_ios",  # ประเภทของอุปกรณ์ Cisco
                     "host": device_info['ip'],  # IP ของอุปกรณ์
@@ -1286,11 +1298,9 @@ def show_config():
                     "timeout": 10  # ตั้งเวลา timeout
                 }
 
-                # การเชื่อมต่อไปยังอุปกรณ์
                 net_connect = ConnectHandler(**device_info)
-                net_connect.enable()  # เข้าสู่โหมด enable
+                net_connect.enable()  
 
-                # ส่งคำสั่งที่ต้องการและเก็บผลลัพธ์
                 commands_to_execute = {
                     "show_running_config": 'show running-config',
                     "show_version": 'show version',
@@ -1312,7 +1322,7 @@ def show_config():
                         output = net_connect.send_command(commands_to_execute[command])
                         config_data += f"<span style='color: #2e4ead; font-size: 1.2em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
 
-                net_connect.disconnect()  # ปิดการเชื่อมต่อ
+                net_connect.disconnect()
                 print(config_data)
                 return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
 

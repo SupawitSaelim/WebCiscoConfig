@@ -48,33 +48,10 @@
             document.getElementById('loader').style.display = 'block';
         }
 
-        // ฟังก์ชันเพื่อแปลง CIDR เป็น Subnet Mask
-        function cidrToSubnetMask(cidr) {
-            var mask = [];
-            var bits = parseInt(cidr);  // แปลง CIDR เป็นตัวเลข
-            console.log('Converting CIDR to subnet mask, CIDR:', cidr); // แสดงค่า CIDR ก่อนการแปลง
-
-            // แปลง CIDR เป็น Subnet Mask
-            for (var i = 0; i < 4; i++) {
-                if (bits >= 8) {
-                    mask.push(255);
-                    bits -= 8;
-                } else if (bits > 0) {
-                    mask.push(256 - Math.pow(2, 8 - bits)); // การคำนวณ Subnet Mask
-                    bits = 0;
-                } else {
-                    mask.push(0);
-                }
-            }
-
-            var subnetMask = mask.join('.');  // แปลง Array เป็น String
-            console.log('Converted Subnet Mask:', subnetMask); // แสดงผล Subnet Mask ที่แปลงแล้ว
-            return subnetMask;  // ส่งค่า Subnet Mask กลับ
-        }
-
-
+        
         function validateForm() {
             var interfaceType = document.getElementById("interfaceType").value;
+            console.log(interfaceType)
 
             // ตรวจสอบว่าเลือก DHCP หรือไม่ ถ้าเลือก DHCP ไม่ต้องตรวจสอบ IP Address
             if (interfaceType === "DHCP") {
@@ -112,11 +89,6 @@
                 ipField.focus();
                 return false;
             }
-
-            // แปลง CIDR เป็น Subnet Mask และส่งค่าไปที่ฟิลด์ subnet_mask
-            var subnetMask = cidrToSubnetMask(cidr);
-            document.getElementById("subnet_mask").value = subnetMask; // ส่งค่าไปยัง backend
-
             return true;
         }
 
@@ -263,7 +235,7 @@
                     <!-- IP Address Input Field (shown only if "Manual" is selected) -->
                     <div id="ipAddressInput">
                         <input type="text" id="ip_address" name="ip_address"
-                            placeholder="Enter IP Address (e.g., 192.168.0.1/24)" required>
+                            placeholder="Enter IP Address (e.g., 192.168.0.1/24)">
                     </div>
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
