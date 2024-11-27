@@ -880,6 +880,16 @@ def ospf_settings():
     return redirect(url_for('ospf_page'))
 
 
+########## EIGRP Routing ####################################
+@app.route('/eigrp_page', methods=['GET'])
+def eigrp_page():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = None  
+    return render_template('eigrp.html', cisco_devices=cisco_devices)
+# @app.route('/ospf_settings', methods=['POST'])
+
 
 ########## Erase Configuration #############################
 @app.route('/erase_config_page', methods=['GET'])
