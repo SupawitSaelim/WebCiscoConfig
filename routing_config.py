@@ -167,3 +167,67 @@ def configure_ospf_route(device, process_id, destination_networks, ospf_areas, r
         print(f"Error configuring OSPF on {device['name']}: {e}")
 
 
+def configure_eigrp_route(device, process_id, router_id, destination_networks, 
+                          remove_destination_networks, delete_process_id, 
+                          process_id_input):
+    try:
+        device_info = device["device_info"]
+        device_info['timeout'] = 10
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+
+        config_commands = []
+        if process_id:
+            config_commands.append(f"router eigrp {process_id}")
+
+        # Add networks
+        if destination_networks and process_id:
+            for network in destination_networks:
+                if network.strip():
+                    if '/' in network:  # Check if it's in CIDR format
+                        network_ip, cidr = network.split('/')
+                        subnet_mask = convert_cidr_to_netmask(cidr)
+                        command = f"network {network_ip} {subnet_mask}"
+                        config_commands.append(command)
+                    else:
+                        config_commands.append(f"network {network.strip()}")  # Assume subnet mask is included
+
+        if len(config_commands) > 1:
+            output = net_connect.send_config_set(config_commands)
+            print(f"EIGRP Configuration for {device['name']}:", output)
+        
+        if router_id and process_id:
+            output = net_connect.send_config_set([f"router eigrp {process_id}",f"router-id {router_id}"])
+            print(f"EIGRP Configuration for {device['name']}:", output)
+
+        # Remove networks
+        config_commands_remove = []
+        if remove_destination_networks and process_id:
+            config_commands_remove.append(f"router eigrp {process_id}")
+            for network in remove_destination_networks:
+                if network.strip():
+                    if '/' in network:  # Check if it's in CIDR format
+                        network_ip, cidr = network.split('/')
+                        subnet_mask = convert_cidr_to_netmask(cidr)
+                        command = f"no network {network_ip} {subnet_mask}"
+                        config_commands_remove.append(command)
+                    else:
+                        config_commands_remove.append(f"no network {network.strip()}")  # Assume subnet mask is included
+
+        if len(config_commands_remove) > 1:
+            output = net_connect.send_config_set(config_commands_remove)
+            print(f"EIGRP Configuration for {device['name']}:", output)
+
+        # Delete Process ID
+        if delete_process_id and process_id_input:
+            process_ids = process_id_input.split(',')
+            for process_id in process_ids:
+                process_id = process_id.strip()
+                output = net_connect.send_config_set(f"no router eigrp {process_id}")
+                print(f"EIGRP Configuration for {device['name']} (Process ID: {process_id}):", output)
+
+        net_connect.disconnect()
+
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        print(f"Error configuring EIGRP on {device['name']}: {e}")
+

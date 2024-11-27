@@ -10,7 +10,7 @@ import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
 from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree, configure_etherchannel
-from routing_config import configure_static_route, configure_rip_route, configure_ospf_route
+from routing_config import configure_static_route, configure_rip_route, configure_ospf_route, configure_eigrp_route
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -888,7 +888,54 @@ def eigrp_page():
     except ServerSelectionTimeoutError:
         cisco_devices = None  
     return render_template('eigrp.html', cisco_devices=cisco_devices)
-# @app.route('/ospf_settings', methods=['POST'])
+@app.route('/eigrp_settings', methods=['POST'])
+def eigrp_settings():
+    device_name = request.form.get("device_name")
+    many_hostname = request.form.get("many_hostname")
+
+    process_id = request.form.get("process_id")
+    router_id = request.form.get("router_id")
+    destination_networks = request.form.getlist("destination_networks[]")
+    remove_destination_networks = request.form.getlist("remove_destination_networks[]")
+    delete_process_id = request.form.get("delete_process_id")
+    process_id_input = request.form.get("process_id_input")
+
+    if not delete_process_id:
+        process_id_input = None
+
+    device_ips = []
+    if device_name:
+        device = device_collection.find_one({"device_info.ip": device_name})
+        if device:
+            device_ips.append(device["device_info"]["ip"])
+        else:
+            return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/eigrp_page";</script>'
+
+    if many_hostname:
+        for host in many_hostname.split(','):
+            device = device_collection.find_one({"name": host.strip()})
+            if device:
+                device_ips.append(device["device_info"]["ip"])
+            else:
+                return f'<script>alert("Device {host} not found in database"); window.location.href="/eigrp_page";</script>'
+
+    threads = []
+    for ip in device_ips:
+        device = device_collection.find_one({"device_info.ip": ip})
+        if device:
+            thread = threading.Thread(
+                target=configure_eigrp_route,
+                args=(device, process_id, router_id, destination_networks, 
+                      remove_destination_networks, delete_process_id, 
+                      process_id_input)
+            )
+            threads.append(thread)
+            thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    return redirect(url_for('eigrp_page'))
 
 
 ########## Erase Configuration #############################
