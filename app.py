@@ -1273,7 +1273,6 @@ def show_config():
         print("Selected Commands:", selected_commands)
 
         device = device_collection.find_one({"name": device_name})
-        print(device)
 
         if device:
             device_info = device['device_info']
@@ -1335,21 +1334,44 @@ def device_detials_page():
     return render_template('device_details_snmp.html', cisco_devices=cisco_devices)
 @app.route('/get_snmp', methods=['POST'])
 def device_details_form():
-    device_ip = request.form.get("device_name")
-    print(device_ip)
-    result = subprocess.run(["node", "static/snmp.js", device_ip], capture_output=True, text=True)
-    output = result.stdout if result.returncode == 0 else "Error fetching ports"
+    device_ip = request.form.get("device_name") #get ip
+    device_info_record = device_collection.find_one({"device_info.ip": device_ip})
+    device_info = device_info_record['device_info']
+    real_switch = False
+    
+    try:
+        net_connect = ConnectHandler(**device_info)
+        net_connect.enable()
+        show_version_output = net_connect.send_command("show version")
+        if "switch" in show_version_output.lower():
+            real_switch = True
+        net_connect.disconnect()
+    except Exception as e:
+        print(f"Error during SSH connection or command execution: {e}")
+        show_version_output = "Error fetching show version"
+
+    # check switch
+    if real_switch:
+        result = subprocess.run(["node", "static/port_real.js", device_ip], capture_output=True, text=True)
+        output = result.stdout if result.returncode == 0 else "Error fetching ports"
+    else:
+        result = subprocess.run(["node", "static/port_virtual_device.js", device_ip], capture_output=True, text=True)
+        output = result.stdout if result.returncode == 0 else "Error fetching ports"
+
     uptime_result = subprocess.run(["node", "static/uptime.js", device_ip], capture_output=True, text=True)
     uptime_output = uptime_result.stdout if uptime_result.returncode == 0 else "Error fetching uptime"
-    print(uptime_output)
     location_result = subprocess.run(["node", "static/location.js", device_ip], capture_output=True, text=True)
     location_output = location_result.stdout if location_result.returncode == 0 else "Error fetching location"
     contact_result = subprocess.run(["node", "static/contact.js", device_ip], capture_output=True, text=True)
     contact_output = contact_result.stdout if contact_result.returncode == 0 else "Error fetching contact"
     description_result = subprocess.run(["node", "static/description.js", device_ip], capture_output=True, text=True)
     description_output = description_result.stdout if description_result.returncode == 0 else "Error fetching system description"
+    sysname_result = subprocess.run(["node", "static/sysname.js", device_ip], capture_output=True, text=True)
+    sysname_output = sysname_result.stdout if sysname_result.returncode == 0 else "Error fetching sysName"
     cisco_devices = list(device_collection.find())
-    return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output, uptime=uptime_output,location=location_output,contact=contact_output,description=description_output)
+    return render_template('device_details_snmp.html', cisco_devices=cisco_devices, output=output, 
+                           uptime=uptime_output,location=location_output,contact=contact_output,
+                           description=description_output,sysname=sysname_output)
 
 
 
