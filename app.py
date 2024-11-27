@@ -73,7 +73,6 @@ def initialization():
         interface = request.form.get('interface')
         interface_type = request.form.get('interfaceType')
         ip_address = request.form.get('ip_address')
-        subnet_mask = request.form.get('subnet_mask')
 
         if interface_type == "DHCP":
             ip_address = "dhcp"
@@ -83,7 +82,7 @@ def initialization():
                 return render_template('initialization.html')
         try:
             serial_script.commands(consoleport, hostname, domainname, privilege_password,
-                                   ssh_username, ssh_password, interface, ip_address, subnet_mask)
+                                   ssh_username, ssh_password, interface, ip_address)
             return render_template('initialization.html', success="Device successfully initialized!")
         except Exception as e:
             return render_template('initialization.html', error=f"An error occurred: {e}")
@@ -1009,7 +1008,7 @@ def erase_device():
 
             shell.send('erase startup-config\n')
             time.sleep(1)
-            shell.send('yes\n')  # ตอบยืนยันการลบ
+            shell.send('\n')  # ตอบยืนยันการลบ
             time.sleep(1)
 
             shell.send('reload\n')
