@@ -1259,11 +1259,9 @@ def show_config_page():
     except ServerSelectionTimeoutError:
         cisco_devices = []  
     return render_template('showconfig.html', cisco_devices=cisco_devices)
-
 @app.route('/show-config', methods=['POST', 'GET'])
 def show_config():
     cisco_devices = list(device_collection.find())
-    print(cisco_devices)
     if request.method == 'POST':
         device_name = request.form.get('device_name')
         selected_commands = request.form.getlist('selected_commands')
@@ -1278,17 +1276,21 @@ def show_config():
             try:
                 config_data = ""
 
-                ssh_client = paramiko.SSHClient()
-                ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
+                # ใช้ netmiko สำหรับการเชื่อมต่อ
+                device_info = {
+                    "device_type": "cisco_ios",  # ประเภทของอุปกรณ์ Cisco
+                    "host": device_info['ip'],  # IP ของอุปกรณ์
+                    "username": device_info['username'],  # ชื่อผู้ใช้
+                    "password": device_info['password'],  # รหัสผ่าน
+                    "secret": device_info['secret'],  # รหัสผ่าน Enable
+                    "timeout": 10  # ตั้งเวลา timeout
+                }
 
-                shell = ssh_client.invoke_shell()
-                time.sleep(1)
+                # การเชื่อมต่อไปยังอุปกรณ์
+                net_connect = ConnectHandler(**device_info)
+                net_connect.enable()  # เข้าสู่โหมด enable
 
-                execute_command(shell, 'enable')
-                execute_command(shell, device_info['secret'])
-                execute_command(shell, 'terminal length 0')
-
+                # ส่งคำสั่งที่ต้องการและเก็บผลลัพธ์
                 commands_to_execute = {
                     "show_running_config": 'show running-config',
                     "show_version": 'show version',
@@ -1307,10 +1309,10 @@ def show_config():
 
                 for command in selected_commands:
                     if command in commands_to_execute:
-                        output = execute_command(shell, commands_to_execute[command])
+                        output = net_connect.send_command(commands_to_execute[command])
                         config_data += f"<span style='color: #2e4ead; font-size: 1.2em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
 
-                ssh_client.close() 
+                net_connect.disconnect()  # ปิดการเชื่อมต่อ
                 print(config_data)
                 return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
 
