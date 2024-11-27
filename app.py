@@ -140,7 +140,38 @@ def delete_device():
     ip_address = request.form.get('ip_address')
     device_collection.delete_one({"device_info.ip": ip_address}) 
     return redirect(url_for('devices_information')) 
-
+# ฟังก์ชันสำหรับการแสดงหน้า Edit
+@app.route('/edit/<ip_address>', methods=['GET'])
+def edit_device(ip_address):
+    try:
+        device = device_collection.find_one({"device_info.ip": ip_address})
+        if device:
+            return render_template('edit_device.html', device=device)
+        else:
+            return "Device not found", 404
+    except Exception as e:
+        return str(e)
+@app.route('/update', methods=['POST'])
+def update_device():
+    ip_address = request.form.get('ip_address')
+    name = request.form.get('name')
+    username = request.form.get('username')
+    password = request.form.get('password')
+    secret = request.form.get('secret')
+    
+    try:
+        device_collection.update_one(
+            {"device_info.ip": ip_address},
+            {"$set": {
+                "name": name,
+                "device_info.username": username,
+                "device_info.password": password,
+                "device_info.secret": secret
+            }}
+        )
+        return redirect(url_for('devices_information'))
+    except Exception as e:
+        return str(e)
 
 
 ########## Basic Settings ##################################

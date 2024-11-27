@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Device Information</title>
+    <style>
+        /* ให้ body และ html เต็มหน้าจอและจัดให้อยู่ตรงกลาง */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        /* ทำให้ content ทั้งหมดอยู่ตรงกลางหน้าจอ */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        /* ฟอร์มที่มีการตกแต่งพื้นหลังและขอบมน */
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2e4ead;
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #2e4ead;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1a3c8d;
+            transform: scale(1.05);
+        }
+
+        .cancel-button {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            width: auto;
+            min-width: 100px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .cancel-button:hover {
+            background-color: #d32f2f;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            form {
+                width: 90%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <form method="POST" action="/update">
+        <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
+
+        <label for="name">Device Name:</label>
+        <input type="text" id="name" name="name" value="{{ device.name }}" required>
+
+        <label for="username">SSH Username:</label>
+        <input type="text" id="username" name="username" value="{{ device.device_info.username }}" required>
+
+        <label for="password">SSH Password:</label>
+        <input type="password" id="password" name="password" value="{{ device.device_info.password }}" required>
+
+        <label for="secret">Secret Password:</label>
+        <input type="password" id="secret" name="secret" value="{{ device.device_info.secret }}" required>
+
+        <button type="submit">Update</button><br>
+        <!-- ปุ่ม Cancel ที่พาผู้ใช้กลับไปที่หน้า Devices Information -->
+        <a href="{{ url_for('devices_information') }}" class="cancel-button">
+            <button type="button" class="cancel-button">Cancel</button>
+        </a>
+    </form>
+</body>
+
+</html>
