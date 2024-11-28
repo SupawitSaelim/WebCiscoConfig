@@ -174,7 +174,7 @@
                             <div class="action-buttons" style="align-items: center;">
                                 <!-- ปุ่มลบ -->
                                 <form method="POST" action="/erase"
-                                    onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}?') && handleSubmit();">
+                                    onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
                                     <input type="hidden" name="device_index" value="{{ loop.index0 }}">
                                     <button type="submit" class="action-button erase-button" title="Erase">
                                         <i class="fas fa-trash-alt"></i>

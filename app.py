@@ -192,23 +192,19 @@ def update_device():
     secret = request.form.get('secret')
 
     try:
-        # ตรวจสอบว่า Hostname ซ้ำหรือไม่
         existing_device_hostname = device_collection.find_one({"name": name, "device_info.ip": {"$ne": current_ip}})
         if existing_device_hostname:
-            # ส่ง alert message และข้อมูล device กลับไปที่เทมเพลต
             device = device_collection.find_one({"device_info.ip": current_ip})
             return render_template('edit_device.html', alert_message="This hostname is already in use. Please choose a different hostname.", device=device)
 
         # ตรวจสอบว่า IP ซ้ำหรือไม่ (เฉพาะเมื่อ IP มีการเปลี่ยนแปลง)
         if current_ip != new_ip:
-            # ตรวจสอบว่า IP ใหม่ซ้ำกับเครื่องอื่นหรือไม่
             existing_device = device_collection.find_one({"device_info.ip": new_ip})
             if existing_device:
                 # หาก IP ซ้ำ แจ้งเตือนและส่งกลับไปยังหน้า edit
                 device = device_collection.find_one({"device_info.ip": current_ip})
                 return render_template('edit_device.html', alert_message="This IP address is already in use. Please enter a different IP address.", device=device)
 
-            # ลบข้อมูลเดิม
             device_collection.delete_one({"device_info.ip": current_ip})
 
             # เพิ่มข้อมูลใหม่พร้อม IP Address ใหม่
@@ -224,7 +220,6 @@ def update_device():
                 }
             })
         else:
-            # หาก IP Address ไม่เปลี่ยน อัปเดตเฉพาะฟิลด์ที่เหลือ
             device_collection.update_one(
                 {"device_info.ip": current_ip},
                 {"$set": {
@@ -235,11 +230,9 @@ def update_device():
                 }}
             )
         
-        # หากสำเร็จให้รีไดเรกต์กลับหน้า Devices Information
         return redirect(url_for('devices_information'))
     
     except Exception as e:
-        # หากเกิดข้อผิดพลาด, ส่ง error message และข้อมูล device กลับไปที่เทมเพลต
         device = device_collection.find_one({"device_info.ip": current_ip})
         return render_template('edit_device.html', alert_message=f"An error occurred: {str(e)}", device=device)
 
