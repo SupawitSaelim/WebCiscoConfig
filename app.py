@@ -68,6 +68,7 @@ def initialization():
         interface = request.form.get('interface')
         interface_type = request.form.get('interfaceType')
         ip_address = request.form.get('ip_address')
+        save_startup = request.form.get('save_startup')
 
         if interface_type == "DHCP":
             ip_address = "dhcp"
@@ -105,10 +106,10 @@ def initialization():
 
                 # call serial ####
                 serial_script.commands(consoleport, hostname, domainname, privilege_password,
-                                   ssh_username, ssh_password, interface, ip_address)
+                                   ssh_username, ssh_password, interface, ip_address, save_startup)
             else:
                 serial_script.commands(consoleport, hostname, domainname, privilege_password,
-                                   ssh_username, ssh_password, interface, ip_address)
+                                   ssh_username, ssh_password, interface, ip_address, save_startup)
             return render_template('initialization.html', success="Device successfully initialized!")
             
         except Exception as e:
