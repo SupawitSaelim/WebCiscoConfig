@@ -141,7 +141,12 @@ def record_mnmg_form():
                 "session_log": "output.log"
             }
         }
-        
+
+        existing_device_hostname = device_collection.find_one({"name": name})
+        if existing_device_hostname:
+            flash("This hostname is already in use. Please choose a different hostname.", "danger")
+            return redirect(url_for('record_mnmg_page'))
+
         existing_device = device_collection.find_one({"device_info.ip": ip_address})
         if existing_device:
             flash("This IP address is already in use. Please enter a different IP address.", "danger")

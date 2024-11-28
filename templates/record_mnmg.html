@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- เพิ่มการเชื่อมโยง Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Record MNMG.</title>
     <style>
         .input-container {
@@ -42,7 +43,8 @@
                         </a>
                     </li>
                     <form method="POST" action="/logout" style="display: inline;">
-                        <button type="submit" title="Logout" style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
+                        <button type="submit" title="Logout"
+                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
                             <i class="fas fa-sign-out-alt" style="font-size: 24px; margin-right: 8px;"></i>
                             <span style="display: none;">Logout</span>
                         </button>
@@ -113,18 +115,28 @@
                 <h1 style="color:#2e4ead;text-align: left;">INSERT INFORMATIONS OF DEVICE</h1>
                 <br><br>
                 <form method="post" action="/record_mnmg" onsubmit="return validateForm()">
+                    <!-- Name -->
                     <input type="text" name="name" id="name" placeholder="Name device"
-                        style="width: 49%; margin-right: 100%;" required><br>
+                        style="width: 49%; margin-right: 100%;" required max="63"><br>
                     <div class="input-container">
-                        <input type="text" id="ip_address" name="ip_address" placeholder="IP Address device"
-                            required><br>
-                        <input type="password" id="privilegepassword" name="privilegepassword" placeholder="Privilege Password"
-                            required><br>
+                        <!-- IP -->
+                        <input type="text" id="ip_address" name="ip_address"
+                            placeholder="Enter device IP address (e.g., 192.168.1.1)"
+                            title="The IP address of the device you want to configure" required>
+                        <!-- PV Password -->
+                        <input type="password" id="privilegepassword" name="privilegepassword"
+                            placeholder="Privilege Password" title="Enter the privilege password (1-25 characters)"
+                            required minlength="1" maxlength="25"><br>
+
                     </div>
                     <div class="input-container">
-                        <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required>
-                        <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
+                        <!-- SSH Username and Password -->
+                        <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username"
+                            title="Enter the SSH username. This will be used to authenticate and configure the device remotely using SSH."
                             required>
+                        <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
+                            title="Enter the SSH password. This will be used to authenticate your SSH session for remote configuration."
+                            required minlength="3">
                     </div>
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
@@ -151,12 +163,12 @@
                     }
 
                     // Display flash messages as alerts
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}"); // Show flash message
-                            {% endfor %}
-                        {% endif %}
+                    {% with messages = get_flashed_messages(with_categories = true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}"); // Show flash message
+                    {% endfor %}
+                    {% endif %}
                     {% endwith %}
                 </script>
             </div>
