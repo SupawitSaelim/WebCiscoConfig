@@ -199,6 +199,26 @@ def update_device():
         return redirect(url_for('devices_information'))
     except Exception as e:
         return str(e)
+@app.route('/ping', methods=['POST'])
+def ping_device():
+    ip_address = request.get_json().get('ip_address')
+    
+    if ip_address is None:
+        return jsonify({"success": False, "message": "IP address is required."})
+
+    print(f"Ping to: {ip_address}")
+    try:
+        result = subprocess.run(['ping', '-n', '3', ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        if result.returncode == 0:
+            output = f"Ping to {ip_address} successful.\n{result.stdout}"
+            return jsonify({"success": True, "message": output})
+        else:
+            output = f"Ping to {ip_address} failed.\n{result.stderr}"
+            return jsonify({"success": False, "message": output})
+    except Exception as e:
+        error_message = f"An error occurred while pinging the device: {str(e)}"
+        return jsonify({"success": False, "message": error_message})
 
 
 ########## Basic Settings ##################################
