@@ -39,6 +39,7 @@ def commands(consoleport, hostname, domainname, privilege_password, ssh_username
         subnet_mask = "255.255.255.0"  # กำหนดค่า subnet mask เป็นค่า default หากไม่มี CIDR
 
     # ส่งคำสั่งต่างๆ
+    send_command(ser, 'no')
     send_command(ser, 'enable')
     send_command(ser, 'conf t')
     send_command(ser, f'hostname {hostname}') 

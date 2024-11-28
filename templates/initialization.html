@@ -36,11 +36,14 @@
         function toggleIpInput() {
             const interfaceType = document.getElementById("interfaceType").value;
             const ipAddressInput = document.getElementById("ipAddressInput");
+            var dhcpMessage = document.getElementById("dhcpMessage");
 
             if (interfaceType === "Manual") {
                 ipAddressInput.style.display = "block";
+                dhcpMessage.style.display = "none"; // Hide the message
             } else {
                 ipAddressInput.style.display = "none";
+                dhcpMessage.style.display = "block"; // Show the message
             }
         }
 
@@ -48,7 +51,7 @@
             document.getElementById('loader').style.display = 'block';
         }
 
-        
+
         function validateForm() {
             var interfaceType = document.getElementById("interfaceType").value;
             console.log(interfaceType)
@@ -231,6 +234,9 @@
                             <option value="DHCP">DHCP</option>
                         </select>
                     </div>
+                    <!-- Message to display when DHCP is selected -->
+                    <p id="dhcpMessage" style="display: none; color: red;">If you select DHCP, the device will not be
+                        inserted into the database.</p>
 
                     <!-- IP Address Input Field (shown only if "Manual" is selected) -->
                     <div id="ipAddressInput">
@@ -248,6 +254,17 @@
                 {% if error %}
                 <script>
                     alert("{{ error }}");
+                </script>
+                {% endif %}
+
+                {% if ip_duplicate %}
+                <script>
+                    alert("{{ ip_duplicate }}");
+                </script>
+                {% endif %}
+                {% if hostname_duplicate %}
+                <script>
+                    alert("{{ hostname_duplicate }}");
                 </script>
                 {% endif %}
             </div>

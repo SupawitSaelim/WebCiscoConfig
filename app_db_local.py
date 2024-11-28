@@ -17,8 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 
-# client = MongoClient('mongodb://10.0.0.3:27017/')
-client = MongoClient('mongodb+srv://admin:Supawitadmin123_@cluster0.ikx1g.mongodb.net/device_management?retryWrites=true&w=majority')
+client = MongoClient('mongodb://10.0.0.3:27017/')
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
 
@@ -79,7 +78,6 @@ def initialization():
             if ip_address != "dhcp":
                 if "/" in ip_address:
                     ip_address_split = ip_address.split('/')[0]
-               
                 device_data = {
                     "name": hostname, 
                     "device_info": {
@@ -92,15 +90,10 @@ def initialization():
                     }
                 }
 
-                existing_device_hostname = device_collection.find_one({"name": hostname})
-                if existing_device_hostname:
-                    flash("This hostname is already in use. Please choose a different hostname.", "danger")
-                    return render_template('initialization.html', hostname_duplicate="This hostname is already in use. Please enter a different hostname.")
-
-                existing_device = device_collection.find_one({"device_info.ip": ip_address_split})
+                existing_device = device_collection.find_one({"device_info.ip": ip_address})
                 if existing_device:
-                    return render_template('initialization.html', ip_duplicate= "This IP address is already in use. Please enter a different IP address.")
-                
+                    flash("This IP address is already in use. Please enter a different IP address.", "danger")
+                    return render_template('initialization.html')
                 device_collection.insert_one(device_data)
 
                 # call serial ####
