@@ -172,7 +172,6 @@ def delete_device():
     ip_address = request.form.get('ip_address')
     device_collection.delete_one({"device_info.ip": ip_address}) 
     return redirect(url_for('devices_information')) 
-# ฟังก์ชันสำหรับการแสดงหน้า Edit
 @app.route('/edit/<ip_address>', methods=['GET'])
 def edit_device(ip_address):
     try:
@@ -185,25 +184,65 @@ def edit_device(ip_address):
         return str(e)
 @app.route('/update', methods=['POST'])
 def update_device():
-    ip_address = request.form.get('ip_address')
+    current_ip = request.form.get('current_ip')
+    new_ip = request.form.get('new_ip')  # ค่าของ IP ใหม่ที่ได้รับจากฟอร์ม
     name = request.form.get('name')
     username = request.form.get('username')
     password = request.form.get('password')
     secret = request.form.get('secret')
-    
+
     try:
-        device_collection.update_one(
-            {"device_info.ip": ip_address},
-            {"$set": {
+        # ตรวจสอบว่า Hostname ซ้ำหรือไม่
+        existing_device_hostname = device_collection.find_one({"name": name, "device_info.ip": {"$ne": current_ip}})
+        if existing_device_hostname:
+            # ส่ง alert message และข้อมูล device กลับไปที่เทมเพลต
+            device = device_collection.find_one({"device_info.ip": current_ip})
+            return render_template('edit_device.html', alert_message="This hostname is already in use. Please choose a different hostname.", device=device)
+
+        # ตรวจสอบว่า IP ซ้ำหรือไม่ (เฉพาะเมื่อ IP มีการเปลี่ยนแปลง)
+        if current_ip != new_ip:
+            # ตรวจสอบว่า IP ใหม่ซ้ำกับเครื่องอื่นหรือไม่
+            existing_device = device_collection.find_one({"device_info.ip": new_ip})
+            if existing_device:
+                # หาก IP ซ้ำ แจ้งเตือนและส่งกลับไปยังหน้า edit
+                device = device_collection.find_one({"device_info.ip": current_ip})
+                return render_template('edit_device.html', alert_message="This IP address is already in use. Please enter a different IP address.", device=device)
+
+            # ลบข้อมูลเดิม
+            device_collection.delete_one({"device_info.ip": current_ip})
+
+            # เพิ่มข้อมูลใหม่พร้อม IP Address ใหม่
+            device_collection.insert_one({
                 "name": name,
-                "device_info.username": username,
-                "device_info.password": password,
-                "device_info.secret": secret
-            }}
-        )
+                "device_info": {
+                    "device_type": "cisco_ios",
+                    "ip": new_ip,
+                    "username": username,
+                    "password": password,
+                    "secret": secret,
+                    "session_log": "output.log"
+                }
+            })
+        else:
+            # หาก IP Address ไม่เปลี่ยน อัปเดตเฉพาะฟิลด์ที่เหลือ
+            device_collection.update_one(
+                {"device_info.ip": current_ip},
+                {"$set": {
+                    "name": name,
+                    "device_info.username": username,
+                    "device_info.password": password,
+                    "device_info.secret": secret
+                }}
+            )
+        
+        # หากสำเร็จให้รีไดเรกต์กลับหน้า Devices Information
         return redirect(url_for('devices_information'))
+    
     except Exception as e:
-        return str(e)
+        # หากเกิดข้อผิดพลาด, ส่ง error message และข้อมูล device กลับไปที่เทมเพลต
+        device = device_collection.find_one({"device_info.ip": current_ip})
+        return render_template('edit_device.html', alert_message=f"An error occurred: {str(e)}", device=device)
+
 @app.route('/ping', methods=['POST'])
 def ping_device():
     ip_address = request.get_json().get('ip_address')

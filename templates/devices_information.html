@@ -51,6 +51,7 @@
 </head>
 
 <body>
+    <div id="loader"></div> 
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -200,6 +201,15 @@
             </div>
         </div>
     </div>
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block'; // แสดง loader
+        }
+    
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none'; // ซ่อน loader
+        }
+    </script>
     <script type="text/javascript">
         $(document).ready(function () {
             $('.ping-form').submit(function (event) {
@@ -211,6 +221,7 @@
                     alert("IP address is required!");
                     return;  
                 }
+                showLoader();
     
                 $.ajax({
                     type: 'POST',
@@ -229,6 +240,9 @@
                     },
                     error: function () {
                         alert('An error occurred while pinging the device.');  
+                    },
+                    complete: function() {
+                        hideLoader();
                     }
                 });
             });

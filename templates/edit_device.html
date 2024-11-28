@@ -90,6 +90,28 @@
             transform: scale(1.05);
         }
 
+        .button-container {
+            display: flex;
+            justify-content: space-evenly;
+            margin-top: 15px;
+        }
+
+        a.cancel-button {
+            display: inline-block;
+            padding: 10px 1px;
+            background-color: #ed3434;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        a.cancel-button:hover {
+            background-color: #d12e2e;
+            transform: scale(1.05);
+        }
         @media (max-width: 600px) {
             form {
                 width: 90%;
@@ -97,14 +119,36 @@
             }
         }
     </style>
+    <script>
+        function showAlert(message) {
+            if (message) {
+                alert(message);
+            }
+        }
+
+        // ฟังก์ชันสำหรับตรวจสอบรูปแบบ IP address
+        function validateIP() {
+            var ip = document.getElementById("new_ip").value;
+            var regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+            if (!regex.test(ip)) {
+                alert("Invalid IP Address format. Please enter a valid IP.");
+                return false; 
+            }
+            return true; 
+        }
+    </script>
 </head>
 
-<body>
-    <form method="POST" action="/update">
-        <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
+<body onload="showAlert('{{ alert_message | safe }}')">
+    <form method="POST" action="/update" onsubmit="return validateIP()">
+        <input type="hidden" name="current_ip" value="{{ device.device_info.ip }}">
 
         <label for="name">Device Name:</label>
         <input type="text" id="name" name="name" value="{{ device.name }}" required>
+
+        <label for="new_ip">Device IP Address:</label>
+        <input type="text" id="new_ip" name="new_ip" value="{{ device.device_info.ip }}" required>
 
         <label for="username">SSH Username:</label>
         <input type="text" id="username" name="username" value="{{ device.device_info.username }}" required>
@@ -115,11 +159,10 @@
         <label for="secret">Secret Password:</label>
         <input type="password" id="secret" name="secret" value="{{ device.device_info.secret }}" required>
 
-        <button type="submit">Update</button><br>
-        <!-- ปุ่ม Cancel ที่พาผู้ใช้กลับไปที่หน้า Devices Information -->
-        <a href="{{ url_for('devices_information') }}" class="cancel-button">
-            <button type="button" class="cancel-button">Cancel</button>
-        </a>
+        <div class="button-container">
+            <button type="submit">Update</button>
+            <a href="{{ url_for('devices_information') }}" class="cancel-button">Cancel</a>
+        </div>
     </form>
 </body>
 
