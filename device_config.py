@@ -2,6 +2,24 @@ from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticati
 from pymongo import MongoClient
 from bson import ObjectId
 
+def convert_cidr_to_netmask(cidr):
+
+    if '/' in cidr:
+        ip, bits = cidr.split('/') 
+        bits = int(bits)  
+    else:
+        bits = int(cidr)
+
+    netmask = []
+    for i in range(4):
+        if bits >= 8:
+            netmask.append(255)
+            bits -= 8
+        else:
+            netmask.append(256 - 2**(8 - bits))  
+            bits = 0
+    return '.'.join(map(str, netmask))
+
 def configure_device(device, hostname, secret_password, banner, device_collection):
     device_info = device["device_info"]
     
@@ -40,28 +58,33 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        output = net_connect.send_config_set(["ipv6 unicast-routing"])
-        print(f"IPv6 unicast-routing Config for {device['name']}:", output)
-
+        # output = net_connect.send_config_set(["ipv6 unicast-routing"])
+        # print(f"IPv6 unicast-routing Config for {device['name']}:", output)
+        
         if dhcp_ipv4:
             ipv4_config = "ip address dhcp"
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
             print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
-        if ip_address_ipv4: 
-            ipv4_config = f"ip address {ip_address_ipv4} {subnet_mask_ipv4}"
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
-            print(f"IPv4 Config for {device['name']}:", output)
+        if ip_address_ipv4 and interfaces_ipv4:
+            if '/' in ip_address_ipv4:
+                ip, cidr = ip_address_ipv4.split('/')
+                subnet_mask_ipv4 = convert_cidr_to_netmask(ip_address_ipv4)
+                ip_address_ipv4 = ip_address_ipv4.split("/")[0]
+                ipv4_config = f"ip address {ip_address_ipv4} {subnet_mask_ipv4}"
+                output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
+                print(f"IPv4 Config for {device['name']}:", output)
 
-        if enable_ipv4:
+        
+        if enable_ipv4 and interfaces_ipv4:
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no shutdown"])
             print(f"IPv4 Config for {device['name']}:", output)
         
-        if disable_ipv4:
+        if disable_ipv4 and interfaces_ipv4:
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "shutdown"])
             print(f"Disable IPv4 for {device['name']}:", output)
 
-        if delete_ipv4:
+        if delete_ipv4 and interfaces_ipv4:
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no ip address"])
             print(f"Delete IPv4 for {device['name']}:", output)
 

@@ -10,6 +10,7 @@
     <title>Network Interface Settings</title>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
@@ -64,11 +65,27 @@
         });
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true; 
+        }
+        
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
+            if (!validateDeviceSelection()) {
+                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                return;
+            }
+
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
@@ -78,26 +95,22 @@
             const dhcpRadio = document.getElementById('dhcp');
             const manualRadio = document.getElementById('manual');
             const ipAddressField = document.getElementById('ip_address_ipv4');
-            const subnetMaskField = document.getElementById('subnet_mask_ipv4');
 
             // Initially, hide the IP and subnet fields for DHCP
             if (dhcpRadio.checked) {
                 ipAddressField.style.display = 'none';
-                subnetMaskField.style.display = 'none';
             }
 
             // Show or hide fields based on selection
             dhcpRadio.addEventListener('change', function () {
                 if (dhcpRadio.checked) {
                     ipAddressField.style.display = 'none';
-                    subnetMaskField.style.display = 'none';
                 }
             });
 
             manualRadio.addEventListener('change', function () {
                 if (manualRadio.checked) {
                     ipAddressField.style.display = 'block';
-                    subnetMaskField.style.display = 'block';
                 }
             });
         });
@@ -125,12 +138,8 @@
                 }
             });
         });
-
     </script>
-
-
 </head>
-
 <body>
     <div id="loader"></div> <!-- Loader element -->
 
@@ -247,21 +256,26 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
 
+                    <!-- IPv4 -->
                     <h3 style="color: #2e4ead; text-align: left;">IPv4</h3>
-
                     <br>
-                    <input type="text" id="interfaces_ipv4" name="interfaces_ipv4" placeholder="Network Interfaces"
+                    <h3 style="color: #2e4ead; text-align: left;">Interfaces</h3>
+                    <input type="text" id="interfaces_ipv4" name="interfaces_ipv4" placeholder="e.g., gi0/0-1, gi1/0" 
+                    title="Enter network interfaces (e.g., gi0/0-1, gi1/0)"
                         minlength="3" maxlength="25">
                     <div class="input-container" style="text-align: left;">
                         <label for="config_type">Configuration Type: </label>
                         <input type="radio" id="dhcp" name="config_type" value="dhcp_ipv4"> DHCP
                         <input type="radio" id="manual" name="config_type" value="manual" checked> Manual
                     </div><br>
-                    <input type="text" id="ip_address_ipv4" name="ip_address_ipv4" placeholder="IP Address">
-                    <input type="text" id="subnet_mask_ipv4" name="subnet_mask_ipv4" placeholder="Subnet Mask">
+                    <input type="text" id="ip_address_ipv4" name="ip_address_ipv4" placeholder="e.g., 192.168.1.1/24" 
+                    title="Enter an IPv4 address with CIDR notation (e.g., 192.168.1.1/24)" 
+                    pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2})$">
                     <div class="checkbox-wrapper-22">
                         <label>Enable</label>
                         <label class="switch">
@@ -280,7 +294,8 @@
                         </label>
                     </div>
                     <br><br>
-
+                    
+                    <!-- IPv6 -->
                     <h3 style="color: #2e4ead; text-align: left;">IPv6</h3>
                     <br>
                     <input type="text" id="interfaces_ipv6" name="interfaces_ipv6" placeholder="Network Interfaces"

@@ -13,6 +13,7 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
@@ -40,80 +41,35 @@
 
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true;
+        }
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
+            if (!validateDeviceSelection()) {
+                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                return;
+            }
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
-    </script>
-    <script>
-        function suggestHostnames() {
-            var input = document.getElementById("many_hostname").value;
-            var suggestionsDiv = document.getElementById("suggestions");
-
-            // ถ้า input มีข้อมูล
-            if (input.length > 0) {
-                // แยกคำที่พิมพ์จากเครื่องหมาย comma
-                var query = input.split(',').pop().trim();  // รับคำสุดท้ายที่ผู้ใช้พิมพ์ (หลังเครื่องหมาย comma)
-
-                // ถ้ามีคำที่พิมพ์อยู่
-                if (query.length > 0) {
-                    fetch('/search_hostname?query=' + query)
-                        .then(response => response.json())
-                        .then(data => {
-                            suggestionsDiv.innerHTML = '';  // เคลียร์ผลลัพธ์ก่อนหน้า
-                            if (data.length > 0) {
-                                suggestionsDiv.classList.add('visible');  // แสดงคำแนะนำ
-                                data.forEach(function (device) {
-                                    var suggestionItem = document.createElement("div");
-                                    suggestionItem.textContent = device;
-                                    suggestionItem.onclick = function () {
-                                        // แยกคำทั้งหมดที่พิมพ์ใน input โดยใช้ comma
-                                        var parts = input.split(',').map(function (part) {
-                                            return part.trim(); // ลบช่องว่างจากแต่ละคำ
-                                        }).filter(function (part) {
-                                            return part !== '';  // กรองคำที่ว่าง
-                                        });
-
-                                        // แทนที่คำสุดท้าย (คำที่พิมพ์ล่าสุด) ด้วยคำแนะนำที่เลือก
-                                        if (parts.length > 0) {
-                                            parts[parts.length - 1] = device; // แทนที่คำสุดท้าย
-                                        } else {
-                                            parts.push(device); // ถ้าไม่มีคำพิมพ์ใดๆ ให้เพิ่มคำแนะนำลงไป
-                                        }
-
-                                        // สร้างค่าที่จะใส่ลงใน input โดยใช้ comma
-                                        var newValue = parts.join(', ');
-
-                                        // ตรวจสอบว่า input มี comma อยู่ท้ายสุดหรือไม่
-                                        if (input.endsWith(',')) {
-                                            newValue += ','; // ถ้ามี comma อยู่แล้ว ก็เพิ่ม comma ต่อท้าย
-                                        }
-
-                                        document.getElementById("many_hostname").value = newValue;
-
-                                        // ซ่อนคำแนะนำหลังจากเลือก
-                                        suggestionsDiv.innerHTML = '';
-                                        suggestionsDiv.classList.remove('visible');
-                                    };
-                                    suggestionsDiv.appendChild(suggestionItem);
-                                });
-                            } else {
-                                suggestionsDiv.classList.remove('visible');  // ซ่อนคำแนะนำถ้าไม่มีข้อมูล
-                            }
-                        });
-                } else {
-                    suggestionsDiv.innerHTML = '';  // เคลียร์คำแนะนำเมื่อไม่มีการพิมพ์
-                    suggestionsDiv.classList.remove('visible');
-                }
-            } else {
-                suggestionsDiv.innerHTML = '';  // เคลียร์คำแนะนำเมื่อไม่มีการพิมพ์
-                suggestionsDiv.classList.remove('visible');
-            }
-        }
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        alert("{{ message | safe }}"); // Show flash message
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
     </script>
 </head>
 
@@ -245,6 +201,11 @@
                     <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
+                {% if alert_message %}
+                <script>
+                    alert("{{ alert_message }}");
+                </script>
+                {% endif %}
             </div>
         </div>
     </div>

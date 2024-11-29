@@ -294,6 +294,11 @@ def basic_settings():
         device_ips = []
         device_names_processed = set()
 
+        existing_device_hostname = device_collection.find_one({"name": hostname})
+        if existing_device_hostname:
+            flash("This hostname is already in use. Please choose a different hostname.", "danger")
+            return redirect(url_for('basic_settings_page'))
+
         if many_hostname:
             device_names = [name.strip() for name in many_hostname.split(',')]
             for name in device_names:
