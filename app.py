@@ -35,6 +35,16 @@ def mongo_status():
     return jsonify({"status": status})
 
 
+########## Suggest hostname ###################################
+@app.route('/search_hostname', methods=['GET'])
+def search_hostname():
+    query = request.args.get('query', '')  # รับคำค้นหาจาก query string
+    if query:
+        matching_devices = device_collection.find({"name": {"$regex": query, "$options": "i"}})  # ใช้ regex สำหรับค้นหาจากชื่อ
+        device_names = [device["name"] for device in matching_devices]
+        return jsonify(device_names)  
+    return jsonify([])
+
 ########## login Page #######################################
 @app.route('/')
 def login_frist():

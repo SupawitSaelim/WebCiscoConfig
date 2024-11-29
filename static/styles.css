@@ -445,3 +445,29 @@ input[type="submit"]:hover {
 .status-disconnected {
   background-color: red;
 }
+
+.suggestions-container {
+  position: absolute;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+}
+
+.suggestions-container div {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.suggestions-container div:hover {
+  background-color: #f1f1f1;
+}
+
+.suggestions-container.visible {
+  display: block;
+}
