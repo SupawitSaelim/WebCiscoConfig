@@ -149,6 +149,15 @@
                 {% endif %}
                 <br><br>
 
+                <!-- แสดงประเภทอุปกรณ์ (Router หรือ Switch) -->
+                {% if device_type %}
+                <div id="device_type_output"
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
+                    <h3 style="color: #2e4ead;">Device Type:</h3>
+                    <p style="font-size: 16px; color: #333;">{{ device_type }}</p>
+                </div>
+                {% endif %}
+
                 <!-- แสดงค่า SysName -->
                 {% if sysname %}
                 <div id="sysname_output"
@@ -195,7 +204,7 @@
                 <div id="port_output"
                     style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
                     <h3 style="color: #2e4ead;">Port Descriptions:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ output }}</p>
+                    <p style="font-size: 16px; color: #333; white-space: pre-line;">{{ output }}</p>
                 </div>
                 {% endif %}
             </div>
