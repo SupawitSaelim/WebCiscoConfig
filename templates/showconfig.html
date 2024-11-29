@@ -7,193 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Show Configurations</title>
-    <style>
-        .input-container {
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .input-container input[type="text"],
-        .input-container input[type="password"],
-        .input-container input[type="number"] {
-            flex: 1;
-            margin-right: 10px;
-        }
-    </style>
-    <style>
-        .checkbox-wrapper-22 .switch {
-            display: inline-block;
-            height: 34px;
-            position: relative;
-            width: 60px;
-        }
-
-        .checkbox-wrapper-22 .switch input {
-            display: none;
-        }
-
-        .checkbox-wrapper-22 .slider {
-            background-color: #ccc;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-        }
-
-        .checkbox-wrapper-22 .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 26px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 26px;
-        }
-
-        .checkbox-wrapper-22 input:checked+.slider {
-            background-color: #66bb6a;
-        }
-
-        .checkbox-wrapper-22 input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-
-        .checkbox-wrapper-22 .slider.round {
-            border-radius: 34px;
-        }
-
-        .checkbox-wrapper-22 .slider.round:before {
-            border-radius: 50%;
-        }
-    </style>
-    <style>
-        .checkbox-wrapper-23 *,
-        .checkbox-wrapper-23 *:after,
-        .checkbox-wrapper-23 *:before {
-            box-sizing: border-box;
-        }
-
-        .checkbox-wrapper-23 input {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .checkbox-wrapper-23 input:checked+label svg path {
-            stroke-dashoffset: 0;
-        }
-
-        .checkbox-wrapper-23 input:focus+label {
-            transform: scale(1.03);
-        }
-
-        .checkbox-wrapper-23 input+label {
-            display: inline-block;
-            vertical-align: middle;
-            border: 2px solid #333;
-            width: var(--size);
-            height: var(--size);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-
-        .checkbox-wrapper-23 input+label:active {
-            transform: scale(1.05);
-            border-radius: 12px;
-        }
-
-        .checkbox-wrapper-23 input+label svg {
-            pointer-events: none;
-            padding: 5%;
-        }
-
-        .checkbox-wrapper-23 input+label svg path {
-            fill: none;
-            stroke: #333;
-            stroke-width: 4px;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-dasharray: 100;
-            stroke-dashoffset: 101;
-            transition: all 250ms cubic-bezier(1, 0, .37, .91);
-        }
-
-        .label-text {
-            display: inline-block;
-            margin-bottom: 3%;
-            vertical-align: middle;
-            color: #2e4ead;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin-left: 10px;
-            /* Adjust the margin as needed */
-        }
-    </style>
-    <style>
-        .checkbox-container {
-            display: grid;
-            grid-template-columns: repeat(3, 33.33%);
-            /* 3 คอลัม */
-        }
-
-        .checkbox-wrapper-23 {
-            width: 100%;
-            /* ทำให้ Checkbox ในแต่ละคอลัมเต็มความกว้าง */
-            text-align: left;
-            /* จัดข้อความให้อยู่ตรงกลาง */
-        }
-
-        .checkbox-wrapper-23 input {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .checkbox-wrapper-23 input:checked+label svg path {
-            stroke-dashoffset: 0;
-        }
-
-        .checkbox-wrapper-23 input:focus+label {
-            transform: scale(1.03);
-        }
-
-        .checkbox-wrapper-23 input+label {
-            display: inline-block;
-            vertical-align: middle;
-            border: 2px solid #333;
-            width: var(--size);
-            height: var(--size);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-
-        .checkbox-wrapper-23 input+label:active {
-            transform: scale(1.05);
-            border-radius: 12px;
-        }
-
-        .checkbox-wrapper-23 input+label svg {
-            pointer-events: none;
-            padding: 5%;
-        }
-
-        .checkbox-wrapper-23 input+label svg path {
-            fill: none;
-            stroke: #333;
-            stroke-width: 4px;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-dasharray: 100;
-            stroke-dashoffset: 101;
-            transition: all 250ms cubic-bezier(1, 0, .37, .91);
-        }
-    </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <script>
@@ -205,6 +19,133 @@
             showLoader(); // แสดง loader เมื่อส่งแบบฟอร์ม
             return true; // ยังคงส่งแบบฟอร์มต่อไป
         }
+    </script>
+    <style>
+        .columns {
+            display: flex;
+        }
+
+        .left-column {
+            width: 20%;
+            padding: 10px;
+        }
+
+        .right-column {
+            width: 100%;
+            padding: 10px;
+            background-color: #ffffff;
+        }
+
+        .right-column pre {
+            white-space: pre-wrap;
+            /* ข้อความจะถูกพับลงมาหากยาวเกิน */
+            word-wrap: break-word;
+            /* เมื่อมีคำยาวเกินก็จะทำการตัดคำเพื่อให้พอดีกับพื้นที่ */
+            max-height: 500px;
+            /* จำกัดความสูงของ output */
+            overflow-y: auto;
+            /* เพิ่มแถบเลื่อนเมื่อเนื้อหามากเกินไป */
+        }
+
+
+        .menu {
+            width: 100%;
+        }
+
+        .menu-item {
+            text-align: left;
+        }
+
+        .menu-item input[type="checkbox"] {
+            margin-left: 0;
+        }
+
+        .menu-button {
+            width: 100%;
+            padding: 10px;
+            background-color: transparent;
+            color: black;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-button:hover {
+            color: #2e4ead;
+        }
+
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .menu-button .fa-chevron-right {
+            transform: rotate(0deg);
+        }
+
+        .menu-button .fa-chevron-down {
+            transform: rotate(0deg);
+        }
+
+        .submenu {
+            display: none;
+            position: relative;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .submenu label {
+            display: block;
+            margin: 5px 0;
+        }
+
+        .left-column .menu {
+            width: 100%;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.menu-button').forEach(button => {
+                const arrow = button.querySelector('.arrow');
+
+                arrow.classList.remove('fa-chevron-down');
+                arrow.classList.add('fa-chevron-right');
+
+                button.addEventListener('click', () => {
+                    const submenu = button.nextElementSibling;
+
+                    document.querySelectorAll('.submenu').forEach(menu => {
+                        if (menu !== submenu) {
+                            menu.style.display = 'none';
+                            const otherButton = menu.previousElementSibling;
+                            if (otherButton) {
+                                const otherArrow = otherButton.querySelector('.arrow');
+                                otherArrow.classList.remove('fa-chevron-down');
+                                otherArrow.classList.add('fa-chevron-right');
+                            }
+                        }
+                    });
+
+                    if (submenu.style.display === 'block') {
+                        submenu.style.display = 'none';
+                        arrow.classList.remove('fa-chevron-down');
+                        arrow.classList.add('fa-chevron-right');
+                    } else {
+                        submenu.style.display = 'block';
+                        arrow.classList.remove('fa-chevron-right');
+                        arrow.classList.add('fa-chevron-down');
+                    }
+                });
+            });
+        });
     </script>
 </head>
 
@@ -222,8 +163,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="show_config_page" title="Refresh"
-                            style="display: inline-flex; align-items: center;">
+                        <a href="show_config_page" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -301,171 +241,105 @@
                 <h1 style="text-align: left;color: #2e4ead;">SHOW CONFIGURATIONS</h1><br><br>
                 <form method="POST" action="/show-config" onsubmit="return handleSubmit();">
                     <select name="device_name" required>
-                        <option value="" disabled {% if cisco_devices|length == 0 %}selected{% endif %}>Select a device</option>
+                        <option value="" disabled {% if cisco_devices|length==0 %}selected{% endif %}>Select a device
+                        </option>
                         {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.name }}" {% if cisco_devices|length == 1 %}selected{% endif %}>
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
+                        {% for device in cisco_devices %}
+                        <option value="{{ device.name }}" {% if cisco_devices|length==1 %}selected{% endif %}>
+                            {{ device.name }} ({{ device.device_info.ip }})
+                        </option>
+                        {% endfor %}
                         {% else %}
-                            <option disabled>No devices available</option>
+                        <option disabled>No devices available</option>
                         {% endif %}
                     </select>
                     <br><br><br>
-                    <br><br>
-                    <div class="checkbox-container">
-                        <div class="checkbox-wrapper-23">
-                            <!-- Checkbox 1 -->
-                            <input type="checkbox" id="show_running_config" name="selected_commands"
-                                class="checkbox-input" value="show_running_config">
-                            <label for="show_running_config" style="--size: 30px">
-                                <svg viewBox="0,0,50,50">
-                                    <path d="M5 30 L 20 45 L 45 5"></path>
-                                </svg>
-                            </label>
-                            <span class="label-text">show running-config</span>
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_interfaces" name="selected_commands"
-                                    class="checkbox-input" value="show_interfaces">
-                                <label for="show_interfaces" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show interface</span>
-                            </div>
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_ip_route" name="selected_commands"
-                                    class="checkbox-input" value="show_ip_route">
-                                <label for="show_ip_route" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show ip route</span>
-                            </div>
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_cdp_neighbors" name="selected_commands"
-                                    class="checkbox-input" value="show_cdp_neighbors">
-                                <label for="show_cdp_neighbors" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show cdp neighbors</span>
+                    <div class="columns">
+                        <div class="left-column">
+                            <h2 style="color: #2e4ead;">Device Configuration</h2>
+                            <div class="menu">
+                                <!-- Device Information -->
+                                <div class="menu-item">
+                                    <button type="button" class="menu-button">
+                                        <i class="fas fa-chevron-right arrow"></i>
+                                        Device Information
+                                    </button>
+                                    <div class="submenu">
+                                        <label><input type="checkbox" name="selected_commands" value="show_version">
+                                            Show Version</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_clock"> Show
+                                            Clock</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_startup">
+                                            Show Startup-configuration</label>
+                                    </div>
+                                </div>
+
+                                <!-- Network Configuration -->
+                                <div class="menu-item">
+                                    <button type="button" class="menu-button">
+                                        <i class="fas fa-chevron-right arrow"></i>
+                                        Network Configuration
+                                    </button>
+                                    <div class="submenu">
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_running_config"> Show Running Config</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_ip_interface_brief"> Show IP Interface Brief</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_vlan"> Show
+                                            VLAN</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_interfaces">
+                                            Show Interfaces</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_interfaces_status">
+                                            Show Interfaces Status</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_interfaces_trunk"> Show Interfaces Trunk</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_mac_address_table"> Show MAC Address Table</label>
+                                    </div>
+                                </div>
+
+                                <!-- Routing and Protocols -->
+                                <div class="menu-item">
+                                    <button type="button" class="menu-button">
+                                        <i class="fas fa-chevron-right arrow"></i>
+                                        Routing and Protocols
+                                    </button>
+                                    <div class="submenu">
+                                        <label><input type="checkbox" name="selected_commands" value="show_ip_route">
+                                            Show IP Route</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_ip_protocols"> Show IP Protocols</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_cdp_neighbors"> Show CDP Neighbors</label>
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_lldp_neighbors"> Show LLDP Neighbors</label>
+                                    </div>
+                                </div>
+
+                                <!-- Performance & Diagnostics -->
+                                <div class="menu-item">
+                                    <button type="button" class="menu-button">
+                                        <i class="fas fa-chevron-right arrow"></i>
+                                        Performance & Diagnostics
+                                    </button>
+                                    <div class="submenu">
+                                        <label><input type="checkbox" name="selected_commands" value="show_logging">
+                                            Show Logging</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_etherch_sum">
+                                            Show EtherChannel Summary</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="checkbox-wrapper-23">
-                            <!-- Checkbox 2 -->
-                            <input type="checkbox" id="show_version" name="selected_commands" class="checkbox-input"
-                                value="show_version">
-                            <label for="show_version" style="--size: 30px">
-                                <svg viewBox="0,0,50,50">
-                                    <path d="M5 30 L 20 45 L 45 5"></path>
-                                </svg>
-                            </label>
-                            <span class="label-text">show version</span>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_ip_interface_brief" name="selected_commands"
-                                    class="checkbox-input" value="show_ip_interface_brief">
-                                <label for="show_ip_interface_brief" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show ip interface brief</span>
-                            </div>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_vlan" name="selected_commands" class="checkbox-input"
-                                    value="show_vlan">
-                                <label for="show_vlan" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show vlan</span>
-                            </div>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_ip_protocols" name="selected_commands"
-                                    class="checkbox-input" value="show_ip_protocols">
-                                <label for="show_ip_protocols" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show ip protocols</span>
-                            </div>
+                        <div class="right-column">
+                            <h2 style="color: #2e4ead;">CONFIGURATIONS OUTPUT</h2><br><br>
+                            <pre class="blue-pre" style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; text-align: left; margin-left: 0; white-space: pre-wrap; word-wrap: break-word;">
+                                {{ config_data | safe }}
+                            </pre>
                         </div>
-                        <div class="checkbox-wrapper-23">
-                            <!-- Checkbox 3 -->
-                            <input type="checkbox" id="show_clock" name="selected_commands" class="checkbox-input"
-                                value="show_clock">
-                            <label for="show_clock" style="--size: 30px">
-                                <svg viewBox="0,0,50,50">
-                                    <path d="M5 30 L 20 45 L 45 5"></path>
-                                </svg>
-                            </label>
-                            <span class="label-text">show clock</span>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_mac_address_table" name="selected_commands"
-                                    class="checkbox-input" value="show_mac_address_table">
-                                <label for="show_mac_address_table" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show mac address-table</span>
-                            </div>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_logging" name="selected_commands" class="checkbox-input"
-                                    value="show_logging">
-                                <label for="show_logging" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show logging</span>
-                            </div>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_interfaces_trunk" name="selected_commands"
-                                    class="checkbox-input" value="show_interfaces_trunk">
-                                <label for="show_interfaces_trunk" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show interfaces trunk</span>
-                            </div>
-
-                            <div class="checkbox-wrapper-23">
-                                <input type="checkbox" id="show_etherch_sum" name="selected_commands"
-                                    class="checkbox-input" value="show_etherch_sum">
-                                <label for="show_etherch_sum" style="--size: 30px">
-                                    <svg viewBox="0,0,50,50">
-                                        <path d="M5 30 L 20 45 L 45 5"></path>
-                                    </svg>
-                                </label>
-                                <span class="label-text">show etherchannel summary</span>
-                            </div>
-                        </div>
-
-                        <!-- <input type="number" id="vlan_id" name="vlan_id" placeholder="vlan id" minlength="1"
-                            maxlength="4000"> -->
-                    </div><br><br><br>
+                    </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
-                <div>
-                    <h2 style="color: #2e4ead;">CONFIGURATIONS OUTPUT</h2><br><br>
-                    <pre class="blue-pre" style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">{{ config_data | safe }}</pre>
-                    <!-- <pre style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">{{ config_data }}</pre> -->
-                </div>
             </div>
         </div>
     </div>

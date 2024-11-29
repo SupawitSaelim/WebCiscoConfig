@@ -1340,9 +1340,10 @@ def show_config_page():
 @app.route('/show-config', methods=['POST', 'GET'])
 def show_config():
     cisco_devices = list(device_collection.find())
+
     if request.method == 'POST':
         device_name = request.form.get('device_name')
-        selected_commands = request.form.getlist('selected_commands')
+        selected_commands = request.form.getlist('selected_commands')  # รับคำสั่งที่เลือก
 
         print("Device Name:", device_name)
         print("Selected Commands:", selected_commands)
@@ -1352,8 +1353,6 @@ def show_config():
         if device:
             device_info = device['device_info']
             try:
-                config_data = ""
-
                 device_info = {
                     "device_type": "cisco_ios",  # ประเภทของอุปกรณ์ Cisco
                     "host": device_info['ip'],  # IP ของอุปกรณ์
@@ -1379,9 +1378,13 @@ def show_config():
                     "show_clock": 'show clock',
                     "show_logging": 'show logging',
                     "show_interfaces_trunk": 'show interfaces trunk',
-                    "show_etherch_sum": 'show etherch sum'
+                    "show_etherch_sum": 'show etherch sum',
+                    "show_lldp_neighbors": 'show lldp neighbors',
+                    "show_startup": 'show startup-config',
+                    "show_interfaces_status": 'show int status'
                 }
 
+                config_data = ""
                 for command in selected_commands:
                     if command in commands_to_execute:
                         output = net_connect.send_command(commands_to_execute[command])
@@ -1389,6 +1392,7 @@ def show_config():
 
                 net_connect.disconnect()
                 print(config_data)
+
                 return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
 
             except Exception as e:
