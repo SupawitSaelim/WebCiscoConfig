@@ -502,6 +502,7 @@ def vlan_settings():
         disable_vlans = request.form.get('disable_vlans')  
         vlan_id_enable = request.form.get('vlan_id_enable')  
         vlan_id_disable = request.form.get('vlan_id_disable')
+        del_vlan_dat = request.form.get('del_vlan_dat')  
 
         access_vlans = request.form.get('access_vlans')
         access_interface = request.form.get('access_interface')
@@ -630,7 +631,7 @@ def vlan_settings():
                     device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable, 
                     access_vlans, access_interface, access_vlan_id, disable_dtp, 
                     trunk_ports, trunk_mode_select, trunk_interface, trunk_native,
-                    allow_vlan
+                    allow_vlan,del_vlan_dat
                 ))
                 threads.append(thread)
                 thread.start()
@@ -1397,7 +1398,8 @@ def show_config():
                     "show_lldp_neighbors": 'show lldp neighbors',
                     "show_startup": 'show startup-config',
                     "show_interfaces_status": 'show int status',
-                    "show_ipv6_interface_brief": 'show ipv6 int br'
+                    "show_ipv6_interface_brief": 'show ipv6 int br',
+                    "show_flash": 'show flash:'
                 }
 
                 config_data = ""

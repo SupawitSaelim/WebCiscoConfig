@@ -122,22 +122,24 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
 
 def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable,
                           access_vlans, access_interface, access_vlan_id, disable_dtp,
-                          trunk_ports, trunk_mode_select, trunk_interface, trunk_native, allow_vlan):
+                          trunk_ports, trunk_mode_select, trunk_interface, trunk_native, allow_vlan, del_vlan_dat):
     device_info = device["device_info"]
 
     try:
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        for vlan_id in vlan_range:
-            vlan_config_command = f"vlan {vlan_id}"
-            output = net_connect.send_config_set([vlan_config_command])
-            print(f"VLAN {vlan_id} creation output for {device['name']}:", output)
+        if vlan_range:
+            for vlan_id in vlan_range:
+                vlan_config_command = f"vlan {vlan_id}"
+                output = net_connect.send_config_set([vlan_config_command])
+                print(f"VLAN {vlan_id} creation output for {device['name']}:", output)
 
-        for vlan_id in vlan_range_del:
-            vlan_delete_command = f"no vlan {vlan_id}"
-            output = net_connect.send_config_set([vlan_delete_command])
-            print(f"VLAN {vlan_id} deletion output for {device['name']}:", output)
+        if vlan_range_del:
+            for vlan_id in vlan_range_del:
+                vlan_delete_command = f"no vlan {vlan_id}"
+                output = net_connect.send_config_set([vlan_delete_command])
+                print(f"VLAN {vlan_id} deletion output for {device['name']}:", output)
         
         if vlan_changes:
             for vlan_id, new_name in vlan_changes:
@@ -156,6 +158,12 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
             vlan_disable_command = f"vlan {vlan_id}"
             output = net_connect.send_config_set([vlan_disable_command,"sh"])
             print(f"VLAN {vlan_id} disabled on {device['name']}:", output)
+
+        if del_vlan_dat:
+            output = net_connect.send_command_timing("delete vlan.dat\n")
+            output += net_connect.send_command_timing("\n")  # ส่งคำตอบเป็น Enter (ตกลง)
+            print(output)
+
 
         if access_vlans and access_interface and access_vlan_id:
             access_config_commands = [

@@ -13,6 +13,7 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <style>
         .vlan_pair {
             display: grid;
@@ -46,11 +47,100 @@
 
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true;
+        }
+
+        function validateVlanChange() {
+            const vlanPairs = document.querySelectorAll('.vlan_pair');
+
+            for (let pair of vlanPairs) {
+                const vlanId = pair.querySelector('input[name="vlan_ids_change[]"]').value.trim();
+                const vlanName = pair.querySelector('input[name="vlan_names_change[]"]').value.trim();
+
+                if ((vlanId !== "" || vlanName !== "") && (vlanId === "" || vlanName === "")) {
+                    alert("Please fill in both VLAN ID and VLAN Name for all VLANs.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+            }
+
+            return true;
+        }
+
+        function validateVlanEnableDisable() {
+            const enableVlanChecked = document.getElementById('enable_vlans').checked;
+            const disableVlanChecked = document.getElementById('disable_vlans').checked;
+            const vlanIdEnable = document.getElementById('vlan_id_enable').value.trim();
+            const vlanIdDisable = document.getElementById('vlan_id_disable').value.trim();
+
+            // ถ้าเลือก Enable หรือ Disable ต้องกรอก VLAN ID
+            if ((enableVlanChecked && vlanIdEnable === "") || (disableVlanChecked && vlanIdDisable === "")) {
+                alert("Please enter the VLAN ID for Enable or Disable.");
+                return false;  // หยุดการส่งฟอร์ม
+            }
+
+            return true; // ผ่านการตรวจสอบ
+        }
+
+        function validateAccessVlan() {
+            const accessVlanChecked = document.getElementById('access_vlans').checked;
+            const disableDtpChecked = document.getElementById('disable_dtp').checked;
+
+            const accessInterface = document.getElementById('access_interface').value.trim();
+            const accessVlanId = document.getElementById('access_vlan_id').value.trim();
+
+            // กรณีที่เลือก Access VLAN ต้องกรอกทั้ง interface และ vlan ID
+            if (accessVlanChecked && !disableDtpChecked) {
+                if (accessInterface === "" || accessVlanId === "") {
+                    alert("Please fill in both interface and VLAN ID when Access VLAN is selected.");
+                    return false;  // หยุดการส่งฟอร์ม
+                }
+            }
+
+            // กรณีที่เลือก Access VLAN และ Disable DTP ต้องกรอกแค่ interface
+            if (accessVlanChecked && disableDtpChecked) {
+                if (accessInterface === "") {
+                    alert("Please enter the interface when Access VLAN and Disable DTP are selected.");
+                    return false;  // หยุดการส่งฟอร์ม
+                }
+            }
+
+            return true; // ผ่านการตรวจสอบ
+        }
+
+
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
+            if (!validateDeviceSelection()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateVlanChange()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateVlanEnableDisable()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateAccessVlan()) {
+                event.preventDefault();
+                return;
+            }
+
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
@@ -63,7 +153,7 @@
             newPair.classList.add('vlan_pair');
             newPair.innerHTML = `
                 <input type="text" name="vlan_ids_change[]" placeholder="VLAN ID" style="margin-right: 10px;">
-                <input type="text" name="vlan_names_change[]" placeholder="New VLAN Name">
+                <input type="text" name="vlan_names_change[]" minlength="1" maxlength="20" placeholder="New VLAN Name">
             `;
             container.appendChild(newPair);
         }
@@ -116,16 +206,36 @@
         document.addEventListener("DOMContentLoaded", function () {
             const trunkCheckbox = document.getElementById('trunk_ports');
             const trunkOptions = document.getElementById('trunk_mode_options');
-    
+
             function toggleTrunkOptions() {
                 trunkOptions.style.display = trunkCheckbox.checked ? 'block' : 'none';
             }
-    
+
             toggleTrunkOptions();
             trunkCheckbox.addEventListener('change', toggleTrunkOptions);
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const delVlanDatCheckbox = document.getElementById('del_vlan_dat');
+
+            delVlanDatCheckbox.addEventListener('change', function () {
+                if (this.checked) {
+                    // แจ้งเตือนเมื่อเปิด checkbox
+                    alert(
+                        "WARNING: You have selected to delete the VLAN.dat file.\n\n" +
+                        "VLAN.dat is a configuration file that stores VLAN information, including:\n" +
+                        "- VLAN IDs and their associated names\n" +
+                        "- VLAN ports and VLAN configurations\n\n" +
+                        "Deleting this file will permanently remove all VLAN configuration data.\n\n" +
+                        "Please ensure that you have a backup of your VLAN configuration before proceeding. \n\n" +
+                        "This action cannot be undone and may disrupt network connectivity if VLAN information is lost.\n\n" +
+                        "Proceed only if you are sure you want to delete the file."
+                    );
+                }
+            });
+        });
+
     </script>
-    
 </head>
 
 <body>
@@ -243,130 +353,168 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
 
                     <h3 style="color: #2e4ead; text-align: left;">Create VLANs</h3><br>
-                    <input type="text" id="vlan_id" name="vlan_id" placeholder="vlan ID like 9-20">
-                    <h3 style="color: #2e4ead; text-align: left;">Change VLAN Names</h3><br>
-                    <label for="vlan_change_name" style="text-align: left;">VLAN ID and New Name</label><br>
+                    <input type="text" id="vlan_id" name="vlan_id" placeholder="vlan ID like 9-20"
+                        title="Enter VLAN ID range, for example: 9-20">
 
-                    <!-- Multiple pairs of VLAN ID and New Name -->
-                    <div id="vlan_change_pairs">
-                        <div class="vlan_pair">
-                            <input type="text" name="vlan_ids_change[]" placeholder="VLAN ID">
-                            <input type="text" name="vlan_names_change[]" placeholder="New VLAN Name">
+                    <!-- Change name VLANs  -->
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">Change VLAN Names</h3><br>
+                        <label for="vlan_change_name" style="text-align: left;">VLAN ID and New Name</label>
+                        <!-- Multiple pairs of VLAN ID and New Name -->
+                        <div id="vlan_change_pairs">
+                            <div class="vlan_pair">
+                                <input type="text" name="vlan_ids_change[]" placeholder="VLAN ID"
+                                    title="Enter the VLAN ID, e.g., 10">
+                                <input type="text" name="vlan_names_change[]" minlength="1" maxlength="20"
+                                    placeholder="New VLAN Name"
+                                    title="Enter the new name for the VLAN (1-20 characters)">
+                            </div>
+                        </div>
+                        <button type="button" style="background-color: #2e4ead;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        padding: 2px 8px;
+                        font-size: 14px;
+                        cursor: pointer;
+                        display: block;
+                        margin-left: 0;" onclick="addVlanChangePair()">Add more VLANs to change</button><br><br>
+                    </div>
+
+                    <!-- Enable or Disable VLAN -->
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">VLAN Enable / Disable</h3><br>
+                        <div class="checkbox-wrapper-22">
+                            <label>Enable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enable_vlans" name="enable_vlans">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                            <label>Disable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="disable_vlans" name="disable_vlans">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                            <input type="text" id="vlan_id_enable" name="vlan_id_enable"
+                                placeholder="Enter VLAN ID for Enable" style="display: none; width: 30%;"
+                                title="Enter the VLAN ID(s) for enable, e.g., 9-10,15">
+                            <input type="text" id="vlan_id_disable" name="vlan_id_disable"
+                                placeholder="Enter VLAN ID for Disable" style="display: none; width: 30%;"
+                                title="Enter the VLAN ID(s) for disable, e.g., 9-10,15">
                         </div>
                     </div>
-                    <button type="button" style="background-color: #2e4ead; /* สีน้ำเงิน */
-                    color: white;              
-                    border: none;              
-                    border-radius: 5px;        
-                    padding: 10px 20px;       
-                    font-size: 14px;           
-                    cursor: pointer;          
-                    display: block;           
-                    margin-left: 0;" onclick="addVlanChangePair()">Add more VLANs to change</button><br><br>
-                    <h3 style="color: #2e4ead; text-align: left;">VLAN Enable / Disable</h3><br>
-
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_vlans" name="enable_vlans">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_vlans" name="disable_vlans">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <input type="text" id="vlan_id_enable" name="vlan_id_enable"
-                            placeholder="Enter VLAN ID for Enable" style="display: none; width: 30%;">
-                        <input type="text" id="vlan_id_disable" name="vlan_id_disable"
-                            placeholder="Enter VLAN ID for Disable" style="display: none; width: 30%;">
-                    </div>
-                    <h3 style="color: #2e4ead; text-align: left;">Delete VLANs</h3><br>
-                    <input type="text" id="vlan_id_del" name="vlan_id_del" placeholder="vlan ID">
-                    <br><br><br>
-                    <h2 style="color: #2e4ead; text-align: left;">Switchport Configuration</h2><br>
-                    <div class="checkbox-wrapper-22">
-                        <label>Access VLAN</label>
-                        <label class="switch">
-                            <input type="checkbox" id="access_vlans" name="access_vlans">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                    </div>
-                    <!-- Hidden fields for interface and VLAN ID, visible only if Access VLANs is checked -->
-                    <div id="access_vlan_fields" style="display: none; margin-top: 10px;">
-                        <input type="text" id="access_interface" name="access_interface"
-                            placeholder="Enter interface name (e.g., GigabitEthernet0/1)">
-                        <input type="text" id="access_vlan_id" name="access_vlan_id" placeholder="Enter VLAN ID">
-                        <br>
-                        <div class="checkbox-wrapper-22" style="margin-left: 80%;">
-                            <label>Disable DTP</label>
+                    <!-- Delte VLANs -->
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">Delete VLANs</h3>
+                        <input type="text" id="vlan_id_del" name="vlan_id_del" placeholder="vlan ID"
+                            title="Enter the VLAN ID(s) for disable, e.g., 9-10,15">
+                        <div class="checkbox-wrapper-22">
+                            <label>Delete VLAN.dat</label>
                             <label class="switch">
-                                <input type="checkbox" id="disable_dtp" name="disable_dtp">
-                                <span class="slider"></span>
+                                <input type="checkbox" id="del_vlan_dat" name="del_vlan_dat" title=" Deleting this file
+                                will permanently remove all VLAN configuration data.">
+                                <span class=" slider"></span>
                             </label>
                             <br>
                         </div>
                     </div>
-                    <div class="checkbox-wrapper-22">
-                        <label>Trunk Mode</label>
-                        <label class="switch">
-                            <input type="checkbox" id="trunk_ports" name="trunk_ports">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
+                    <br><br><br>
+
+                    <h2 style="color: #2e4ead; text-align: left;">Switchport Configuration</h2><br>
+                    <!-- Access VLAN -->
+                    <div>
+                        <div class="checkbox-wrapper-22">
+                            <label>Access VLAN</label>
+                            <label class="switch">
+                                <input type="checkbox" id="access_vlans" name="access_vlans">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                        </div>
+                        <div id="access_vlan_fields" style="display: none; margin-top: 10px;">
+                            <input type="text" id="access_interface" name="access_interface"
+                                placeholder="Enter interfaces name"
+                                title="Enter the interface names (e.g., gi0/1-24, gi0/48)">
+                            <input type="number" id="access_vlan_id" name="access_vlan_id" placeholder="Enter VLAN ID"
+                                min="1" max="4096">
+                            <br>
+                            <div class="checkbox-wrapper-22" style="margin-left: 80%;">
+                                <label>Disable DTP</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="disable_dtp" name="disable_dtp">
+                                    <span class="slider"></span>
+                                </label>
+                                <br>
+                            </div>
+                        </div>
                     </div>
-                    <div id="trunk_mode_options" style="margin-top: 10px;">
-                        <label for="trunk_mode_select" style="text-align: left;color:#2e4ead">Trunk Mode Options</label>
-                        <select id="trunk_mode_select" name="trunk_mode_select">
-                            <option value="trunk">Trunk</option>
-                            <option value="auto">Auto</option>
-                            <option value="desirable">Desirable</option>
-                        </select>
-                        <br><br>
-                        <input type="text" id="trunk_interface" name="trunk_interface" placeholder="e.g., fa0/1-2, gi0/3">
-                        <input type="text" id="trunk_native" name="trunk_native" placeholder="Native VLAN">
-                        <input type="text" id="allow_vlan" name="allow_vlan" placeholder="Allow VLAN (Optional)">
-                        <table border="1" style="width:100%; text-align:left; border-collapse: collapse;">
-                            <thead>
-                                <tr>
-                                    <th>Sub-command (switchport trunk allowed vlan)</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>WORD</td>
-                                    <td>Specify VLAN ID(s) of the VLAN(s) allowed on this port in trunk mode.</td>
-                                </tr>
-                                <tr>
-                                    <td>add</td>
-                                    <td>Add VLAN ID(s) to the current allowed VLAN list in trunk.</td>
-                                </tr>
-                                <tr>
-                                    <td>all</td>
-                                    <td>Allow all VLANs.</td>
-                                </tr>
-                                <tr>
-                                    <td>except</td>
-                                    <td>Allow all VLANs except the specified ones.</td>
-                                </tr>
-                                <tr>
-                                    <td>none</td>
-                                    <td>Do not allow any VLANs.</td>
-                                </tr>
-                                <tr>
-                                    <td>remove</td>
-                                    <td>Remove specified VLAN(s) from the current allowed VLAN list.</td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                    <!-- Trunk Mode -->
+                    <div>
+                        <div class="checkbox-wrapper-22">
+                            <label>Trunk Mode</label>
+                            <label class="switch">
+                                <input type="checkbox" id="trunk_ports" name="trunk_ports">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                        </div>
+                        <div id="trunk_mode_options" style="margin-top: 10px;">
+                            <label for="trunk_mode_select" style="text-align: left;color:#2e4ead">Trunk Mode
+                                Options</label>
+                            <select id="trunk_mode_select" name="trunk_mode_select">
+                                <option value="trunk">Trunk</option>
+                                <option value="auto">Auto</option>
+                                <option value="desirable">Desirable</option>
+                            </select>
+                            <br><br>
+                            <input type="text" id="trunk_interface" name="trunk_interface"
+                                placeholder="e.g., fa0/1-2, gi0/3">
+                            <input type="text" id="trunk_native" name="trunk_native" placeholder="Native VLAN">
+                            <input type="text" id="allow_vlan" name="allow_vlan" placeholder="Allow VLAN (Optional)">
+                            <table border="1" style="width:100%; text-align:left; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th>Sub-command (switchport trunk allowed vlan)</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>WORD</td>
+                                        <td>Specify VLAN ID(s) of the VLAN(s) allowed on this port in trunk mode.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>add</td>
+                                        <td>Add VLAN ID(s) to the current allowed VLAN list in trunk.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>all</td>
+                                        <td>Allow all VLANs.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>except</td>
+                                        <td>Allow all VLANs except the specified ones.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>none</td>
+                                        <td>Do not allow any VLANs.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>remove</td>
+                                        <td>Remove specified VLAN(s) from the current allowed VLAN list.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <br><br>
                     </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
