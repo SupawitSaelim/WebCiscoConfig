@@ -58,9 +58,6 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        # output = net_connect.send_config_set(["ipv6 unicast-routing"])
-        # print(f"IPv6 unicast-routing Config for {device['name']}:", output)
-        
         if dhcp_ipv4:
             ipv4_config = "ip address dhcp"
             output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
@@ -89,29 +86,31 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
             print(f"Delete IPv4 for {device['name']}:", output)
 
 
-        if dhcp_ipv6:
+
+        # IPv6 #
+        if dhcp_ipv6 and interfaces_ipv6:
             ipv6_config = "ipv6 address dhcp"
             output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
             print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
-        if ip_address_ipv6: 
-            ipv6_config = f"ipv6 address {ip_address_ipv6}"
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
+        if ip_address_ipv6 and interfaces_ipv6: 
+            ipv6_config = f"ipv6 address {ip_address_ipv6} \n "
+            output = net_connect.send_config_set(["ipv6 unicast-routing",f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
             print(f"IPv6 Config for {device['name']}:", output)
 
-        if enable_ipv6:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no shutdown"])
+        if enable_ipv6 and interfaces_ipv6:
+            output = net_connect.send_config_set(["ipv6 unicast-routing",f"interface range {interfaces_ipv6}", "no shutdown"])
             print(f"IPv6 Config for {device['name']}:", output)
 
-        if disable_ipv6:
+        if disable_ipv6 and interfaces_ipv6:
             output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "shutdown"])
             print(f"Disable IPv6 for {device['name']}:", output)
 
-        if delete_ipv6:
+        if delete_ipv6 and interfaces_ipv6:
             output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no ipv6 address"])
             print(f"Delete IPv6 for {device['name']}:", output)
 
-        if interfaces_du:
+        if interfaces_du and speed_duplex:
             output = net_connect.send_config_set([f"interface range {interfaces_du}", f"duplex {speed_duplex}"])
             print(f"Duplex Config for {device['name']}:", output)
 

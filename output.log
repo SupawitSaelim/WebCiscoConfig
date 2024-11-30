@@ -1,0 +1,21 @@
+ Testing 
+RT-Last-rack-6>
+RT-Last-rack-6>terminal width 511
+RT-Last-rack-6>terminal length 0
+RT-Last-rack-6>
+RT-Last-rack-6>
+RT-Last-rack-6>enable
+Password: 
+RT-Last-rack-6#
+RT-Last-rack-6#
+RT-Last-rack-6#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+RT-Last-rack-6(config)#
+RT-Last-rack-6(config)#ipv6 unicast-routing
+RT-Last-rack-6(config)#interface range gi0/0
+RT-Last-rack-6(config-if-range)#no shutdown
+RT-Last-rack-6(config-if-range)#
+RT-Last-rack-6(config-if-range)#end
+RT-Last-rack-6#
+RT-Last-rack-6#
+RT-Last-rack-6#exit

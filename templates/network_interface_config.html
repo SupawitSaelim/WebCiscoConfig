@@ -73,21 +73,68 @@
                 alert("Please select a device or enter the devices name");
                 return false; // หยุดการส่งฟอร์ม
             }
-            return true; 
+            return true;
         }
-        
+
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
-            if (!validateDeviceSelection()) {
-                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
-                return;
+            const ipv4Valid = validateIPv4Configuration();
+            const ipv6Valid = validateIPv6Configuration();
+            const duplexValid = validateDuplexConfiguration();
+
+            if (!validateDeviceSelection() || !ipv4Valid || !ipv6Valid || !duplexValid) {
+                event.preventDefault(); // หยุดการส่งฟอร์ม
+                return false;
             }
 
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
+        }
+
+        function validateIPv4Configuration() {
+            const enableIPv4 = document.getElementById('enable_ipv4').checked;
+            const disableIPv4 = document.getElementById('disable_ipv4').checked;
+            const deleteIPv4 = document.getElementById('delete_ipv4').checked;
+            const dhcpIPv4 = document.getElementById('dhcp').checked;
+            const interfacesIPv4 = document.getElementById('interfaces_ipv4').value.trim();
+
+            // เช็คว่ามีการเลือกหนึ่งในตัวเลือกและยังไม่ได้กรอก interface IPv4
+            if ((enableIPv4 || disableIPv4 || deleteIPv4 || dhcpIPv4) && interfacesIPv4 === "") {
+                alert("Please enter the IPv4 interface if Enable, Disable, Delete IP, or DHCP is selected.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            return true; // ผ่านการตรวจสอบ
+        }
+
+        function validateIPv6Configuration() {
+            const enableIPv6 = document.getElementById('enable_ipv6').checked;
+            const disableIPv6 = document.getElementById('disable_ipv6').checked;
+            const deleteIPv6 = document.getElementById('delete_ipv6').checked;
+            const dhcpIPv6 = document.getElementById('dhcp_ipv6').checked;
+            const interfacesIPv6 = document.getElementById('interfaces_ipv6').value.trim();
+
+            if ((enableIPv6 || disableIPv6 || deleteIPv6 || dhcpIPv6) && interfacesIPv6 === "") {
+                alert("Please enter the IPv6 interface if Enable, Disable, Delete IP, or DHCP is selected.");
+                return false;
+            }
+
+            return true;
+        }
+        function validateDuplexConfiguration() {
+            const interfacesDuplex = document.getElementById('interfaces_du').value.trim();
+            const speedDuplex = document.getElementById('speed_duplex').value;
+
+            // หากเลือก Speed Duplex เป็น Full หรือ Half แต่ไม่มีการกรอก interfaces
+            if ((speedDuplex === "full" || speedDuplex === "half") && interfacesDuplex === "") {
+                alert("Please enter the network interfaces when selecting Full or Half duplex.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            return true; // ผ่านการตรวจสอบ
         }
     </script>
     <script>
@@ -140,6 +187,7 @@
         });
     </script>
 </head>
+
 <body>
     <div id="loader"></div> <!-- Loader element -->
 
@@ -234,7 +282,7 @@
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">network interface SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
-                <form method="POST" action="/network_interface_settings" onsubmit="return handleSubmit()">
+                <form method="POST" action="/network_interface_settings" onsubmit="return handleSubmit(event)">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -262,81 +310,92 @@
                     <br><br>
 
                     <!-- IPv4 -->
-                    <h3 style="color: #2e4ead; text-align: left;">IPv4</h3>
-                    <br>
-                    <h3 style="color: #2e4ead; text-align: left;">Interfaces</h3>
-                    <input type="text" id="interfaces_ipv4" name="interfaces_ipv4" placeholder="e.g., gi0/0-1, gi1/0" 
-                    title="Enter network interfaces (e.g., gi0/0-1, gi1/0)"
-                        minlength="3" maxlength="25">
-                    <div class="input-container" style="text-align: left;">
-                        <label for="config_type">Configuration Type: </label>
-                        <input type="radio" id="dhcp" name="config_type" value="dhcp_ipv4"> DHCP
-                        <input type="radio" id="manual" name="config_type" value="manual" checked> Manual
-                    </div><br>
-                    <input type="text" id="ip_address_ipv4" name="ip_address_ipv4" placeholder="e.g., 192.168.1.1/24" 
-                    title="Enter an IPv4 address with CIDR notation (e.g., 192.168.1.1/24)" 
-                    pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2})$">
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_ipv4" name="enable_ipv4">
-                            <span class="slider"></span>
-                        </label>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_ipv4" name="disable_ipv4">
-                            <span class="slider"></span>
-                        </label>
-                        <label>Delete IP</label>
-                        <label class="switch">
-                            <input type="checkbox" id="delete_ipv4" name="delete_ipv4">
-                            <span class="slider"></span>
-                        </label>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">IPv4</h3>
+                        <br>
+                        <h3 style="color: #2e4ead; text-align: left;">Interfaces</h3>
+                        <input type="text" id="interfaces_ipv4" name="interfaces_ipv4"
+                            placeholder="e.g., gi0/0-1, gi1/0" title="Enter network interfaces (e.g., gi0/0-1, gi1/0)"
+                            minlength="3" maxlength="25">
+                        <div class="input-container" style="text-align: left;">
+                            <label for="config_type">Configuration Type: </label>
+                            <input type="radio" id="dhcp" name="config_type" value="dhcp_ipv4"> DHCP
+                            <input type="radio" id="manual" name="config_type" value="manual" checked> Manual
+                        </div><br>
+                        <input type="text" id="ip_address_ipv4" name="ip_address_ipv4"
+                            placeholder="e.g., 192.168.1.1/24"
+                            title="Enter an IPv4 address with CIDR notation (e.g., 192.168.1.1/24)"
+                            pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2})$">
+                        <div class="checkbox-wrapper-22">
+                            <label>Enable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enable_ipv4" name="enable_ipv4">
+                                <span class="slider"></span>
+                            </label>
+                            <label>Disable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="disable_ipv4" name="disable_ipv4">
+                                <span class="slider"></span>
+                            </label>
+                            <label>Delete IP</label>
+                            <label class="switch">
+                                <input type="checkbox" id="delete_ipv4" name="delete_ipv4">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                     <br><br>
-                    
+
                     <!-- IPv6 -->
-                    <h3 style="color: #2e4ead; text-align: left;">IPv6</h3>
-                    <br>
-                    <input type="text" id="interfaces_ipv6" name="interfaces_ipv6" placeholder="Network Interfaces"
-                        minlength="3" maxlength="25">
-                    <div class="input-container" style="text-align: left;">
-                        <label for="config_type_ipv6">Configuration Type: </label>
-                        <input type="radio" id="dhcp_ipv6" name="config_type_ipv6" value="dhcp_ipv6"> DHCP
-                        <input type="radio" id="manual_ipv6" name="config_type_ipv6" value="manual_ipv6" checked> Manual
-                    </div><br>
-                    <input type="text" id="ip_address_ipv6" name="ip_address_ipv6" placeholder="IP Address/Subnet Mask">
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_ipv6" name="enable_ipv6">
-                            <span class="slider"></span>
-                        </label>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_ipv6" name="disable_ipv6">
-                            <span class="slider"></span>
-                        </label>
-                        <label>Delete IP</label>
-                        <label class="switch">
-                            <input type="checkbox" id="delete_ipv6" name="delete_ipv6">
-                            <span class="slider"></span>
-                        </label>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">IPv6</h3>
+                        <br>
+                        <h3 style="color: #2e4ead; text-align: left;">Interfaces</h3>
+                        <input type="text" id="interfaces_ipv6" name="interfaces_ipv6"
+                            placeholder="e.g., gi0/0-1, gi1/0" title="Enter network interfaces (e.g., gi0/0-1, gi1/0)"
+                            minlength="3" maxlength="25">
+                        <div class="input-container" style="text-align: left;">
+                            <label for="config_type_ipv6">Configuration Type: </label>
+                            <input type="radio" id="dhcp_ipv6" name="config_type_ipv6" value="dhcp_ipv6"> DHCP
+                            <input type="radio" id="manual_ipv6" name="config_type_ipv6" value="manual_ipv6" checked>
+                            Manual
+                        </div><br>
+                        <input type="text" id="ip_address_ipv6" name="ip_address_ipv6"
+                            placeholder="e.g., 2001:db8::1/64"
+                            title="Enter a valid IPv6 address with CIDR notation (e.g., 2001:db8::1/64)"
+                            pattern="^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(([0-9a-fA-F]{1,4}:)*:([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4})|::)(\/(12[0-8]|1[01][0-9]|[1-9]?[0-9]))?$">
+                        <div class="checkbox-wrapper-22">
+                            <label>Enable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enable_ipv6" name="enable_ipv6">
+                                <span class="slider"></span>
+                            </label>
+                            <label>Disable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="disable_ipv6" name="disable_ipv6">
+                                <span class="slider"></span>
+                            </label>
+                            <label>Delete IP</label>
+                            <label class="switch">
+                                <input type="checkbox" id="delete_ipv6" name="delete_ipv6">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                     <br><br>
+
+                    <!-- Duplex -->
                     <h3 style="color: #2e4ead; text-align: left;">Duplex</h3>
                     <br>
-                    <input type="text" id="interfaces_du" name="interfaces_du" placeholder="Network Interfaces"
-                        minlength="3" maxlength="25">
+                    <input type="text" id="interfaces_du" name="interfaces_du" placeholder="e.g., gi0/0-1, gi1/0"
+                        title="Enter network interfaces (e.g., gi0/0-1, gi1/0)" minlength="3" maxlength="25">
                     <select id="speed_duplex" name="speed_duplex">
                         <option value="auto">Auto-Negotiation(default)</option>
                         <option value="full">Full</option>
                         <option value="half">Half</option>
                     </select>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
-
                 </form>
-
             </div>
         </div>
     </div>

@@ -1396,7 +1396,8 @@ def show_config():
                     "show_etherch_sum": 'show etherch sum',
                     "show_lldp_neighbors": 'show lldp neighbors',
                     "show_startup": 'show startup-config',
-                    "show_interfaces_status": 'show int status'
+                    "show_interfaces_status": 'show int status',
+                    "show_ipv6_interface_brief": 'show ipv6 int br'
                 }
 
                 config_data = ""
