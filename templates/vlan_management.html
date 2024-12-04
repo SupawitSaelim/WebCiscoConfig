@@ -91,29 +91,36 @@
 
         function validateAccessVlan() {
             const accessVlanChecked = document.getElementById('access_vlans').checked;
-            const disableDtpChecked = document.getElementById('disable_dtp').checked;
-
             const accessInterface = document.getElementById('access_interface').value.trim();
             const accessVlanId = document.getElementById('access_vlan_id').value.trim();
 
-            // กรณีที่เลือก Access VLAN ต้องกรอกทั้ง interface และ vlan ID
-            if (accessVlanChecked && !disableDtpChecked) {
+            // ตรวจสอบเฉพาะเมื่อเลือก Access VLAN
+            if (accessVlanChecked) {
                 if (accessInterface === "" || accessVlanId === "") {
-                    alert("Please fill in both interface and VLAN ID when Access VLAN is selected.");
-                    return false;  // หยุดการส่งฟอร์ม
-                }
-            }
-
-            // กรณีที่เลือก Access VLAN และ Disable DTP ต้องกรอกแค่ interface
-            if (accessVlanChecked && disableDtpChecked) {
-                if (accessInterface === "") {
-                    alert("Please enter the interface when Access VLAN and Disable DTP are selected.");
+                    alert("Please fill in both Interface and VLAN ID when Access VLAN is selected.");
                     return false;  // หยุดการส่งฟอร์ม
                 }
             }
 
             return true; // ผ่านการตรวจสอบ
         }
+
+        function validateTrunkMode() {
+            const trunkChecked = document.getElementById('trunk_ports').checked;
+            const trunkInterface = document.getElementById('trunk_interface').value.trim();
+
+            // ตรวจสอบเฉพาะเมื่อเลือก Trunk Mode
+            if (trunkChecked) {
+                if (trunkInterface === "") {
+                    alert("Please fill in the Interface field when Trunk Mode is selected.");
+                    return false;  // หยุดการส่งฟอร์ม
+                }
+            }
+
+            return true; // ผ่านการตรวจสอบ
+        }
+
+
 
 
         function showLoader() {
@@ -139,6 +146,10 @@
             if (!validateAccessVlan()) {
                 event.preventDefault();
                 return;
+            }
+
+            if (!validateTrunkMode()) {
+                return false;
             }
 
             showLoader(); // Show loader when form is submitted
@@ -446,14 +457,14 @@
                             <input type="number" id="access_vlan_id" name="access_vlan_id" placeholder="Enter VLAN ID"
                                 min="1" max="4096">
                             <br>
-                            <div class="checkbox-wrapper-22" style="margin-left: 80%;">
+                            <!-- <div class="checkbox-wrapper-22" style="margin-left: 80%;">
                                 <label>Disable DTP</label>
                                 <label class="switch">
                                     <input type="checkbox" id="disable_dtp" name="disable_dtp">
                                     <span class="slider"></span>
                                 </label>
                                 <br>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
 
@@ -476,10 +487,15 @@
                                 <option value="desirable">Desirable</option>
                             </select>
                             <br><br>
+                            <label for="trunk_mode_select" style="text-align: left;color:#2e4ead">Interfaces</label>
                             <input type="text" id="trunk_interface" name="trunk_interface"
                                 placeholder="e.g., fa0/1-2, gi0/3">
-                            <input type="text" id="trunk_native" name="trunk_native" placeholder="Native VLAN">
-                            <input type="text" id="allow_vlan" name="allow_vlan" placeholder="Allow VLAN (Optional)">
+                            <input type="text" id="trunk_native" name="trunk_native"
+                                placeholder="Native VLAN (Optional)"
+                                title="Enter the VLAN ID to set as the native VLAN for this trunk port (e.g., 1 or 99). Leave blank if not required.">
+                            <input type="text" id="allow_vlan" name="allow_vlan" placeholder="Allow VLAN (Optional)"
+                                title="Enter the VLAN ID(s) allowed on this trunk port. Use ranges (e.g., 10-20) or a comma-separated list (e.g., 10,15,30). Leave blank to allow all VLANs.">
+
                             <table border="1" style="width:100%; text-align:left; border-collapse: collapse;">
                                 <thead>
                                     <tr>
