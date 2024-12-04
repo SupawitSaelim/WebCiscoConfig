@@ -11,6 +11,7 @@
     <title>Routing Configuration</title>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <style>
         .form-container {
             display: flex;
@@ -133,7 +134,7 @@
         }
 
         function validateSubnetMask() {
-            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"]');
+            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"], input[name="remove_destination_networks[]"]');
             let isValid = true;
 
             destinationNetworks.forEach((input) => {
@@ -144,21 +145,84 @@
                 }
             });
 
-            return isValid; // ถ้าทุกช่องถูกต้องจะคืนค่า true
+            return isValid;  // ถ้าทุกช่องถูกต้องจะคืนค่า true
+        }
+
+
+        function validateRoutePairs() {
+            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"]');
+            const exitInterfacesOrNextHops = document.querySelectorAll('input[name="exit_interfaces_or_next_hops[]"]');
+            let isValid = true;
+
+            destinationNetworks.forEach((input, index) => {
+                const destinationValue = input.value.trim();
+                const exitInterfaceValue = exitInterfacesOrNextHops[index].value.trim();
+
+                // ถ้ามีการกรอก Destination Network ต้องกรอก Exit Interface หรือ Next Hop ด้วย
+                if (destinationValue && !exitInterfaceValue) {
+                    alert("If you enter a Destination Network, you must also provide the Exit Interface or Next Hop IP.");
+                    isValid = false;
+                }
+
+                // ถ้ามีการกรอก Exit Interface หรือ Next Hop ต้องกรอก Destination Network ด้วย
+                if (exitInterfaceValue && !destinationValue) {
+                    alert("If you enter an Exit Interface or Next Hop IP, you must also provide the Destination Network.");
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function validateRemoveRoutePairs() {
+            const removeDestinationNetworks = document.querySelectorAll('input[name="remove_destination_networks[]"]');
+            const removeExitInterfacesOrNextHops = document.querySelectorAll('input[name="remove_exit_interfaces_or_next_hops[]"]');
+            let isValid = true;
+
+            removeDestinationNetworks.forEach((input, index) => {
+                const destinationValue = input.value.trim();
+                const exitInterfaceValue = removeExitInterfacesOrNextHops[index].value.trim();
+
+                // ถ้ามีการกรอก Destination Network ต้องกรอก Exit Interface หรือ Next Hop ด้วย
+                if (destinationValue && !exitInterfaceValue) {
+                    alert("If you enter a Destination Network, you must also provide the Exit Interface or Next Hop IP to remove.");
+                    isValid = false;
+                }
+
+                // ถ้ามีการกรอก Exit Interface หรือ Next Hop ต้องกรอก Destination Network ด้วย
+                if (exitInterfaceValue && !destinationValue) {
+                    alert("If you enter an Exit Interface or Next Hop IP, you must also provide the Destination Network to remove.");
+                    isValid = false;
+                }
+            });
+
+            return isValid;  // ถ้าผ่านการตรวจสอบทั้งหมดจะคืนค่า true
         }
 
         function handleSubmit(event) {
+            // ตรวจสอบการเลือกอุปกรณ์
             if (!validateDeviceSelection()) {
-                event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                event.preventDefault();
                 return;
             }
 
+            // ตรวจสอบ Subnet Mask
             if (!validateSubnetMask()) {
-                event.preventDefault();  // ถ้าผิดพลาดจะหยุดการส่งฟอร์ม
+                event.preventDefault();
                 return;
             }
 
-            showLoader(); // แสดง loader เมื่อฟอร์มถูกส่ง
+            // ตรวจสอบ Route Pairs สำหรับการเพิ่ม
+            if (!validateRoutePairs()) {
+                event.preventDefault();
+                return;
+            }
+
+            // ตรวจสอบ Route Pairs สำหรับการลบ
+            if (!validateRemoveRoutePairs()) {
+                event.preventDefault();
+                return;
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -283,7 +347,9 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
 
                     <!-- Static route -->
@@ -293,11 +359,13 @@
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Destination Network (e.g., 192.168.1.0/24)">
+                                    placeholder="Destination Network (e.g., 192.168.1.0/24)"
+                                    title="Enter the destination network in CIDR notation (e.g., 192.168.1.0/24). This defines the target network for the static route.">
                             </div>
                             <div class="form-group">
                                 <input type="text" name="exit_interfaces_or_next_hops[]"
-                                    placeholder="Exit Interface (e.g., fa0/1) or Next Hop IP (e.g., 192.168.1.1)">
+                                    placeholder="Exit Interface (e.g., fa0/1) or Next Hop IP (e.g., 192.168.1.1)"
+                                    title="Enter the exit interface (e.g., fa0/1) or the next hop IP address (e.g., 192.168.1.1) for the static route.">
                             </div>
                         </div>
                     </div>
@@ -309,7 +377,8 @@
                     <!-- Default Route -->
                     <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Default Route
                         <input type="text" id="default_route" name="default_route"
-                            placeholder="Exit interface or IP next hop">
+                            placeholder="Exit interface or IP next hop"
+                            title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop (e.g., 192.168.1.1) for the default route. The default route is used to direct traffic to destinations outside the local network, typically used for accessing the internet or remote networks.">
                         <div class="checkbox-wrapper-22">
                             <label style="font-size: small;color: #2e4ead;">Remove Default Route</label>
                             <label class="switch">
@@ -326,11 +395,13 @@
                             <div class="form-container route_pair">
                                 <div class="form-group">
                                     <input type="text" name="remove_destination_networks[]"
-                                        placeholder="Destination Network to Remove">
+                                        placeholder="Destination Network to Remove"
+                                        title="Enter the destination network (e.g., 192.168.1.0/24) that you want to remove from the static route configuration. This is the network you wish to remove from the routing table.">
                                 </div>
                                 <div class="form-group">
                                     <input type="text" name="remove_exit_interfaces_or_next_hops[]"
-                                        placeholder="Exit Interface or Next Hop IP to Remove">
+                                        placeholder="Exit Interface or Next Hop IP to Remove"
+                                        title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop (e.g., 192.168.1.1) to remove from the static route. This defines the outgoing path for traffic from the destination network.">
                                 </div>
                             </div>
                         </div>
