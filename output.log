@@ -11,15 +11,12 @@ SW-Last-rack-4#
 SW-Last-rack-4#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
 SW-Last-rack-4(config)#
-SW-Last-rack-4(config)#interface range fa0/1
-SW-Last-rack-4(config-if-range)#switchport trunk encapsulation dot1q
-                                                 ^
-% Invalid input detected at '^' marker.
-
-SW-Last-rack-4(config-if-range)#switchport mode trunk
-SW-Last-rack-4(config-if-range)#sw tr allow vlan remove 10
-SW-Last-rack-4(config-if-range)#
-SW-Last-rack-4(config-if-range)#end
+SW-Last-rack-4(config)#line console 0
+SW-Last-rack-4(config-line)#password supawit
+SW-Last-rack-4(config-line)#login
+SW-Last-rack-4(config-line)#login
+SW-Last-rack-4(config-line)#
+SW-Last-rack-4(config-line)#end
 SW-Last-rack-4#
 SW-Last-rack-4#
 SW-Last-rack-4#exit

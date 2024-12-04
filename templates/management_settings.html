@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="../static/suggesthost.js"></script>
     <title>Management Settings</title>
     <style>
         /* Two Column */
@@ -32,7 +33,6 @@
             padding: 8px;
             margin: 5px 0;
         }
-
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
@@ -60,11 +60,86 @@
 
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true;
+        }
+
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
+        function validateRequiredFields() {
+            const poolName = document.getElementById("pool_name").value;
+            const defaultRouter = document.getElementById("default_router").value;
+            const dnsServer = document.getElementById("dns_server").value;
+            const domainName = document.getElementById("domain_name").value;
+
+            if ((defaultRouter || dnsServer || domainName) && !poolName) {
+                alert("When entering Default Router or DNS Server or Domain-Name, Pool Name must also be provided.");
+                return false;
+            }
+            return true;
+        }
+
+        function validateNetworkAndSubnet() {
+            const network = document.getElementById("network").value;
+            const subnet = document.getElementById("dhcp_subnet").value;
+            const poolName = document.getElementById("pool_name").value;
+
+            // ถ้ากรอก Network ต้องกรอก Subnet Mask และ Pool Name ด้วย
+            if (network && (!subnet || !poolName)) {
+                alert("When entering Network, Subnet Mask and Pool Name must also be provided.");
+                return false;
+            }
+
+            // ถ้ากรอก Subnet และ Pool Name ต้องกรอก Network ด้วย
+            if ((subnet || poolName) && !network) {
+                alert("When entering Subnet Mask or Pool Name, Network must also be provided.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function validateTimeZone() {
+            const timeZoneName = document.getElementById("time_zone_name").value;
+            const hourOffset = document.getElementById("hour_offset").value;
+
+            // ถ้ากรอก time_zone_name หรือ hour_offset อย่างใดอย่างหนึ่ง ต้องกรอกทั้งคู่
+            if ((timeZoneName && !hourOffset) || (!timeZoneName && hourOffset)) {
+                alert("When entering Time Zone Name or Hour Offset, both must be provided.");
+                return false;
+            }
+            return true;
+        }
+
         function handleSubmit() {
+            if (!validateDeviceSelection()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateRequiredFields()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateNetworkAndSubnet()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateTimeZone()) {
+                event.preventDefault();
+                return;
+            }
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
@@ -217,130 +292,170 @@
                         If more than one device, input names of devices here (separate by comma)
                     </label>
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
                     <!-- VTY -->
-                    <h3 style="color: #2e4ead; text-align: left;">VTY (Virtual Terminal Lines) Configuration</h3><br>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="password_vty" name="password_vty"
-                                placeholder="Enter Password"><br><br>
-                            <label for="authen_method">Authentication Method</label>
-                            <select id="authen_method_select" name="authen_method_select">
-                                <option value="">Not Select</option>
-                                <option value="login">VTY Password</option>
-                                <option value="login local">Local User</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="exec_timeout_vty" name="exec_timeout_vty"
-                                placeholder="Exec Timeout (in minutes)"><br><br>
-                            <label for="login_method">Login Method</label>
-                            <select id="login_method_select" name="login_method_select">
-                                <option value="">Not Select</option>
-                                <option value="all">All</option>
-                                <option value="ssh">SSH</option>
-                                <option value="telnet">Telnet</option>
-                                <option value="none">None(No protocols)</option>
-                            </select>
-                            <div class="checkbox-wrapper-22" style="margin-left: 0%;">
-                                <label>Enable Synchronized message output</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="logging_sync_vty" name="logging_sync_vty">
-                                    <span class="slider"></span>
-                                </label>
-                                <br>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">VTY (Virtual Terminal Lines) Configuration</h3>
+                        <br>
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="password_vty" name="password_vty" placeholder="Enter Password"
+                                    minlength="8"
+                                    title="Enter a secure password for VTY access. Use at least 8 characters,"><br><br>
+                                <label for="authen_method">Authentication Method</label>
+                                <select id="authen_method_select" name="authen_method_select"
+                                    title="Select the authentication method for VTY access. Options: VTY Password or Local User.">
+                                    <option value="">Not Select</option>
+                                    <option value="login">VTY Password</option>
+                                    <option value="login local">Local User</option>
+                                </select>
                             </div>
-                        </div>
-                    </div><br><br>
+                            <div class="form-group">
+                                <input type="number" min="0" max="35791" id="exec_timeout_vty" name="exec_timeout_vty"
+                                    placeholder="Exec Timeout (in minutes)"
+                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout."><br><br>
+                                <label for="login_method">Login Method</label>
+                                <select id="login_method_select" name="login_method_select"
+                                    title="Select the login method for device access. Options: All, SSH, Telnet, or None (to disable all protocols).">
+                                    <option value="">Not Select</option>
+                                    <option value="all">All</option>
+                                    <option value="ssh">SSH</option>
+                                    <option value="telnet">Telnet</option>
+                                    <option value="none">None(No protocols)</option>
+                                </select>
+                                <div class="checkbox-wrapper-22" style="margin-left: 0%;">
+                                    <label>Enable Synchronized message output </label>
+                                    <label class="switch"
+                                        title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
+                                        <input type="checkbox" id="logging_sync_vty" name="logging_sync_vty"
+                                            title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <br>
+                                </div>
+                            </div>
+                        </div><br><br>
+                    </div>
                     <!-- Console -->
-                    <h3 style="color: #2e4ead; text-align: left;">Console Configuration</h3><br>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="password_console" name="password_console"
-                                placeholder="Enter Password"><br><br>
-                            <label for="authen_method_console">Authentication Method</label>
-                            <select id="authen_method_console_select" name="authen_method_console_select">
-                                <option value="">Not Select</option>
-                                <option value="login">Console Password</option>
-                                <option value="login local">Local User</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="exec_timeout_console" name="exec_timeout_console"
-                                placeholder="Exec Timeout (in minutes)"><br><br>
-                            <div class="checkbox-wrapper-22" style="margin-left: 0%;">
-                                <label>Enable Synchronized message output</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="loggin_sync" name="logging_sync_con">
-                                    <span class="slider"></span>
-                                </label>
-                                <br>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">Console Configuration</h3><br>
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="password_console" name="password_console"
+                                    placeholder="Enter Password" minlength="8"
+                                    title="Enter a secure password for console access. Use at least 8 characters,"><br><br>
+                                <label for="authen_method_console">Authentication Method</label>
+                                <select id="authen_method_console_select" name="authen_method_console_select"
+                                    title="Select the authentication method for Console access. Options: Console Password or Local User.">
+                                    <option value="">Not Select</option>
+                                    <option value="login">Console Password</option>
+                                    <option value="login local">Local User</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" min="0" max="35791" id="exec_timeout_console"
+                                    name="exec_timeout_console" placeholder="Exec Timeout (in minutes)"
+                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout."><br><br>
+                                <div class="checkbox-wrapper-22" style="margin-left: 0%;">
+                                    <label>Enable Synchronized message output</label>
+                                    <label class="switch"
+                                        title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
+                                        <input type="checkbox" id="loggin_sync" name="logging_sync_con">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <br>
+                                </div>
                             </div>
                         </div>
                     </div><br><br>
                     <!-- DHCP -->
-                    <h3 style="color: #2e4ead; text-align: left;">DHCP Management</h3><br>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="pool_name" name="pool_name"
-                                placeholder="Enter DHCP Pool Name"><br><br>
-                            <input type="text" id="network" name="network"
-                                placeholder="Enter Network (e.g., 192.168.1.0)"><br><br>
-                            <input type="text" id="dhcp_exclude" name="dhcp_exclude"
-                                placeholder="Enter IP DHCP Exclude Range (e.g., 192.168.1.1-192.168.1.10)"><br><br>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">DHCP Management</h3><br>
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="pool_name" name="pool_name" placeholder="Enter DHCP Pool Name"
+                                    title="Enter a name for the DHCP pool. This name will identify the pool of IP addresses available for assignment."><br><br>
+                                <input type="text" id="network" name="network"
+                                    placeholder="Enter Network (e.g., 192.168.1.0)"
+                                    title="Enter a valid network address in the format: xxx.xxx.xxx.xxx (e.g., 192.168.1.0)"
+                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"><br><br>
+                                <input type="text" id="dhcp_exclude" name="dhcp_exclude"
+                                    placeholder="Enter IP DHCP Exclude Range"
+                                    title="Enter a valid IP address range to exclude from DHCP allocation. The format should be: start IP - end IP (e.g., 192.168.1.1-192.168.1.10)"><br><br>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="default_router" name="default_router"
+                                    placeholder="Enter Default Router"
+                                    title="Enter the IP address of the default router for the network. This router will be used to forward traffic to destinations outside the local subnet, typically used for internet access."
+                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"><br><br>
+                                <input type="text" id="dhcp_subnet" name="dhcp_subnet" placeholder="Enter Subnet Mask"
+                                    title="Enter the subnet mask for the DHCP network. The subnet mask defines the network and host portions of an IP address, such as 255.255.255.0 for a typical home network."
+                                    pattern="^(255\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0))$"><br><br>
+                                <input type="text" id="dns_server" name="dns_server"
+                                    placeholder="Enter DNS Server (e.g., 8.8.8.8)"
+                                    title="Enter the IP address of the DNS server. This server is used to resolve domain names to IP addresses, for example, 8.8.8.8 is a Google Public DNS server."><br><br>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <input type="text" id="default_router" name="default_router"
-                                placeholder="Enter Default Router (e.g., 192.168.1.1)"><br><br>
-                            <input type="text" id="dhcp_subnet" name="dhcp_subnet"
-                                placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"><br><br>
-                            <input type="text" id="dns_server" name="dns_server"
-                                placeholder="Enter DNS Server (e.g., 8.8.8.8)"><br><br>
-                        </div>
+                        <input type="text" id="domain_name" name="domain_name"
+                            placeholder="Enter Domain Name (e.g., example.com)"
+                            title="Enter the domain name for the network. This name is used for network identification and domain resolution, such as example.com.">
+                        <h3 style="color: #2e4ead; text-align: left;">Delete DHCP pool</h3><br>
+                        <input type="text" id="pool_name_del" name="pool_name_del"
+                            placeholder="Enter DHCP Pool Name (e.g., MyPool)" title="Enter the name of the DHCP pool you want to delete. This name identifies the DHCP pool to be removed, such as 'MyPool'.
+                        Please note that the name is case sensitive (e.g., 'lan' and 'LAN' are different)."><br><br>
                     </div>
-                    <input type="text" id="domain_name" name="domain_name"
-                        placeholder="Enter Domain Name (e.g., example.com)"><br><br>
 
                     <!-- NTP -->
-                    <h3 style="color: #2e4ead; text-align: left;">NTP Configuration</h3><br>
-                    <input type="text" id="ntp_server" name="ntp_server"
-                        placeholder="Enter NTP Server (e.g., 202.28.18.72)">
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="time_zone_name" name="time_zone_name"
-                                placeholder="Enter Time Zone Name (e.g., UTC)"><br><br>
+                    <div>
+                        <h3 style="color: #2e4ead; text-align: left;">NTP Configuration</h3><br>
+                        <input type="text" id="ntp_server" name="ntp_server" placeholder="Enter NTP Server"
+                            title="Enter a valid NTP server IP address. Example: 202.28.18.72"
+                            pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="time_zone_name" name="time_zone_name" maxlength="11"
+                                    placeholder="Enter Time Zone Name (e.g., UTC)"
+                                    title="Enter the name of the time zone, such as UTC or GMT. This is used to define the time zone for the system."><br><br>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="hour_offset" name="hour_offset" min="-23" max="23"
+                                    placeholder="Enter Hour Offset (-23 to 23)"
+                                    title="Enter the hour offset from UTC. It can range from -23 to 23, representing the time difference from UTC."><br><br>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <input type="number" id="hour_offset" name="hour_offset" min="-23" max="23"
-                                placeholder="Enter Hour Offset (-23 to 23)"><br><br>
-                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2;">
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Setting</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Description
+                                    </th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Effect</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">NTP Server</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Configures time synchronization
+                                        using
+                                        an NTP server</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Synchronizes the device’s time
+                                        with
+                                        the NTP server (usually UTC)</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Time Zone</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sets the local time zone for the
+                                        device</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Adjusts the device’s time to match
+                                        the
+                                        local time zone (e.g., UTC+7)</td>
+                                </tr>
+                            </tbody>
+                        </table><br>
                     </div>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Setting</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Description</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Effect</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 8px;">NTP Server</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">Configures time synchronization using
-                                    an NTP server</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">Synchronizes the device’s time with
-                                    the NTP server (usually UTC)</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid #ddd; padding: 8px;">Time Zone</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">Sets the local time zone for the
-                                    device</td>
-                                <td style="border: 1px solid #ddd; padding: 8px;">Adjusts the device’s time to match the
-                                    local time zone (e.g., UTC+7)</td>
-                            </tr>
-                        </tbody>
-                    </table><br>
 
                     <!-- SNMP -->
                     <h3 style="color: #2e4ead; text-align: left;">SNMP Management</h3><br>

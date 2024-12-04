@@ -80,6 +80,7 @@ def initialization():
         ip_address = request.form.get('ip_address')
         save_startup = request.form.get('save_startup')
 
+
         if interface_type == "DHCP":
             ip_address = "dhcp"
         else:
@@ -674,6 +675,8 @@ def management_settings():
     default_router = request.form.get("default_router")
     dns_server = request.form.get("dns_server")
     domain_name = request.form.get("domain_name")
+    pool_name_del = request.form.get("pool_name_del")
+    
 
     ntp_server = request.form.get("ntp_server")
     time_zone_name = request.form.get("time_zone_name")
@@ -714,7 +717,7 @@ def management_settings():
                 target=configure_vty_console,
                 args=(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                     password_console, exec_timeout_console, logging_sync_console, authen_method_con,
-                    pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
+                    pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,pool_name_del,
                     ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location,
                     enable_cdp, disable_cdp, enable_lldp, disable_lldp))
             threads.append(thread)
@@ -1399,7 +1402,10 @@ def show_config():
                     "show_startup": 'show startup-config',
                     "show_interfaces_status": 'show int status',
                     "show_ipv6_interface_brief": 'show ipv6 int br',
-                    "show_flash": 'show flash:'
+                    "show_flash": 'show flash:',
+                    "show_dhcp_pool": 'show ip dhcp pool',
+                    "show_dhcp_dinding": 'show ip dhcp binding',
+                    "show_ntp_status": 'show ntp status'
                 }
 
                 config_data = ""

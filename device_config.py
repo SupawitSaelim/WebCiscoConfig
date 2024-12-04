@@ -211,7 +211,7 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
 
 def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
                           password_console, exec_timeout_console, logging_sync_console, authen_method_con,
-                          pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,
+                          pool_name, network, dhcp_subnet, dhcp_exclude, default_router, dns_server, domain_name,pool_name_del,
                           ntp_server, time_zone_name, hour_offset, snmp_ro, snmp_rw, snmp_contact, snmp_location,
                           enable_cdp, disable_cdp, enable_lldp, disable_lldp):
     device_info = device["device_info"]
@@ -285,6 +285,10 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
                     dhcp_commands.append(f"ip dhcp excluded-address {exclude_range}")
         if dhcp_commands:
             output = net_connect.send_config_set(dhcp_commands)
+            print(f"DHCP Configuration for {device['name']}:", output)
+        
+        if pool_name_del:
+            output = net_connect.send_config_set(f"no ip dhcp pool {pool_name_del}")
             print(f"DHCP Configuration for {device['name']}:", output)
         
         if ntp_server:
