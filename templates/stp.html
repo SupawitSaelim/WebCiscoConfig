@@ -13,6 +13,7 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
@@ -37,13 +38,30 @@
         });
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true;
+        }
+
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
-            showLoader(); // Show loader when form is submitted
-            return true; // Proceed with form submission
+
+            if (!validateDeviceSelection()) {
+                event.preventDefault();
+                return;
+            }
+
+            showLoader(); 
+            return true;
         }
     </script>
     <script>
@@ -222,7 +240,9 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3"  autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
                     <h3 style="color: #2e4ead;text-align: left;">Spanning Tree Mode</h3><br>
                     <select id="stp_mode" name="stp_mode">

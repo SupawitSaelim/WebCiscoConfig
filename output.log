@@ -1,19 +1,11 @@
 
-RT-Last-rack-6>
-RT-Last-rack-6>terminal width 511
-RT-Last-rack-6>terminal length 0
-RT-Last-rack-6>
-RT-Last-rack-6>
-RT-Last-rack-6>enable
+SW-Last-rack-4>
+SW-Last-rack-4>terminal width 511
+SW-Last-rack-4>terminal length 0
+SW-Last-rack-4>
+SW-Last-rack-4>
+SW-Last-rack-4>enable
 Password: 
-RT-Last-rack-6#
-RT-Last-rack-6#
-RT-Last-rack-6#configure terminal
-Enter configuration commands, one per line.  End with CNTL/Z.
-RT-Last-rack-6(config)#
-RT-Last-rack-6(config)#no ip route 1.1.1.0 255.255.255.0 gi0/1
-RT-Last-rack-6(config)#
-RT-Last-rack-6(config)#end
-RT-Last-rack-6#
-RT-Last-rack-6#
-RT-Last-rack-6#exit
+SW-Last-rack-4#
+SW-Last-rack-4#
+SW-Last-rack-4#exit

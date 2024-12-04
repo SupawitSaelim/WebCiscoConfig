@@ -1405,7 +1405,9 @@ def show_config():
                     "show_flash": 'show flash:',
                     "show_dhcp_pool": 'show ip dhcp pool',
                     "show_dhcp_dinding": 'show ip dhcp binding',
-                    "show_ntp_status": 'show ntp status'
+                    "show_ntp_status": 'show ntp status',
+                    "show_spanning_tree": 'show spanning-tree',
+                    "show_spanning_tree_sum": 'show spanning-tree sum',
                 }
 
                 config_data = ""
