@@ -1,31 +1,21 @@
- Testing 
-SW-Last-Rack4>
-SW-Last-Rack4>terminal width 511
-SW-Last-Rack4>terminal length 0
-SW-Last-Rack4>
-SW-Last-Rack4>
-SW-Last-Rack4>enable
+RT-Last-rack-6>
+RT-Last-rack-6>terminal width 511
+RT-Last-rack-6>terminal length 0
+RT-Last-rack-6>
+RT-Last-rack-6>
+RT-Last-rack-6>enable
 Password: 
-SW-Last-Rack4#
-SW-Last-Rack4#
-SW-Last-Rack4#configure terminal
+RT-Last-rack-6#
+RT-Last-rack-6#
+RT-Last-rack-6#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW-Last-Rack4(config)#
-SW-Last-Rack4(config)#interface range fa0/1-10,fa0/24
-SW-Last-Rack4(config-if-range)#switchport mode access
-SW-Last-Rack4(config-if-range)#switchport access vlan 5
-SW-Last-Rack4(config-if-range)#switchport nonegotiate
-SW-Last-Rack4(config-if-range)#
-SW-Last-Rack4(config-if-range)#end
-SW-Last-Rack4#
-SW-Last-Rack4#
-SW-Last-Rack4#configure terminal
-Enter configuration commands, one per line.  End with CNTL/Z.
-SW-Last-Rack4(config)#
-SW-Last-Rack4(config)#interface range fa0/1-10,fa0/24
-SW-Last-Rack4(config-if-range)#switchport nonegotiate
-SW-Last-Rack4(config-if-range)#
-SW-Last-Rack4(config-if-range)#end
-SW-Last-Rack4#
-SW-Last-Rack4#
-SW-Last-Rack4#exit
+RT-Last-rack-6(config)#
+RT-Last-rack-6(config)#snmp-server community public RO
+RT-Last-rack-6(config)#snmp-server community private RW
+RT-Last-rack-6(config)#snmp-server contact Testing-Automation
+RT-Last-rack-6(config)#snmp-server location kmutnb
+RT-Last-rack-6(config)#
+RT-Last-rack-6(config)#end
+RT-Last-rack-6#
+RT-Last-rack-6#
+RT-Last-rack-6#exit
