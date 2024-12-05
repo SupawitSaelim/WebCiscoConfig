@@ -1,20 +1,21 @@
 
-SW-Last-rack-5>
-SW-Last-rack-5>terminal width 511
-SW-Last-rack-5>terminal length 0
-SW-Last-rack-5>
-SW-Last-rack-5>
-SW-Last-rack-5>enable
+
+
+SW-Last-rack-2>
+SW-Last-rack-2>terminal width 511
+SW-Last-rack-2>terminal length 0
+SW-Last-rack-2>
+SW-Last-rack-2>
+SW-Last-rack-2>enable
 Password: 
-SW-Last-rack-5#
-SW-Last-rack-5#
-SW-Last-rack-5#configure terminal
+SW-Last-rack-2#
+SW-Last-rack-2#
+SW-Last-rack-2#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW-Last-rack-5(config)#
-SW-Last-rack-5(config)#interface range fa0/1,fa0/3
-SW-Last-rack-5(config-if-range)#no shutdown
-SW-Last-rack-5(config-if-range)#
-SW-Last-rack-5(config-if-range)#end
-SW-Last-rack-5#
-SW-Last-rack-5#
-SW-Last-rack-5#exit
+SW-Last-rack-2(config)#
+SW-Last-rack-2(config)#no router ospf 1
+SW-Last-rack-2(config)#
+SW-Last-rack-2(config)#end
+SW-Last-rack-2#
+SW-Last-rack-2#
+SW-Last-rack-2#exit

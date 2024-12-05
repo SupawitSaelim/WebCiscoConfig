@@ -115,7 +115,7 @@ def configure_ospf_route(device, process_id, destination_networks, ospf_areas, r
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        config_commands = []
+        config_commands = ['ip routing']
         if process_id:
             config_commands.append(f"router ospf {process_id}")
         
