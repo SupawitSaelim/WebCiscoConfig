@@ -160,6 +160,15 @@
             <div class="container">
                 <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Erase Startup-Configurations</h1>
                 <br><br>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <script>
+                            {% for category, message in messages %}
+                                alert("{{ message }}");
+                            {% endfor %}
+                        </script>
+                    {% endif %}
+                {% endwith %}
                 <table>
                     <tr>
                         <th>Name devices</th>
@@ -187,6 +196,14 @@
                                     <input type="hidden" name="device_index" value="{{ loop.index0 }}">
                                     <button type="submit" class="action-button reload-button" title="Reload">
                                         <i class="fas fa-redo"></i>
+                                    </button>
+                                </form>
+                                <!-- ปุ่มบันทึก -->
+                                <form method="POST" action="/save"
+                                    onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
+                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                    <button type="submit" class="action-button save-button" title="Save">
+                                        <i class="fas fa-save"></i>
                                     </button>
                                 </form>
                             </div>

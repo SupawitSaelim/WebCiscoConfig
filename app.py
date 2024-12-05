@@ -1346,6 +1346,35 @@ def handle_save_response():
         print(e)
         return '<script>alert("Failed to handle save response. Please try again."); window.location.href="/erase_config_page";</script>', 500
 
+@app.route('/save', methods=['POST'])
+def save_configuration():
+    cisco_devices = list(device_collection.find())
+
+    try:
+        device_index = int(request.form.get("device_index"))
+        
+        if 0 <= device_index < len(cisco_devices):
+            device = cisco_devices[device_index]
+            device_info = device["device_info"]
+
+            device_info['timeout'] = 10
+            net_connect = ConnectHandler(**device_info)
+            net_connect.enable()
+
+            config_command = "write memory"
+
+            output = net_connect.send_command(config_command)
+            print(f"Save Configuration for {device['name']}:", output)
+
+            net_connect.disconnect()
+            flash(f"Configuration saved for {device['name']} successfully.", "success")
+        else:
+            flash("Invalid device index", "danger")
+
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        flash(f"Error saving configuration: {e}", "danger")
+
+    return render_template('eraseconfig.html', cisco_devices=cisco_devices)
 
 
 ########## Show Configuration ##############################
