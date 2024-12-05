@@ -176,7 +176,7 @@ def configure_eigrp_route(device, process_id, router_id, destination_networks,
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        config_commands = []
+        config_commands = ['ip routing']
         if process_id:
             config_commands.append(f"router eigrp {process_id}")
 
@@ -192,7 +192,7 @@ def configure_eigrp_route(device, process_id, router_id, destination_networks,
                     else:
                         config_commands.append(f"network {network.strip()}")  # Assume subnet mask is included
 
-        if len(config_commands) > 1:
+        if len(config_commands) > 2:
             output = net_connect.send_config_set(config_commands)
             print(f"EIGRP Configuration for {device['name']}:", output)
         

@@ -10,6 +10,7 @@
     <title>Routing Configuration</title>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <style>
         .form-container {
             display: flex;
@@ -58,7 +59,8 @@
             newPair.innerHTML = `
         <div class="form-group">
             <input type="text" name="destination_networks[]"
-                placeholder="Network">
+                placeholder="Network"
+                title="Specify the network to be included in the routing table. Use the format of an IP address followed by a subnet mask (e.g., 192.168.1.0/24). This defines the network and its range for routing.">
         </div>
     `;
 
@@ -74,7 +76,8 @@
             newPair.innerHTML = `
                 <div class="form-group">
                     <input type="text" name="remove_destination_networks[]"
-                        placeholder="Network to Remove">
+                        placeholder="Network to Remove"
+                         title="Specify the network to be removed from the routing table. Use the format of an IP address followed by a subnet mask (e.g., 192.168.1.0/24). This identifies the network range to exclude from routing.">
                 </div>
             `;
 
@@ -146,6 +149,51 @@
             return isValid; // ถ้าทุกช่องถูกต้องจะคืนค่า true
         }
 
+        function validateEIGRPConfiguration() {
+            const processId = document.getElementById("process_id").value.trim();
+            const destinationNetworks = document.querySelectorAll('input[name="destination_networks[]"]');
+            let isNetworkFilled = false;
+
+            // ตรวจสอบว่ามี Network ที่ถูกกรอกหรือไม่
+            destinationNetworks.forEach(input => {
+                if (input.value.trim() !== "") {
+                    isNetworkFilled = true;
+                }
+            });
+
+            // ถ้ามีการกรอก Network แต่ไม่ได้กรอก AS Number
+            if (isNetworkFilled && processId === "") {
+                alert("Please provide a valid AS Number if you are configuring networks.");
+                return false; // การตรวจสอบไม่ผ่าน
+            }
+
+            return true; // การตรวจสอบผ่าน
+        }
+
+        function validateDeleteASNumber() {
+            const deleteASNumberCheckbox = document.getElementById("delete_process_id");
+            const asNumberInput = document.getElementById("process_id_input").value.trim();
+
+            if (deleteASNumberCheckbox.checked && asNumberInput === "") {
+                alert("Please enter the AS Number to delete if the option is selected.");
+                return false; // การตรวจสอบไม่ผ่าน
+            }
+
+            return true; // การตรวจสอบผ่าน
+        }
+
+        function validateRouterIDAndASNumber() {
+            const routerID = document.getElementById("router_id").value.trim();
+            const asNumber = document.getElementById("process_id").value.trim();
+
+            if (routerID !== "" && asNumber === "") {
+                alert("Please enter the AS Number when specifying a Router ID.");
+                return false; // การตรวจสอบไม่ผ่าน
+            }
+
+            return true; // การตรวจสอบผ่าน
+        }
+
         function handleSubmit(event) {
             if (!validateDeviceSelection()) {
                 event.preventDefault();
@@ -153,7 +201,22 @@
             }
 
             if (!validateSubnetMask()) {
-                event.preventDefault(); // หยุดการส่งฟอร์มถ้าการตรวจสอบไม่ผ่าน
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateEIGRPConfiguration()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateDeleteASNumber()) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!validateRouterIDAndASNumber()) {
+                event.preventDefault();
                 return;
             }
 
@@ -331,21 +394,25 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br>
 
                     <!-- network -->
                     <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">EIGRP Networks
                     </h3>
-                    <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="AS Number" 
-                    title="Enter the Autonomous System (AS) Number (1-65535). This is used for EIGRP process identification.">
+                    <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="AS Number"
+                        title="Enter the Autonomous System (AS) Number (1-65535). This is used for EIGRP process identification.">
                     <input type="text" name="router_id" id="router_id"
-                        placeholder="(Optional) Router ID (e.g., 1.1.1.1)">
+                        placeholder="(Optional) Router ID (e.g., 1.1.1.1)"
+                        title="Specify the Router ID in the format of an IP address (e.g., 1.1.1.1). This is optional, but if provided, you must also specify the AS Number. The Router ID uniquely identifies the router in the EIGRP process.">
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Network (e.g., 192.168.1.0/24)">
+                                    placeholder="Network (e.g., 192.168.1.0/24)"
+                                    title="Specify the network to be included in the routing table. Use the format of an IP address followed by a subnet mask (e.g., 192.168.1.0/24). This defines the network and its range for routing.">
                             </div>
                         </div>
                     </div>
@@ -360,7 +427,8 @@
                     <div id="remove_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
-                                <input type="text" name="remove_destination_networks[]" placeholder="Network to Remove">
+                                <input type="text" name="remove_destination_networks[]" placeholder="Network to Remove"
+                                title="Specify the network to be removed from the routing table. Use the format of an IP address followed by a subnet mask (e.g., 192.168.1.0/24). This identifies the network range to exclude from routing.">
                             </div>
                         </div>
                     </div>
@@ -370,14 +438,14 @@
 
                     <!-- Delete Process ID -->
                     <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;">Delete Process ID</label>
-                        <label class="switch">
-                            <input type="checkbox" id="delete_process_id" name="delete_process_id" value="true">
+                        <label style="color: #2e4ead; font-weight: bold;">Delete AS Number</label>
+                        <label class="switch" title="Enable this option to delete the specified Autonomous System (AS) Numbers from the routing configuration.">
+                            <input type="checkbox" id="delete_process_id" name="delete_process_id" value="true" >
                             <span class="slider"></span>
                         </label>
                         <br>
-                        <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter Process ID"
-                            title="Separate with commas: 1,2,3" style="display: none; width: 30%;">
+                        <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter AS Number"
+                        title="Enter one or more AS Numbers to delete, separated by commas (e.g., 100,200,300). AS Numbers identify different EIGRP routing processes." style="display: none; width: 30%;">
                     </div>
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">
