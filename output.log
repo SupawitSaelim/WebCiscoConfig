@@ -1,19 +1,20 @@
 
-SW-Last-rack-4>
-SW-Last-rack-4>terminal width 511
-SW-Last-rack-4>terminal length 0
-SW-Last-rack-4>
-SW-Last-rack-4>
-SW-Last-rack-4>enable
+SW-Last-rack-5>
+SW-Last-rack-5>terminal width 511
+SW-Last-rack-5>terminal length 0
+SW-Last-rack-5>
+SW-Last-rack-5>
+SW-Last-rack-5>enable
 Password: 
-SW-Last-rack-4#
-SW-Last-rack-4#
-SW-Last-rack-4#configure terminal
+SW-Last-rack-5#
+SW-Last-rack-5#
+SW-Last-rack-5#configure terminal
 Enter configuration commands, one per line.  End with CNTL/Z.
-SW-Last-rack-4(config)#
-SW-Last-rack-4(config)#spanning-tree mode rapid-pvst
-SW-Last-rack-4(config)#
-SW-Last-rack-4(config)#end
-SW-Last-rack-4#
-SW-Last-rack-4#
-SW-Last-rack-4#exit
+SW-Last-rack-5(config)#
+SW-Last-rack-5(config)#interface range fa0/1,fa0/3
+SW-Last-rack-5(config-if-range)#no shutdown
+SW-Last-rack-5(config-if-range)#
+SW-Last-rack-5(config-if-range)#end
+SW-Last-rack-5#
+SW-Last-rack-5#
+SW-Last-rack-5#exit

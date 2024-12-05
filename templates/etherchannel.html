@@ -13,6 +13,7 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script src="../static/suggesthost.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
@@ -36,11 +37,95 @@
         });
     </script>
     <script>
+        function validateDeviceSelection() {
+            const deviceDropdown = document.getElementById("device_dropdown");
+            const manyHostnameInput = document.getElementById("many_hostname");
+
+            if (deviceDropdown.value === "" && manyHostnameInput.value.trim() === "") {
+                alert("Please select a device or enter the devices name");
+                return false; // หยุดการส่งฟอร์ม
+            }
+            return true;
+        }
+
+        function validatePAgPConfiguration() {
+            const etherchannelInterfaces = document.getElementById('etherchannel_interfaces').value.trim();
+            const channelGroupNumber = document.getElementById('channel_group_number').value.trim();
+            const desirableChecked = document.getElementById('pagp_desirable').checked;
+            const autoChecked = document.getElementById('pagp_auto').checked;
+
+            // ถ้าผู้ใช้เลือกโหมด PAgP (Desirable หรือ Auto) แต่ไม่ได้กรอกทั้ง etherchannel_interfaces และ channel_group_number
+            if ((desirableChecked || autoChecked) && (etherchannelInterfaces === "" || channelGroupNumber === "")) {
+                alert("Please enter both the interfaces and Channel-group Number when selecting a PAgP mode.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            // ตรวจสอบกรณีที่กรอก etherchannel_interfaces หรือ channel_group_number แล้ว แต่ไม่เลือกโหมด PAgP
+            if (etherchannelInterfaces !== "" || channelGroupNumber !== "") {
+                if (etherchannelInterfaces === "") {
+                    alert("Please enter the interfaces for PAgP.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+
+                if (channelGroupNumber === "") {
+                    alert("Please enter the Channel-group Number for PAgP.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+
+                // ตรวจสอบโหมด PAgP
+                if (!desirableChecked && !autoChecked) {
+                    alert("To configure PAgP, you must select either Desirable or Auto mode.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+            }
+
+            return true;
+        }
+
+        function validateLACPConfiguration() {
+            const etherchannelInterfacesLacp = document.getElementById('etherchannel_interfaces_lacp').value.trim();
+            const channelGroupNumberLacp = document.getElementById('channel_group_number_lacp').value.trim();
+            const activeChecked = document.getElementById('lacp_active').checked;
+            const passiveChecked = document.getElementById('lacp_passive').checked;
+
+            // ถ้าผู้ใช้เลือกโหมด LACP (Active หรือ Passive) แต่ไม่ได้กรอกทั้ง etherchannel_interfaces_lacp และ channel_group_number_lacp
+            if ((activeChecked || passiveChecked) && (etherchannelInterfacesLacp === "" || channelGroupNumberLacp === "")) {
+                alert("Please enter both the interfaces and Channel-group Number when selecting an LACP mode.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            // ตรวจสอบกรณีที่กรอก etherchannel_interfaces_lacp หรือ channel_group_number_lacp แล้ว แต่ไม่เลือกโหมด LACP
+            if (etherchannelInterfacesLacp !== "" || channelGroupNumberLacp !== "") {
+                if (etherchannelInterfacesLacp === "") {
+                    alert("Please enter the interfaces for LACP.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+
+                if (channelGroupNumberLacp === "") {
+                    alert("Please enter the Channel-group Number for LACP.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+
+                // ตรวจสอบโหมด LACP
+                if (!activeChecked && !passiveChecked) {
+                    alert("To configure LACP, you must select either Active or Passive mode.");
+                    return false; // หยุดการส่งฟอร์ม
+                }
+            }
+
+            return true;
+        }
+
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
         }
 
         function handleSubmit() {
+            if (!validateDeviceSelection() || !validatePAgPConfiguration() || !validateLACPConfiguration()) {
+                event.preventDefault();
+                return false;
+            }
+
             showLoader(); // Show loader when form is submitted
             return true; // Proceed with form submission
         }
@@ -214,7 +299,9 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                    <!-- A div to display the suggestions -->
+                    <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
 
                     <!-- PAgP -->
@@ -277,9 +364,9 @@
 
                     <!-- Delete Port group -->
                     <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Delete Port Group</h3>
-                            <input type="text" id="etherchannel_interfaces_lacp_delete"
-                                name="etherchannel_interfaces_lacp_delete"
-                                placeholder="Enter Port group to delete (e.g., Po1)"><br><br>
+                    <input type="text" id="etherchannel_interfaces_lacp_delete"
+                        name="etherchannel_interfaces_lacp_delete"
+                        placeholder="Enter Port group to delete (e.g., Po1)"><br><br>
 
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
