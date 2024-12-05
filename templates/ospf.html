@@ -261,6 +261,21 @@
             return isValid;
         }
 
+        function validateRouterIDAndProcessID() {
+            const processId = document.getElementById("process_id").value.trim();
+            const routerId = document.getElementById("router_id").value.trim();
+
+            let isValid = true;
+
+            // ถ้ากรอก router_id แล้วต้องกรอก process_id ด้วย
+            if (routerId !== "" && processId === "") {
+                alert("Please enter the Process ID when you enter a Router ID.");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
         function handleSubmit(event) {
             if (!validateDeviceSelection()) {
                 event.preventDefault();
@@ -283,6 +298,11 @@
             }
 
             if (!validateDeleteProcessID()) {
+                event.preventDefault();  // หยุดการส่งฟอร์มถ้าผิด
+                return;
+            }
+
+            if (!validateRouterIDAndProcessID()) {
                 event.preventDefault();  // หยุดการส่งฟอร์มถ้าผิด
                 return;
             }
@@ -437,7 +457,7 @@
                     <!-- ospf networks -->
                     <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">OSPF Networks</h3><br>
                     <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="Process ID"
-                    title="Enter the OSPF Process ID, a unique identifier for the OSPF routing process between 1 and 65535.">
+                        title="Enter the OSPF Process ID, a unique identifier for the OSPF routing process between 1 and 65535.">
                     <input type="text" name="router_id" id="router_id"
                         placeholder="(Optional) Router ID (e.g., 1.1.1.1)"
                         title="Enter the Router ID, which is an optional identifier for the router in OSPF. It should be in the format of an IP address (e.g., 1.1.1.1).">
@@ -449,7 +469,8 @@
                                     title="Enter the network address you want to route to. This is the destination network that will be used in routing protocols. It is typically defined in CIDR format. Example: 192.168.1.0/24">
                             </div>
                             <div class="form-group">
-                                <input type="text" name="ospf_areas[]" placeholder="OSPF Area (e.g., 0)" title="Enter the OSPF area ID. This is the identifier for the OSPF area, which is used to group networks in OSPF routing. The value should be a number, typically 0 for the backbone area (Area 0). Example: 0">
+                                <input type="text" name="ospf_areas[]" placeholder="OSPF Area (e.g., 0)"
+                                    title="Enter the OSPF area ID. This is the identifier for the OSPF area, which is used to group networks in OSPF routing. The value should be a number, typically 0 for the backbone area (Area 0). Example: 0">
                             </div>
                         </div>
                     </div>
@@ -485,12 +506,13 @@
                         <label style="color: #2e4ead; font-weight: bold;">Delete Process ID</label>
                         <label class="switch">
                             <input type="checkbox" id="delete_process_id" name="delete_process_id" value="true"
-                            title="Check this box to enable the deletion of the Process ID associated with the OSPF configuration.">
+                                title="Check this box to enable the deletion of the Process ID associated with the OSPF configuration.">
                             <span class="slider"></span>
                         </label>
                         <br>
-                        <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter Process ID 1,2"
-                            title="Separate with commas: 1,2,3" style="display: none; width: 30%;">
+                        <input type="text" id="process_id_input" name="process_id_input"
+                            placeholder="Enter Process ID 1,2" title="Separate with commas: 1,2,3"
+                            style="display: none; width: 30%;">
                     </div>
                     <br><br>
                     <input style="margin-left: 90%;" type="submit" value="Submit">

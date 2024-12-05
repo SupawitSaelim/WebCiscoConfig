@@ -74,7 +74,7 @@ def configure_rip_route(device, destination_networks, auto_summary, remove_desti
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        config_commands = ['router rip']
+        config_commands = ['ip routing','router rip','version 2']
         if destination_networks:
             destination_networks = [net for net in destination_networks if net.strip()]  
             for network in destination_networks:
@@ -92,7 +92,7 @@ def configure_rip_route(device, destination_networks, auto_summary, remove_desti
                 command = f"no network {network}"
                 config_commands.append(command)
 
-        if len(config_commands) > 1:
+        if len(config_commands) > 3:
             output = net_connect.send_config_set(config_commands)
             print(f"RIP Configuration for {device['name']}:", output)
         
