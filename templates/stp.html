@@ -53,14 +53,53 @@
             document.getElementById('loader').style.display = 'block';
         }
 
-        function handleSubmit() {
+        function validateRootSettings() {
+            const rootPrimaryCheckbox = document.getElementById("root_primary");
+            const rootVlanIdInput = document.getElementById("root_vlan_id");
+            const rootSecondaryCheckbox = document.getElementById("root_secondary");
+            const rootSecondaryVlanIdInput = document.getElementById("root_secondary_vlan_id");
 
-            if (!validateDeviceSelection()) {
-                event.preventDefault();
-                return;
+            if (rootPrimaryCheckbox.checked && rootVlanIdInput.value.trim() === "") {
+                alert("Please enter VLAN ID if Root Primary is checked.");
+                return false;
             }
 
-            showLoader(); 
+            if (rootSecondaryCheckbox.checked && rootSecondaryVlanIdInput.value.trim() === "") {
+                alert("Please enter VLAN ID if Root Secondary is checked.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function validatePortFastConfiguration() {
+            const portfastEnableCheckbox = document.getElementById("portfast_enable");
+            const portfastDisableCheckbox = document.getElementById("portfast_disable");
+            const portfastEnableInput = document.getElementById("portfast_int_enable");
+            const portfastDisableInput = document.getElementById("portfast_int_disable");
+
+            if (portfastEnableCheckbox.checked && portfastEnableInput.value.trim() === "") {
+                alert("Please enter interfaces for Enable PortFast.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            if (portfastDisableCheckbox.checked && portfastDisableInput.value.trim() === "") {
+                alert("Please enter interfaces for Disable PortFast.");
+                return false; // หยุดการส่งฟอร์ม
+            }
+
+            return true;
+        }
+
+
+        function handleSubmit() {
+
+            if (!validateDeviceSelection() || !validateRootSettings() || !validatePortFastConfiguration()) {
+                event.preventDefault(); // หยุดการส่งฟอร์ม
+                return false;
+            }
+
+            showLoader();
             return true;
         }
     </script>
@@ -240,7 +279,7 @@
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3"  autocomplete="off" oninput="suggestHostnames()">
+                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
                     <!-- A div to display the suggestions -->
                     <div id="suggestions" class="suggestions-container"></div>
                     <br><br>
@@ -297,11 +336,12 @@
                         <br>
                         <!-- Input fields for VLAN IDs -->
                         <input type="text" id="portfast_int_enable" name="portfast_int_enable"
-                            placeholder="Enter Interfaces for Enable PortFast (e.g.,e2/0-3,e1/1)" style="display: none; width: 30%;">
+                            placeholder="Enter Interfaces for Enable PortFast (e.g.,e2/0-3,e1/1)"
+                            style="display: none; width: 30%;">
                         <input type="text" id="portfast_int_disable" name="portfast_int_disable"
-                            placeholder="Enter Interfaces for Disable PortFast (e.g.,e2/0-3,e1/1)" style="display: none; width: 30%;">
+                            placeholder="Enter Interfaces for Disable PortFast (e.g.,e2/0-3,e1/1)"
+                            style="display: none; width: 30%;">
                     </div>
-
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
             </div>
