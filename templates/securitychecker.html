@@ -12,6 +12,25 @@
     </style>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #2e4ead;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
@@ -28,7 +47,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="basic_settings_page" title="Refresh"
+                        <a href="config_checker" title="Refresh"
                             style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
@@ -64,7 +83,7 @@
                         <span class="title">Configurations</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="basic_settings_page" >Basic Settings</a></li>
+                        <li><a href="basic_settings_page">Basic Settings</a></li>
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
                         <li><a href="vlan_settings_page">VLAN Management</a></li>
                         <li><a href="management_settings_page">Management Settings</a></li>
@@ -104,8 +123,44 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <h1>Security Check Report</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device Name</th>
+                            <th>Warnings</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for device in cisco_devices %}
+                        <tr>
+                            <td>{{ device.name }}</td>
+                            <td>
+                                {% if device.analysis and device.analysis.warnings %}
+                                <ul>
+                                    {% for warning in device.analysis.warnings %}
+                                    <li>{{ warning }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                No warnings
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if device.analysis and device.analysis.last_updated %}
+                                {{ device.analysis.last_updated }}
+                                {% else %}
+                                Not updated
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </body>
+
 </html>
