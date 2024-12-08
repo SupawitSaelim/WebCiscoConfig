@@ -1494,6 +1494,15 @@ def show_config():
     return render_template('showconfig.html', cisco_devices=cisco_devices)
 
 
+########## Security Check ##################################
+@app.route('/config_checker', methods=['GET'])
+def config_checker():
+    try:
+        cisco_devices = list(device_collection.find())
+    except ServerSelectionTimeoutError:
+        cisco_devices = []  
+    return render_template('securitychecker.html', cisco_devices=cisco_devices)
+
 
 ########## Device Details SNMP #############################
 @app.route('/devices_details_page', methods=['GET'])

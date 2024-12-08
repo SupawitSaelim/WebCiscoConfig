@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
-    <title>Device Details SNMP</title>
+    <title>NetworkConfigSecurityChecker</title>
     <style>
     </style>
     <script src="../static/time.js" defer></script>
@@ -17,7 +16,6 @@
 
 <body>
     <div id="loader"></div> <!-- Loader element -->
-
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -30,7 +28,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="initialization_page" title="Refresh"
+                        <a href="basic_settings_page" title="Refresh"
                             style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
@@ -56,7 +54,7 @@
                         <span class="icon"><i class="fas fa-folder"></i></span>
                         <span class="title">Device Record <br>Management</span>
                     </a></li>
-                <li><a href="devices_informaion_page" class="active">
+                <li><a href="devices_informaion_page">
                         <span class="icon"><i class="fas fa-info-circle"></i></span>
                         <span class="title">Devices Information</span>
                     </a></li>
@@ -66,7 +64,7 @@
                         <span class="title">Configurations</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a href="basic_settings_page">Basic Settings</a></li>
+                        <li><a href="basic_settings_page" >Basic Settings</a></li>
                         <li><a href="network_interface_page">Network Interface Configuration</a></li>
                         <li><a href="vlan_settings_page">VLAN Management</a></li>
                         <li><a href="management_settings_page">Management Settings</a></li>
@@ -94,7 +92,7 @@
                         <span class="icon"><i class="fas fa-eye"></i></span>
                         <span class="title">View Device <br>Configurations</span>
                     </a></li>
-                <li><a href="config_checker">
+                <li><a href="config_checker" class="active">
                         <span class="icon"><i class="fas fa-shield-alt"></i></span>
                         <span class="title">Security Check</span>
                     </a></li>
@@ -110,5 +108,4 @@
         </div>
     </div>
 </body>
-
 </html>
