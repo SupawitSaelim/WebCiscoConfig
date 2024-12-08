@@ -12,7 +12,10 @@ from bson import ObjectId
 from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree, configure_etherchannel
 from routing_config import configure_static_route, configure_rip_route, configure_ospf_route, configure_eigrp_route
 from concurrent.futures import ThreadPoolExecutor
-
+from apscheduler.schedulers.background import BackgroundScheduler
+from ai_password_with_re import NetworkConfigSecurityChecker
+import pytz
+from datetime import datetime
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
@@ -21,6 +24,39 @@ app.secret_key = 'Supawitadmin123_'
 client = MongoClient('mongodb+srv://admin:Supawitadmin123_@cluster0.ikx1g.mongodb.net/device_management?retryWrites=true&w=majority')
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
+
+thailand_timezone = pytz.timezone('Asia/Bangkok')
+
+def fetch_and_analyze():
+    security_checker = NetworkConfigSecurityChecker(
+        model_path='model.pkl', 
+        vectorizer_path='vectorizer.pkl'
+    )
+
+    devices = list(device_collection.find())  
+    for device in devices:
+        device_info = device["device_info"]
+        try:
+            net_connect = ConnectHandler(**device_info)
+            net_connect.enable()
+
+            show_run = net_connect.send_command("show running-config")
+            show_ip_int_br = net_connect.send_command("show ip interface brief")
+            net_connect.disconnect()
+
+            warnings = security_checker.analyze_config_security(show_run, show_ip_int_br)
+
+            current_time_thailand = datetime.now(thailand_timezone)
+            device_collection.update_one(
+                {"_id": device["_id"]},
+                {"$set": {"analysis": {"warnings": warnings, "last_updated": current_time_thailand}}}
+            )
+        except Exception as e:
+            print(f"Error processing {device['name']}: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(fetch_and_analyze, 'interval', seconds=10)
+scheduler.start()
 
 ########## MongoDB Status ###################################
 def check_mongo_connection():

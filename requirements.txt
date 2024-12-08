@@ -4,7 +4,8 @@ netmiko
 paramiko
 asyncio
 pymongo
-
+apscheduler
+pytz
 #pip install -r requirements.txt
 #path/to/python.exe pip install -r /requirements.txt
 #npm install net-snmp
