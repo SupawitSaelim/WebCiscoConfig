@@ -27,6 +27,7 @@ device_collection = db['devices']  # กำหนดชื่อคอลเล�
 
 thailand_timezone = pytz.timezone('Asia/Bangkok')
 
+########## Security Checker ##################################
 def fetch_and_analyze():
     security_checker = NetworkConfigSecurityChecker(
         model_path='model.pkl', 
@@ -47,9 +48,11 @@ def fetch_and_analyze():
             warnings = security_checker.analyze_config_security(show_run, show_ip_int_br)
 
             current_time_thailand = datetime.now(thailand_timezone)
+            formatted_time = current_time_thailand.strftime("%Y-%m-%d %H:%M:%S")  # ฟอร์แมตโดยไม่รวม timezone
+            
             device_collection.update_one(
                 {"_id": device["_id"]},
-                {"$set": {"analysis": {"warnings": warnings, "last_updated": current_time_thailand}}}
+                {"$set": {"analysis": {"warnings": warnings, "last_updated": formatted_time}}}
             )
         except Exception as e:
             print(f"Error processing {device['name']}: {e}")
@@ -327,7 +330,11 @@ def basic_settings():
         secret_password = request.form.get('secret_password')
         banner = request.form.get('banner')
         many_hostname = request.form.get('many_hostname')
-        
+        enable_password_encryp = request.form.get('enable_password_encryp')
+        disable_password_encryp = request.form.get('disable_password_encryp')
+        username = request.form.get('username')
+        password = request.form.get('password')
+
         device_ips = []
         device_names_processed = set()
 
@@ -375,7 +382,21 @@ def basic_settings():
             device = device_collection.find_one({"device_info.ip": ip})
             
             if device:
-                thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner, device_collection))
+                
+                # ตรวจสอบว่า username ในฟอร์มตรงกับในระบบไหม
+                existing_username = device["device_info"].get("username")
+                if existing_username == username:  # ถ้า username ตรงกัน
+                    if password != device["device_info"].get("password"):  # ถ้ารหัสผ่านไม่ตรงกัน
+                        # อัพเดทรหัสผ่านใน DB
+                        device_collection.update_one(
+                            {"device_info.ip": ip}, 
+                            {"$set": {"device_info.password": password}}
+                        )
+                        print(f"Password for {username} updated on device {ip}")
+
+                thread = threading.Thread(target=configure_device, args=(device, hostname, secret_password, banner, 
+                                                                        device_collection, enable_password_encryp,
+                                                                        disable_password_encryp, username, password))
                 threads.append(thread)
                 thread.start()
             else:

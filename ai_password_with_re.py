@@ -80,7 +80,7 @@ class NetworkConfigSecurityChecker:
         down_ports = re.findall(r'^\s*(\S+)\s+\S+\s+\S+\s+\S+\s+(down)', ip_interface_brief, re.MULTILINE)
         if down_ports:
             down_ports_list = [port[0] for port in down_ports]
-            warnings.append(f"Ports down: {', '.join(down_ports_list)}")
+            warnings.append(f"Ports down (should consider administratively shutting them down if unused): {', '.join(down_ports_list)}")
 
         # Check exec-timeout configurations
         if not re.search(r'line con 0\s+.*?exec-timeout\s+\d+\s+\d+', config, re.DOTALL):

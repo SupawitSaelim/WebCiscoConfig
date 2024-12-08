@@ -16,6 +16,13 @@
         }
 
         function handleSubmit() {
+            const selectedCommands = document.querySelectorAll('input[name="selected_commands"]:checked');
+
+            // ถ้าไม่มีการเลือกคำสั่งเลย
+            if (selectedCommands.length === 0) {
+                alert("Please select at least one command.");
+                return false; // หยุดการส่งฟอร์ม
+            }
             showLoader(); // แสดง loader เมื่อส่งแบบฟอร์ม
             return true; // ยังคงส่งแบบฟอร์มต่อไป
         }
@@ -286,23 +293,24 @@
                                         <label><input type="checkbox" name="selected_commands"
                                                 value="show_ip_interface_brief"> Show IP Interface Brief</label>
                                         <label><input type="checkbox" name="selected_commands"
-                                            value="show_ipv6_interface_brief"> Show IPv6 Interface Brief</label>
+                                                value="show_ipv6_interface_brief"> Show IPv6 Interface Brief</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_vlan"> Show
                                             VLAN</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_interfaces">
                                             Show Interfaces</label>
-                                        <label><input type="checkbox" name="selected_commands" value="show_interfaces_status">
+                                        <label><input type="checkbox" name="selected_commands"
+                                                value="show_interfaces_status">
                                             Show Interfaces Status</label>
                                         <label><input type="checkbox" name="selected_commands"
                                                 value="show_interfaces_trunk"> Show Interfaces Trunk</label>
                                         <label><input type="checkbox" name="selected_commands"
                                                 value="show_mac_address_table"> Show MAC Address Table</label>
-                                        <label><input type="checkbox" name="selected_commands"
-                                            value="show_dhcp_pool"> Show DHCP Pool</label>
-                                        <label><input type="checkbox" name="selected_commands"
-                                            value="show_dhcp_bind"> Show DHCP Binding</label>
-                                        <label><input type="checkbox" name="selected_commands"
-                                            value="show_ntp_status"> Show NTP status</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_dhcp_pool">
+                                            Show DHCP Pool</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_dhcp_bind">
+                                            Show DHCP Binding</label>
+                                        <label><input type="checkbox" name="selected_commands" value="show_ntp_status">
+                                            Show NTP status</label>
                                     </div>
                                 </div>
 
@@ -322,9 +330,9 @@
                                         <label><input type="checkbox" name="selected_commands"
                                                 value="show_lldp_neighbors"> Show LLDP Neighbors</label>
                                         <label><input type="checkbox" name="selected_commands"
-                                            value="show_spanning_tree"> Show Spanning-tree</label>
+                                                value="show_spanning_tree"> Show Spanning-tree</label>
                                         <label><input type="checkbox" name="selected_commands"
-                                            value="show_spanning_tree_sum"> Show Spanning-tree Summary</label>
+                                                value="show_spanning_tree_sum"> Show Spanning-tree Summary</label>
                                     </div>
                                 </div>
 
@@ -347,7 +355,8 @@
                         </div>
                         <div class="right-column">
                             <h2 style="color: #2e4ead;">CONFIGURATIONS OUTPUT</h2><br><br>
-                            <pre class="blue-pre" style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; text-align: left; margin-left: 0; white-space: pre-wrap; word-wrap: break-word;">
+                            <pre class="blue-pre"
+                                style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; text-align: left; margin-left: 0; white-space: pre-wrap; word-wrap: break-word;">
                                 {{ config_data | safe }}
                             </pre>
                         </div>

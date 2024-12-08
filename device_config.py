@@ -20,7 +20,8 @@ def convert_cidr_to_netmask(cidr):
             bits = 0
     return '.'.join(map(str, netmask))
 
-def configure_device(device, hostname, secret_password, banner, device_collection):
+def configure_device(device, hostname, secret_password, banner, device_collection, enable_password_encryp, 
+                     disable_password_encryp, username, password):
     device_info = device["device_info"]
     
     try:
@@ -41,6 +42,18 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
         if banner:
             output = net_connect.send_config_set([f'banner motd # {banner} #'])
             print(f"Banner output for {device['name']}:", output)
+        
+        if enable_password_encryp:
+            output = net_connect.send_config_set("service password-encryption")
+            print(f"Enable Service Password-encryption {device['name']}:", output)
+        
+        if disable_password_encryp:
+            output = net_connect.send_config_set("no service password-encryption")
+            print(f"Disable Service Password-encryption {device['name']}:", output)
+        
+        if username and password:
+            output = net_connect.send_config_set(f"username {username} password {password}")
+            print(f"Added username to {device['name']}:", output)
         
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:

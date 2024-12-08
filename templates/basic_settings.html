@@ -38,7 +38,22 @@
                 }
             });
         });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to toggle IPv4 switches
+            document.getElementById('enable_password_encryp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('disable_password_encryp').checked = false; // ปิด Disable เมื่อ Enable เปิด
+                }
+            });
 
+            document.getElementById('disable_password_encryp').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('enable_password_encryp').checked = false; // ปิด Enable เมื่อ Disable เปิด
+                }
+            });
+        });
     </script>
     <script>
         function validateDeviceSelection() {
@@ -55,9 +70,25 @@
             document.getElementById('loader').style.display = 'block';
         }
 
+        function validateCredentials() {
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            if (!username || !password) {
+                alert('Both Username and Password are required');
+                return false;
+            }
+            return true;
+        }
+
         function handleSubmit() {
             if (!validateDeviceSelection()) {
                 event.preventDefault();  // ถ้ายังไม่ได้เลือกหรือกรอกอุปกรณ์ จะหยุดการส่งฟอร์ม
+                return;
+            }
+
+            if (!validateCredentials()) {
+                event.preventDefault();  // หยุดการส่งฟอร์มถ้าข้อมูลไม่ครบ
                 return;
             }
             showLoader(); // Show loader when form is submitted
@@ -71,6 +102,29 @@
         {% endif %}
         {% endwith %}
     </script>
+    <style>
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            width: 48%;
+        }
+
+        .form-group label {
+            display: block;
+            text-align: left;
+            color: #2e4ead;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -199,6 +253,33 @@
                     <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
                         minlength="3" maxlength="20">
                     <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
+                    <h3 style="color: #2e4ead; text-align: left;">Service Password-encryption</h3>
+                    <div class="checkbox-wrapper-22">
+                        <label>Enable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enable_password_encryp" name="enable_password_encryp">
+                            <span class="slider"></span>
+                        </label>
+                        <label>Disable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="disable_password_encryp" name="disable_password_encryp">
+                            <span class="slider"></span>
+                        </label>
+                    </div><br><br>
+
+                    <!-- Users -->
+                    <h3 style="color: #2e4ead; text-align: left;">Username and Password Management</h3>
+                    <div class="form-container route_pair">
+                        <div class="form-group">
+                            <input type="text" name="username" placeholder="Username"
+                                title="Enter the username for the Cisco device">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" placeholder="Password"
+                                title="Enter the password for the Cisco device">
+                        </div>
+                    </div>
+
                     <input style="margin-left: 90%;" type="submit" value="Submit">
                 </form>
                 {% if alert_message %}

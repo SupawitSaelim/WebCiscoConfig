@@ -30,6 +30,41 @@
             background-color: #2e4ead;
             color: white;
         }
+
+        .warning-list {
+            padding-left: 20px;
+            list-style: none;
+            color: #d9534f;
+            /* สีแดงสำหรับข้อความ Warning */
+            font-weight: bold;
+        }
+
+        .warning-icon {
+            margin-right: 10px;
+            color: #d9534f;
+            /* สีแดงสำหรับไอคอน */
+        }
+
+        .no-warnings {
+            color: #5cb85c;
+            /* สีเขียวสำหรับข้อความไม่มี Warning */
+            font-weight: bold;
+        }
+
+        .print-button {
+            background-color: #2e4ead;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .print-button:hover {
+            background-color: #1e3a8a;
+        }
     </style>
 </head>
 
@@ -47,8 +82,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="config_checker" title="Refresh"
-                            style="display: inline-flex; align-items: center;">
+                        <a href="config_checker" title="Refresh" style="display: inline-flex; align-items: center;">
                             <i class="fas fa-sync" style="font-size: 24px; margin-right: 8px;"></i>
                             <h4 style="display: none;">Refresh</h4>
                         </a>
@@ -123,7 +157,7 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1>Security Check Report</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Security Check Report</h1>
                 <table>
                     <thead>
                         <tr>
@@ -138,13 +172,13 @@
                             <td>{{ device.name }}</td>
                             <td>
                                 {% if device.analysis and device.analysis.warnings %}
-                                <ul>
+                                <ul class="warning-list">
                                     {% for warning in device.analysis.warnings %}
-                                    <li>{{ warning }}</li>
+                                    <li><i class="fas fa-exclamation-circle warning-icon"></i> {{ warning }}</li>
                                     {% endfor %}
                                 </ul>
                                 {% else %}
-                                No warnings
+                                <span class="no-warnings">No warnings</span>
                                 {% endif %}
                             </td>
                             <td>
