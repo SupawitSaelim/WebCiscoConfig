@@ -1540,6 +1540,9 @@ def run_snmp_command(script_path, device_ip):
             ["node", script_path, device_ip],
             capture_output=True, text=True, check=True
         )
+        if "Error fetching system description" in result.stdout or not result.stdout.strip():
+            return "SNMP not configured or unreachable"
+        
         return result.stdout
     except subprocess.CalledProcessError as e:
         return f"Error fetching data from {script_path}: {e}"
@@ -1555,6 +1558,10 @@ def device_details_form():
     sw_l3, sw_l2, device_type = False, False, ''
     
     description_output = run_snmp_command("static/snmp/description.js", device_ip)
+    if "SNMP not configured or unreachable" in description_output:
+        flash("Error: SNMP not configured or unreachable. Please configure SNMP on the device.", "error")
+        return redirect('/devices_details_page')
+
     if "switch" in description_output.lower() and "L3" in description_output:
         device_type = "Switch Layer3"
         sw_l3 = True

@@ -124,6 +124,14 @@
         </div>
         <div class="main_container">
             <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <script type="text/javascript">
+                    alert("{{ messages[0][1] }}");  // แสดงข้อความจาก flash message ใน popup alert
+                </script>
+                {% endif %}
+                {% endwith %}
+
                 <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Device Details SNMP</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3>

@@ -66,12 +66,19 @@ class NetworkConfigSecurityChecker:
         """
         warnings = []
 
-        # Check password strength and encryption
-        passwords = re.findall(r'password\s+(\S+)', config)
-        for password in passwords:
+        enable_password_match = re.search(r'enable password\s+(\S+)', config)
+        if enable_password_match:
+            enable_password = enable_password_match.group(1)
+            strength = self.predict_password_strength(enable_password)
+            if strength in ["Weak", "Normal"]:
+                warnings.append(f"Insecure enable password found! Strength: {strength}")
+
+        username_password_matches = re.findall(r'username\s+(\S+)\s+password\s+\S+\s+(\S+)', config)
+        for username, password in username_password_matches:
             strength = self.predict_password_strength(password)
             if strength in ["Weak", "Normal"]:
-                warnings.append(f"Insecure password '{password}' found! Strength: {strength}")
+                warnings.append(f"Insecure password for username '{username}' found! Strength: {strength}")
+
 
         if "no service password-encryption" in config:
             warnings.append("Password encryption is not enabled")

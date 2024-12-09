@@ -72,7 +72,7 @@ def commands(consoleport, hostname, domainname, privilege_password, ssh_username
     send_command(ser, 'conf t')  # Enter global configuration mode
     send_command(ser, f'hostname {hostname}')  # Set the hostname
     send_command(ser, f'ip domain-name {domainname}')  # Set the domain name
-    send_command(ser, f'enable secret {privilege_password}')  # Set privilege password
+    send_command(ser, f'enable password {privilege_password}')  # Set privilege password
     send_command(ser, f'username {ssh_username} password {ssh_password}')  # Set SSH username and password
     send_command(ser, f'int {interface}')  # Configure interface
     if ip_address == "dhcp":
@@ -81,7 +81,7 @@ def commands(consoleport, hostname, domainname, privilege_password, ssh_username
         send_command(ser, f'ip address {ip} {subnet_mask}')  # Set static IP and subnet mask
     send_command(ser, 'no shutdown')  # Enable interface (no shutdown)
     send_command(ser, 'line vty 0 4')  # Configure VTY lines for SSH access
-    send_command(ser, 'transport input ssh')  # Allow SSH input on VTY lines
+    send_command(ser, 'transport input all')  # Allow SSH input on VTY lines
     send_command(ser, 'login local')  # Enable local login
     send_command(ser, 'crypto key generate rsa general-keys modulus 1024')  # Generate RSA keys
     send_command(ser, 'end')  # Exit configuration mode

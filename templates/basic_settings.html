@@ -74,8 +74,8 @@
             const username = document.querySelector('input[name="username"]').value;
             const password = document.querySelector('input[name="password"]').value;
 
-            if (!username || !password) {
-                alert('Both Username and Password are required');
+            if ((username && !password) || (!username && password)) {
+                alert('Both Username and Password are required if you want to configure this section.');
                 return false;
             }
             return true;
