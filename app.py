@@ -87,7 +87,7 @@ def search_hostname():
 ########## login Page #######################################
 @app.route('/')
 def login_frist():
-    return render_template('login.html')
+    return render_template('initialization.html')
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
