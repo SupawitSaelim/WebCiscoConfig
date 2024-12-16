@@ -1494,6 +1494,18 @@ def show_config():
                     "show_ntp_status": 'show ntp status',
                     "show_spanning_tree": 'show spanning-tree',
                     "show_spanning_tree_sum": 'show spanning-tree sum',
+                    "show_environment": 'show environment',
+                    "show_inventory": 'show inventory',
+                    "show_platform": 'show platform',
+                    "show_ip_nat_translations": 'show ip nat translations',
+                    "show_ip_arp": 'show ip arp',
+                    "show_ip_ospf_neighbor": 'show ip ospf neighbor',
+                    "show_ip_eigrp_neighbor": 'show ip eigrp neighbor',
+                    "show_bgp_summary": 'show bgp summary',
+                    "show_ip_rip_database": 'show ip rip database',
+                    "show_vrf": 'show vrf',
+                    "show_processes_cpu": 'show processes cpu',
+                    "show_ip_sla_statistics": 'show ip sla statistics',
                 }
 
                 config_data = ""
