@@ -9,6 +9,7 @@ import subprocess
 import time
 from pymongo.errors import ConnectionFailure , ServerSelectionTimeoutError
 from bson import ObjectId
+from dotenv import load_dotenv
 from device_config import configure_device, configure_network_interface, manage_vlan_on_device, configure_vty_console, configure_spanning_tree, configure_etherchannel
 from routing_config import configure_static_route, configure_rip_route, configure_ospf_route, configure_eigrp_route
 from concurrent.futures import ThreadPoolExecutor
@@ -16,12 +17,17 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from ai_password_with_re import NetworkConfigSecurityChecker
 import pytz
 from datetime import datetime
+import os
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 
-# client = MongoClient('mongodb://10.0.0.3:27017/')
-client = MongoClient('mongodb+srv://admin:Supawitadmin123_@cluster0.ikx1g.mongodb.net/device_management?retryWrites=true&w=majority')
+
+load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    raise ValueError("MONGO_URI environment variable is not set!")
+client = MongoClient(MONGO_URI)
 db = client['device_management']  # กำหนดชื่อฐานข้อมูล
 device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
 
@@ -1613,4 +1619,7 @@ def device_details_form():
     )
 
 
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
 

@@ -2,3 +2,4 @@ node_modules
 packgae
 myenv
 output.log
+__pycache__
