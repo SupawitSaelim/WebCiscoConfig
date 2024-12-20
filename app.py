@@ -158,11 +158,10 @@ def initialization():
                 if existing_device:
                     return render_template('initialization.html', ip_duplicate= "This IP address is already in use. Please enter a different IP address.")
                 
-                device_collection.insert_one(device_data)
-
                 # call serial ####
                 serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address, save_startup)
+                device_collection.insert_one(device_data)
             else:
                 serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address, save_startup)
