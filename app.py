@@ -36,8 +36,7 @@ thailand_timezone = pytz.timezone('Asia/Bangkok')
 ########## Security Checker ##################################
 def fetch_and_analyze():
     security_checker = NetworkConfigSecurityChecker(
-        model_path='model.pkl', 
-        vectorizer_path='vectorizer.pkl'
+        model_path='lr_model.pkl'
     )
 
     devices = list(device_collection.find())  

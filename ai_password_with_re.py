@@ -2,6 +2,8 @@ import re
 import warnings
 import joblib
 import numpy as np
+import string
+import pandas as pd
 
 # Disable specific sklearn warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
@@ -9,23 +11,36 @@ warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 class NetworkConfigSecurityChecker:
     """
     A class to analyze network configuration security and password strength.
-    
-    This class provides methods to:
-    - Check password strength
-    - Analyze configuration security
-    - Identify potential security risks in network configurations
     """
 
-    def __init__(self, model_path='model.pkl', vectorizer_path='vectorizer.pkl'):
+    def __init__(self, model_path='lr_model.pkl'):
         """
-        Initialize the security checker with pre-trained model and vectorizer.
+        Initialize the security checker with a pre-trained model.
         
         Args:
             model_path (str): Path to the trained classification model
-            vectorizer_path (str): Path to the text vectorizer
         """
         self.clf = joblib.load(model_path)
-        self.vectorizer = joblib.load(vectorizer_path)
+
+    def extract_features(self, password):
+        """
+        Extract features from a password.
+        
+        Args:
+            password (str): Password to evaluate
+        
+        Returns:
+            pd.DataFrame: Extracted features in the correct order
+        """
+        features = {
+            'length': len(password),
+            'digits': sum(c.isdigit() for c in password),
+            'uppercase': sum(c.isupper() for c in password),
+            'lowercase': sum(c.islower() for c in password),
+            'special_chars': sum(c in string.punctuation for c in password),
+        }
+        feature_order = ['length', 'uppercase', 'lowercase', 'digits', 'special_chars']
+        return pd.DataFrame([features])[feature_order]
 
     def predict_password_strength(self, password):
         """
@@ -37,21 +52,12 @@ class NetworkConfigSecurityChecker:
         Returns:
             str: Password strength category (Weak/Normal/Strong)
         """
-        # Prepare password for prediction
-        sample_array = np.array([password])
-        sample_matrix = self.vectorizer.transform(sample_array)
-
-        # Calculate additional features
-        length_pass = len(password)
-        length_normalised_lowercase = len([char for char in password if char.islower()]) / len(password)
-
-        # Combine features for prediction
-        new_matrix = np.append(sample_matrix.toarray(), (length_pass, length_normalised_lowercase)).reshape(1, 101)
-        result = self.clf.predict(new_matrix)
+        password_features = self.extract_features(password)
+        result = self.clf.predict(password_features)[0]
 
         # Map prediction to strength categories
         strength_map = {0: "Weak", 1: "Normal", 2: "Strong"}
-        return strength_map.get(result[0], "Unknown")
+        return strength_map.get(result, "Unknown")
 
     def analyze_config_security(self, config, ip_interface_brief):
         """
@@ -114,7 +120,7 @@ def main():
     hostname Switch
     no service password-encryption
     !
-    enable password Supawitadmin123_
+    enable password admin
     !
     line con 0
      password Supawitadmin123_
