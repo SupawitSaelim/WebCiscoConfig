@@ -1,30 +1,31 @@
 import joblib
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
 import warnings
-
+import string
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
+# โหลดโมเดล
+model = joblib.load('dt_model.pkl')
 
-# โหลดโมเดลจากไฟล์
-clf = joblib.load('model.pkl')
-print("Model loaded successfully.")
+# ลำดับฟีเจอร์ที่โมเดลคาดหวัง
+feature_order = ['length', 'uppercase', 'lowercase', 'digits', 'special_chars']
 
-# โหลด vectorizer ที่ถูกบันทึกไว้
-vectorizer = joblib.load('vectorizer.pkl')
-print("Vectorizer loaded successfully.")
+def extract_features(password):
+    """แปลงรหัสผ่านให้เป็นฟีเจอร์ในลำดับที่ถูกต้อง"""
+    features = {
+        'length': len(password),
+        'digits': sum(c.isdigit() for c in password),
+        'uppercase': sum(c.isupper() for c in password),
+        'lowercase': sum(c.islower() for c in password),
+        'special_chars': sum(c in string.punctuation for c in password),
+    }
+    return pd.DataFrame([features])[feature_order]  # เรียงลำดับฟีเจอร์ให้ตรง
 
 def main():
-    password = input("Enter a password : ")
-    sample_array = np.array([password])
-    sample_matrix = vectorizer.transform(sample_array)
-    
-    length_pass = len(password)
-    length_normalised_lowercase = len([char for char in password if char.islower()]) / len(password)
-    
-    # รวมข้อมูลที่ได้เป็น feature ใหม่
-    new_matrix2 = np.append(sample_matrix.toarray(), (length_pass, length_normalised_lowercase)).reshape(1, 101)
-    result = clf.predict(new_matrix2)
+    password = input("Enter a password: ")
+    # แปลงรหัสผ่านเป็นฟีเจอร์
+    password_features = extract_features(password)
+    result = model.predict(password_features)[0]
     
     if result == 0:
         return "Password is weak"
@@ -34,5 +35,5 @@ def main():
         return "Password is strong"
 
 if __name__ == "__main__":
-    while(True):
+    while True:
         print(main())
