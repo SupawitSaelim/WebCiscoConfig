@@ -18,6 +18,7 @@ from ai_password_with_re import NetworkConfigSecurityChecker
 import pytz
 from datetime import datetime
 import os
+from auto_sec import automate_sec
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
@@ -93,18 +94,6 @@ def search_hostname():
 @app.route('/')
 def login_frist():
     return render_template('initialization.html')
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    if username == 'admin' and password == 'admin':
-        return redirect(url_for('initialization'))
-    else:
-        return '<script>alert("Incorrect username or password!!"); window.location.href="/";</script>'
-@app.route('/logout', methods=['POST'])
-def logout():
-    return render_template('login.html')
 
 ########## Device Initialization ###########################
 @app.route('/initialization_page', methods=['GET'])
@@ -1510,6 +1499,8 @@ def show_config():
                     "show_vrf": 'show vrf',
                     "show_processes_cpu": 'show processes cpu',
                     "show_ip_sla_statistics": 'show ip sla statistics',
+                    "show_cdp": 'show cdp',
+                    "show_ldp": 'show lldp'
                 }
 
                 config_data = ""
@@ -1539,6 +1530,21 @@ def config_checker():
     except ServerSelectionTimeoutError:
         cisco_devices = []  
     return render_template('securitychecker.html', cisco_devices=cisco_devices)
+
+@app.route('/fix_device/<device_ip>', methods=['POST'])
+def fix_device(device_ip):
+    device = device_collection.find_one({"device_info.ip": device_ip})
+
+    if device:
+        result = automate_sec(device['device_info'])
+        if result:
+            flash("Device configured successfully!", "success")
+        else:
+            flash("Failed to configure device", "danger")
+    else:
+        flash("Device with IP {} not found.".format(device_ip), "danger")
+
+    return redirect(url_for('config_checker'))
 
 
 ########## Device Details SNMP #############################

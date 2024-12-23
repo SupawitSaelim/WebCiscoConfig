@@ -66,6 +66,42 @@
             background-color: #1e3a8a;
         }
     </style>
+    <style>
+        .fix-button {
+            background-color: #2e4ead;
+            /* สีเดียวกับระบบ */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .fix-button:hover {
+            background-color: #1e3a8a;
+            transform: scale(1.05);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .fix-button:active {
+            transform: scale(0.95);
+            background-color: #162c65;
+        }
+    </style>
+    <script>
+        // ฟังก์ชันเพื่อแสดง loader
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        // ฟังก์ชันตรวจสอบฟอร์มและแสดง loader
+        function handleSubmit() {
+            showLoader(); // แสดง loader เมื่อฟอร์มถูกส่ง
+            return true; // ส่งฟอร์ม
+        }
+    </script>
 </head>
 
 <body>
@@ -158,12 +194,23 @@
         <div class="main_container">
             <div class="container">
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Security Check Report</h1>
+                <!-- แสดง Flash message ถ้ามี -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message }}"); // จะแสดงเป็น alert popup
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <table>
                     <thead>
                         <tr>
                             <th>Device Name</th>
                             <th>Warnings</th>
                             <th>Last Updated</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -186,6 +233,18 @@
                                 {{ device.analysis.last_updated }}
                                 {% else %}
                                 Not updated
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if device.analysis and device.analysis.warnings %}
+                                <form method="POST" action="{{ url_for('fix_device', device_ip=device['device_info']['ip']) }}" onsubmit="return handleSubmit();">
+                                    <button type="submit" class="fix-button">
+                                        Fix <i class="fas fa-cogs"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <!-- ไม่แสดงปุ่ม Fix เมื่อไม่มีคำเตือน -->
+                                <span>No action available</span>
                                 {% endif %}
                             </td>
                         </tr>

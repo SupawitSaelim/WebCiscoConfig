@@ -9,10 +9,4 @@ certifi
 numpy
 scikit-learn
 joblib
-
-
-#pip install -r requirements.txt
-#path/to/python.exe pip install -r /requirements.txt
-# C:/Users/supawit-project/AppData/Local/Programs/Python/Python313/python.exe -m pip install python-dotenv
-#C:\Users\supawit-project\AppData\Local\Programs\Python\Python313\python.exe -m pip list
-#npm install net-snmp
+pandas

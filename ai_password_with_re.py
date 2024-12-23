@@ -75,9 +75,12 @@ class NetworkConfigSecurityChecker:
         enable_password_match = re.search(r'enable password\s+(\S+)', config)
         if enable_password_match:
             enable_password = enable_password_match.group(1)
-            strength = self.predict_password_strength(enable_password)
-            if strength in ["Weak", "Normal"]:
-                warnings.append(f"Insecure enable password found! Strength: {strength}")
+            if enable_password.startswith("7"):
+                pass
+            else:
+                strength = self.predict_password_strength(enable_password)
+                if strength in ["Weak", "Normal"]:
+                    warnings.append(f"Insecure enable password found! Strength: {strength}")
 
         username_password_matches = re.findall(r'username\s+(\S+)\s+password\s+\S+\s+(\S+)', config)
         for username, password in username_password_matches:
@@ -99,8 +102,20 @@ class NetworkConfigSecurityChecker:
         if not re.search(r'line con 0\s+.*?exec-timeout\s+\d+\s+\d+', config, re.DOTALL):
             warnings.append("'exec-timeout' not set for line con")
         
+        if "exec-timeout 0" in config:
+            warnings.append("exec-timeout is set to 0, which is not recommended")
+        
         if not re.search(r'line vty \d+ \d+\s+.*?exec-timeout\s+\d+\s+\d+', config, re.DOTALL):
             warnings.append("'exec-timeout' not set for line vty")
+        
+        if "no ip http server" not in config:
+            warnings.append("Insecure HTTP server is enabled. Consider disabling it.")
+        
+        if "lldp run" in config:
+            warnings.append("LLDP is enabled. Ensure it is necessary and properly secured.")
+        
+        if "no cdp run" not in config:
+            warnings.append("CDP is enabled. Ensure it is necessary and secure.")
         
         # Check VTY transport settings
         vty_config = re.findall(r'line vty \d+ \d+\s+.*?transport input (\S+)', config, re.DOTALL)
