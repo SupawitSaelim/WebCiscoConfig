@@ -1536,7 +1536,7 @@ def fix_device(device_ip):
     device = device_collection.find_one({"device_info.ip": device_ip})
 
     if device:
-        result = automate_sec(device['device_info'])
+        result = automate_sec(device['device_info'], db)
         if result:
             flash("Device configured successfully!", "success")
         else:

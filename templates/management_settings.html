@@ -461,21 +461,27 @@
                     <h3 style="color: #2e4ead; text-align: left;">SNMP Management</h3><br>
                     <div class="form-container">
                         <div class="form-group">
-                            <input type="text" id="snmp_ro" name="snmp_ro"
-                                placeholder="Enter RO Community String"><br><br>
-                            <input type="text" id="snmp_rw" name="snmp_rw"
-                                placeholder="Enter RW Community String"><br><br>
+                            <input type="text" id="snmp_ro" name="snmp_ro" placeholder="Enter RO Community String"
+                                title="Recommended: 'public'"><br><br>
+                            <input type="text" id="snmp_rw" name="snmp_rw" placeholder="Enter RW Community String"
+                                title="Recommended: 'private'"><br><br>
                         </div>
                         <div class="form-group">
                             <input type="text" id="snmp_contact" name="snmp_contact"
-                                placeholder="Enter Contact Information"><br><br>
-                            <input type="text" id="snmp_location" name="snmp_location"
-                                placeholder="Enter Location"><br><br>
+                                placeholder="Enter Contact Information"
+                                title="Provide contact information for SNMP management, such as email or phone number."><br><br>
+                            <input type="text" id="snmp_location" name="snmp_location" placeholder="Enter Location"
+                                title="Enter the physical location of the SNMP device, e.g., server room or data center."><br><br>
                         </div>
                     </div>
                     <!-- CDP -->
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">CDP</label>
+                        <span class="question-mark"
+                            title="CDP (Cisco Discovery Protocol) is a proprietary protocol used by Cisco devices to discover and share information about directly connected devices."
+                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
+                            ?
+                        </span><br><br>
                         <label>Enable</label>
                         <label class="switch">
                             <input type="checkbox" id="enable_cdp" name="enable_cdp">
@@ -491,6 +497,11 @@
                     </div>
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">LLDP</label>
+                        <span class="question-mark"
+                            title="LLDP (Link Layer Discovery Protocol) is an open standard protocol used by devices to advertise and discover information about directly connected devices in a network."
+                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
+                            ?
+                        </span><br><br>
                         <label>Enable</label>
                         <label class="switch">
                             <input type="checkbox" id="enable_lldp" name="enable_lldp">

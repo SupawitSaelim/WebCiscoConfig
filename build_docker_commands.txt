@@ -1,0 +1,1 @@
+docker build -t  webappconfigcisco:v1.0 .
