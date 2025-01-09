@@ -1483,7 +1483,7 @@ def show_config():
                     "show_ipv6_interface_brief": 'show ipv6 int br',
                     "show_flash": 'show flash:',
                     "show_dhcp_pool": 'show ip dhcp pool',
-                    "show_dhcp_dinding": 'show ip dhcp binding',
+                    "show_dhcp_bind": 'show ip dhcp binding',
                     "show_ntp_status": 'show ntp status',
                     "show_spanning_tree": 'show spanning-tree',
                     "show_spanning_tree_sum": 'show spanning-tree sum',
@@ -1500,7 +1500,8 @@ def show_config():
                     "show_processes_cpu": 'show processes cpu',
                     "show_ip_sla_statistics": 'show ip sla statistics',
                     "show_cdp": 'show cdp',
-                    "show_ldp": 'show lldp'
+                    "show_lldp": 'show lldp',
+                    "show_interfaces_switchport": 'show int sw'
                 }
 
                 config_data = ""

@@ -384,6 +384,7 @@ def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_s
             dis_int = []
             dis_int.append(f"int range {portfast_int_disable}")
             dis_int.append("no spanning-tree portfast")
+            dis_int.append("no spanning-tree bpduguard")
             output = net_connect.send_config_set(dis_int)
             print(f"Disable PortFast for interfaces {portfast_int_enable} on device {device['name']}:", output)
 
@@ -433,8 +434,11 @@ def configure_etherchannel(device, etherchannel_interfaces, channel_group_number
 
         # Delete Port Group
         if etherchannel_interfaces_lacp_delete:
-            output = net_connect.send_config_set(f"no int {etherchannel_interfaces_lacp_delete}")
-            print(f"Deleted Port Group on {device['name']}:", output)
+            interfaces = etherchannel_interfaces_lacp_delete.split(",")  
+            for interface in interfaces:
+                command = f"no interface {interface.strip()}" 
+                output = net_connect.send_config_set(command)
+                print(f"Deleted Port Group on {device['name']}: {command}\n{output}")
 
         net_connect.disconnect()
 
