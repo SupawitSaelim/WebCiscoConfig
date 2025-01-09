@@ -75,6 +75,7 @@ def commands(consoleport, hostname, domainname, privilege_password, ssh_username
     send_command(ser, f'enable password {privilege_password}')  # Set privilege password
     send_command(ser, f'username {ssh_username} password {ssh_password}')  # Set SSH username and password
     send_command(ser, f'int {interface}')  # Configure interface
+    send_command(ser, f'no switchport')  # Configure interface
     if ip_address == "dhcp":
         send_command(ser, 'ip address dhcp')  # Set IP to DHCP
     else:

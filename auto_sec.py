@@ -24,6 +24,7 @@ def automate_sec(device_info, db):
             'line con 0',
             'exec-timeout 3 0',
             'line vty 0 4',
+            'trans inp ssh',
             'exec-timeout 3 0',
             'no cdp run',
             'no lldp run',
