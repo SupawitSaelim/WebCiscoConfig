@@ -17,54 +17,26 @@ from concurrent.futures import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from ai_password_with_re import NetworkConfigSecurityChecker
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from auto_sec import automate_sec
+import socket
+import netifaces
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 socketio = SocketIO(app)
 ssh_sessions = {}
 
-def ssh_connect(hostname, port, username, password, sid):
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname, port=port, username=username, password=password)
-        ssh_channel = client.invoke_shell()
-        ssh_sessions[sid] = ssh_channel
-
-        while True:
-            if ssh_channel.recv_ready():
-                data = ssh_channel.recv(1024).decode('utf-8')
-                socketio.emit('ssh_output', {'data': data}, to=sid)
-    except Exception as e:
-        socketio.emit('ssh_output', {'data': f"Error: {str(e)}"}, to=sid)
-    finally:
-        if sid in ssh_sessions:
-            del ssh_sessions[sid]
-        client.close()
-@socketio.on('disconnect')
-def handle_disconnect():
-    sid = request.sid
-    if sid in ssh_sessions:
-        try:
-            ssh_sessions[sid].close()
-            print(f"Closed SSH session for SID: {sid}")
-        except Exception as e:
-            print(f"Error closing SSH session for SID {sid}: {e}")
-        finally:
-            del ssh_sessions[sid]
-
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set!")
 client = MongoClient(MONGO_URI)
-db = client['device_management']  # กำหนดชื่อฐานข้อมูล
-device_collection = db['devices']  # กำหนดชื่อคอลเล็กชัน
-
+db = client['device_management']  
+device_collection = db['devices']  
 thailand_timezone = pytz.timezone('Asia/Bangkok')
+
 
 ########## Security Checker ##################################
 def fetch_and_analyze():
@@ -93,10 +65,11 @@ def fetch_and_analyze():
                 {"$set": {"analysis": {"warnings": warnings, "last_updated": formatted_time}}}
             )
         except Exception as e:
-            print(f"Error processing {device['name']}: {e}")
+            # print(f"Error processing {device['name']}: {e}")
+            pass
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_and_analyze, 'interval', seconds=10)
+scheduler.add_job(fetch_and_analyze, 'interval', seconds=10 , max_instances=2)
 scheduler.start()
 
 ########## MongoDB Status ###################################
@@ -110,7 +83,6 @@ def check_mongo_connection():
 def mongo_status():
     status = check_mongo_connection()
     return jsonify({"status": status})
-
 
 ########## Suggest hostname ###################################
 @app.route('/search_hostname', methods=['GET'])
@@ -143,7 +115,7 @@ def initialization():
         interface = request.form.get('interface')
         interface_type = request.form.get('interfaceType')
         ip_address = request.form.get('ip_address')
-        save_startup = request.form.get('save_startup')
+        save_startup = True
 
 
         if interface_type == "DHCP":
@@ -192,7 +164,6 @@ def initialization():
 
     return render_template('initialization.html')
 
-
 ########## Device Record Management ########################
 @app.route('/record_mnmg_page', methods=['GET'])
 def record_mnmg_page():
@@ -205,6 +176,8 @@ def record_mnmg_form():
         privilege_password = request.form.get('privilegepassword')
         ssh_username = request.form.get('ssh_username')
         ssh_password = request.form.get('ssh_password')
+        tz_bangkok = pytz.timezone('Asia/Bangkok')
+        current_time = datetime.now(tz_bangkok).replace(microsecond=0)
         device_data = {
             "name": name,
             "device_info": {
@@ -214,7 +187,8 @@ def record_mnmg_form():
                 "password": ssh_password,
                 "secret": privilege_password,
                 "session_log": "output.log"
-            }
+            },
+            "timestamp": current_time
         }
 
         existing_device_hostname = device_collection.find_one({"name": name})
@@ -233,15 +207,32 @@ def record_mnmg_form():
 
     return render_template('record_mnmg.html')
 
-
 ########## Devices Informaion ##############################
 @app.route('/devices_informaion_page', methods=['GET'])
 def devices_information():
     try:
-        cisco_devices = list(device_collection.find())
-    except ServerSelectionTimeoutError:
-        cisco_devices = None  
-    return render_template('devices_information.html', cisco_devices=cisco_devices)
+        page = int(request.args.get('page', 1))
+        per_page = 10
+        skip = (page - 1) * per_page
+
+        cisco_devices = list(device_collection.find().sort("timestamp", -1).skip(skip).limit(per_page))
+
+        # Convert UTC timestamps to local time (UCT + 7)
+        for device in cisco_devices:
+            if "timestamp" in device:
+                utc_time = device["timestamp"]
+                local_time = utc_time + timedelta(hours=7)
+                device["timestamp"] = local_time
+
+        total_devices = device_collection.count_documents({})
+        total_pages = (total_devices + per_page - 1) // per_page
+
+    except Exception as e:
+        cisco_devices = None
+        total_pages = 1
+        page = 1
+
+    return render_template('devices_information.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page) 
 @app.route('/delete', methods=['POST'])
 def delete_device():
     ip_address = request.form.get('ip_address')
@@ -272,6 +263,14 @@ def update_device():
             device = device_collection.find_one({"device_info.ip": current_ip})
             return render_template('edit_device.html', alert_message="This hostname is already in use. Please choose a different hostname.", device=device)
 
+        # ค้นหาอุปกรณ์ปัจจุบัน
+        current_device = device_collection.find_one({"device_info.ip": current_ip})
+        if not current_device:
+            return "Device not found", 404
+
+        # ดึง timestamp ของอุปกรณ์ปัจจุบัน
+        timestamp = current_device.get('timestamp', None)
+
         # ตรวจสอบว่า IP ซ้ำหรือไม่ (เฉพาะเมื่อ IP มีการเปลี่ยนแปลง)
         if current_ip != new_ip:
             existing_device = device_collection.find_one({"device_info.ip": new_ip})
@@ -280,6 +279,7 @@ def update_device():
                 device = device_collection.find_one({"device_info.ip": current_ip})
                 return render_template('edit_device.html', alert_message="This IP address is already in use. Please enter a different IP address.", device=device)
 
+            # ลบอุปกรณ์ปัจจุบัน
             device_collection.delete_one({"device_info.ip": current_ip})
 
             # เพิ่มข้อมูลใหม่พร้อม IP Address ใหม่
@@ -292,9 +292,11 @@ def update_device():
                     "password": password,
                     "secret": secret,
                     "session_log": "output.log"
-                }
+                },
+                "timestamp": timestamp  # คงค่า timestamp เดิม
             })
         else:
+            # อัปเดตข้อมูลโดยไม่เปลี่ยน IP
             device_collection.update_one(
                 {"device_info.ip": current_ip},
                 {"$set": {
@@ -310,7 +312,6 @@ def update_device():
     except Exception as e:
         device = device_collection.find_one({"device_info.ip": current_ip})
         return render_template('edit_device.html', alert_message=f"An error occurred: {str(e)}", device=device)
-
 @app.route('/ping', methods=['POST'])
 def ping_device():
     ip_address = request.get_json().get('ip_address')
@@ -350,7 +351,6 @@ def cli():
     session['password'] = password
 
     return render_template('cli.html')
-
 @socketio.on('ssh_connect')
 def handle_ssh_connect(data):
     hostname = data.get('hostname')
@@ -361,7 +361,6 @@ def handle_ssh_connect(data):
 
     # เริ่มการเชื่อมต่อ SSH ใน background
     socketio.start_background_task(ssh_connect, hostname, port, username, password, sid)
-
 @socketio.on('ssh_command')
 def handle_ssh_command(data):
     sid = request.sid
@@ -370,6 +369,35 @@ def handle_ssh_command(data):
         ssh_sessions[sid].send(command)
     else:
         emit('ssh_output', {'data': 'No active SSH session found'}, to=sid)
+def ssh_connect(hostname, port, username, password, sid):
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname, port=port, username=username, password=password)
+        ssh_channel = client.invoke_shell()
+        ssh_sessions[sid] = ssh_channel
+
+        while True:
+            if ssh_channel.recv_ready():
+                data = ssh_channel.recv(1024).decode('utf-8')
+                socketio.emit('ssh_output', {'data': data}, to=sid)
+    except Exception as e:
+        socketio.emit('ssh_output', {'data': f"Error: {str(e)}"}, to=sid)
+    finally:
+        if sid in ssh_sessions:
+            del ssh_sessions[sid]
+        client.close()
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    if sid in ssh_sessions:
+        try:
+            ssh_sessions[sid].close()
+            print(f"Closed SSH session for SID: {sid}")
+        except Exception as e:
+            print(f"Error closing SSH session for SID {sid}: {e}")
+        finally:
+            del ssh_sessions[sid]
 
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
@@ -379,7 +407,6 @@ def basic_settings_page():
     except ServerSelectionTimeoutError:
         cisco_devices = None  
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
-
 @app.route('/basic_settings', methods=['GET', 'POST'])
 def basic_settings():
     try:
@@ -1200,7 +1227,6 @@ def erase_config_page():
     except ServerSelectionTimeoutError:
         cisco_devices = None  
     return render_template('eraseconfig.html', cisco_devices=cisco_devices)
-
 @app.route('/erase', methods=['POST'])
 def erase_device():
     cisco_devices = list(device_collection.find())
@@ -1257,7 +1283,6 @@ def erase_device():
     except Exception as e:
         print(e)
         return '<script>alert("Failed to erase configuration. Please try again."); window.location.href="/erase_config_page";</script>'
-
 @app.route('/reload', methods=['POST'])
 def reload_device():
     cisco_devices = list(device_collection.find())
@@ -1424,7 +1449,6 @@ def reload_device():
     except Exception as e:
         print(e)
         return '<script>alert("Failed to reload device. Please try again."); window.location.href="/erase_config_page";</script>', 500
-
 @app.route('/handle_save_response', methods=['POST'])
 def handle_save_response():
     cisco_devices = list(device_collection.find())
@@ -1465,7 +1489,6 @@ def handle_save_response():
     except Exception as e:
         print(e)
         return '<script>alert("Failed to handle save response. Please try again."); window.location.href="/erase_config_page";</script>', 500
-
 @app.route('/save', methods=['POST'])
 def save_configuration():
     cisco_devices = list(device_collection.find())
@@ -1597,11 +1620,21 @@ def show_config():
 @app.route('/config_checker', methods=['GET'])
 def config_checker():
     try:
-        cisco_devices = list(device_collection.find())
-    except ServerSelectionTimeoutError:
-        cisco_devices = []  
-    return render_template('securitychecker.html', cisco_devices=cisco_devices)
+        page = int(request.args.get('page', 1))  
+        per_page = 10
+        skip = (page - 1) * per_page
 
+        cisco_devices = list(device_collection.find().skip(skip).limit(per_page))
+        
+        total_devices = device_collection.count_documents({})
+        total_pages = (total_devices + per_page - 1) // per_page
+
+    except Exception as e:
+        cisco_devices = []  
+        total_pages = 1
+        page = 1
+
+    return render_template('securitychecker.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
 @app.route('/fix_device/<device_ip>', methods=['POST'])
 def fix_device(device_ip):
     device = device_collection.find_one({"device_info.ip": device_ip})
@@ -1694,7 +1727,12 @@ def device_details_form():
     )
 
 
-
 if __name__ == "__main__":
+    interfaces = netifaces.interfaces()
+    for interface in interfaces:
+        addresses = netifaces.ifaddresses(interface)
+        if netifaces.AF_INET in addresses:  # IPv4
+            for address in addresses[netifaces.AF_INET]:
+                print(f"Flask web server is running at: http://{address['addr']}:5000")
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 

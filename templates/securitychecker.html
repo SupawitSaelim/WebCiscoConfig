@@ -90,6 +90,35 @@
             background-color: #162c65;
         }
     </style>
+    <style>
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .page-number {
+            display: inline-block;
+            margin: 0 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .page-number:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .page-number.current {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            pointer-events: none;
+        }
+    </style>
     <script>
         // ฟังก์ชันเพื่อแสดง loader
         function showLoader() {
@@ -251,6 +280,15 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <div class="pagination">
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == current_page %}
+                            <span class="page-number current">{{ p }}</span>
+                        {% else %}
+                            <a href="{{ url_for('config_checker', page=p) }}" class="page-number">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
