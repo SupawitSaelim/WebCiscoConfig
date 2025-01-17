@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSH CLI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        html, body {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        #terminal {
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        .xterm {
+            padding: 0;
+            height: 100%;
+        }
+
+        .xterm-viewport {
+            overflow-y: hidden !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+
+    <script>
+        const socket = io();
+        const term = new Terminal({
+            fontSize: 20,
+            theme: {
+                background: '#000000',
+                foreground: '#FFFFFF'
+            },
+            cursorBlink: true,
+            allowTransparency: true,
+            scrollback: 1000
+        });
+
+        // Initialize FitAddon
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();  // Initial fit
+        
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostname = urlParams.get('hostname');
+        const port = urlParams.get('port');
+        const username = urlParams.get('username');
+        const password = urlParams.get('password');
+
+        // Emit connection request with parameters
+        socket.emit('ssh_connect', {
+            hostname: hostname,
+            port: port,
+            username: username,
+            password: password
+        });
+
+        term.onData(data => {
+            socket.emit('ssh_command', { command: data });
+        });
+
+        socket.on('ssh_output', data => {
+            term.write(data.data);
+        });
+    </script>
+</body>
+</html>

@@ -52,7 +52,7 @@
 </head>
 
 <body>
-    <div id="loader"></div> 
+    <div id="loader"></div>
     <div class="wrapper">
         <div class="top_navbar">
             <div class="hamburger">
@@ -189,6 +189,13 @@
                                         <i class="fas fa-network-wired" style="color: green; font-size: 20px;"></i>
                                     </button>
                                 </form>
+                                <!-- SSH Connect Button -->
+                                <button
+                                    onclick="openSshConnection('{{ device.device_info.ip }}', '{{ device.device_info.username }}', '{{ device.device_info.password }}')"
+                                    title="Connect via SSH"
+                                    style="background: none; border: none; cursor: pointer; margin-left: 10px;">
+                                    <i class="fas fa-terminal" style="color: #007bff; font-size: 20px;"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -203,10 +210,16 @@
         </div>
     </div>
     <script>
+        function openSshConnection(ip, username, password) {
+            const url = `/cli?hostname=${encodeURIComponent(ip)}&port=22&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+    <script>
         function showLoader() {
             document.getElementById('loader').style.display = 'block'; // แสดง loader
         }
-    
+
         function hideLoader() {
             document.getElementById('loader').style.display = 'none'; // ซ่อน loader
         }
@@ -214,35 +227,35 @@
     <script type="text/javascript">
         $(document).ready(function () {
             $('.ping-form').submit(function (event) {
-                event.preventDefault();  
-    
-                var ipAddress = $(this).find('.ip-address').val(); 
-    
+                event.preventDefault();
+
+                var ipAddress = $(this).find('.ip-address').val();
+
                 if (!ipAddress) {
                     alert("IP address is required!");
-                    return;  
+                    return;
                 }
                 showLoader();
-    
+
                 $.ajax({
                     type: 'POST',
                     url: '/ping',
-                    contentType: 'application/json',  
-                    dataType: 'json',  
+                    contentType: 'application/json',
+                    dataType: 'json',
                     data: JSON.stringify({
-                        ip_address: ipAddress  
+                        ip_address: ipAddress
                     }),
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message);  
+                            alert(response.message);
                         } else {
-                            alert("Error: " + response.message);  
+                            alert("Error: " + response.message);
                         }
                     },
                     error: function () {
-                        alert('An error occurred while pinging the device.');  
+                        alert('An error occurred while pinging the device.');
                     },
-                    complete: function() {
+                    complete: function () {
                         hideLoader();
                     }
                 });

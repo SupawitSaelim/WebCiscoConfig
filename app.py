@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash,jsonify, session
+from flask_socketio import SocketIO, emit
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 import paramiko
 import threading
@@ -22,7 +23,38 @@ from auto_sec import automate_sec
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
+socketio = SocketIO(app)
+ssh_sessions = {}
 
+def ssh_connect(hostname, port, username, password, sid):
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname, port=port, username=username, password=password)
+        ssh_channel = client.invoke_shell()
+        ssh_sessions[sid] = ssh_channel
+
+        while True:
+            if ssh_channel.recv_ready():
+                data = ssh_channel.recv(1024).decode('utf-8')
+                socketio.emit('ssh_output', {'data': data}, to=sid)
+    except Exception as e:
+        socketio.emit('ssh_output', {'data': f"Error: {str(e)}"}, to=sid)
+    finally:
+        if sid in ssh_sessions:
+            del ssh_sessions[sid]
+        client.close()
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    if sid in ssh_sessions:
+        try:
+            ssh_sessions[sid].close()
+            print(f"Closed SSH session for SID: {sid}")
+        except Exception as e:
+            print(f"Error closing SSH session for SID {sid}: {e}")
+        finally:
+            del ssh_sessions[sid]
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -299,7 +331,45 @@ def ping_device():
     except Exception as e:
         error_message = f"An error occurred while pinging the device: {str(e)}"
         return jsonify({"success": False, "message": error_message})
+@app.route('/cli')
+def cli():
+    hostname = request.args.get('hostname')
+    port = request.args.get('port')
+    username = request.args.get('username')
+    password = request.args.get('password')
 
+    if not (hostname and port and username and password):
+        return redirect(url_for('index'))
+
+    # Print received details to the console for demonstration
+    print(f"Hostname: {hostname}, Port: {port}, Username: {username}, Password: {password}")
+
+    session['hostname'] = hostname
+    session['port'] = port
+    session['username'] = username
+    session['password'] = password
+
+    return render_template('cli.html')
+
+@socketio.on('ssh_connect')
+def handle_ssh_connect(data):
+    hostname = data.get('hostname')
+    port = int(data.get('port'))
+    username = data.get('username')
+    password = data.get('password')
+    sid = request.sid
+
+    # เริ่มการเชื่อมต่อ SSH ใน background
+    socketio.start_background_task(ssh_connect, hostname, port, username, password, sid)
+
+@socketio.on('ssh_command')
+def handle_ssh_command(data):
+    sid = request.sid
+    command = data['command']
+    if sid in ssh_sessions:
+        ssh_sessions[sid].send(command)
+    else:
+        emit('ssh_output', {'data': 'No active SSH session found'}, to=sid)
 
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
@@ -1626,5 +1696,5 @@ def device_details_form():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
