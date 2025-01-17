@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Erase Configuration</title>
     <style>
         .input-container {
@@ -55,6 +56,35 @@
             color: midnightblue;
         }
     </style>
+    <style>
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .page-number {
+            display: inline-block;
+            margin: 0 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .page-number:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .page-number.current {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            pointer-events: none;
+        }
+    </style>
     <script>
         function showLoader() {
             document.getElementById('loader').style.display = 'block';
@@ -67,6 +97,16 @@
     </script>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#search-input").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("table tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
 </head>
 
 <body>
@@ -161,61 +201,77 @@
                 <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Erase Startup-Configurations</h1>
                 <br><br>
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message }}");
-                            {% endfor %}
-                        </script>
-                    {% endif %}
-                {% endwith %}
-                <table>
-                    <tr>
-                        <th>Name devices</th>
-                        <th>IP Address</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% if cisco_devices %}
-                    {% for device in cisco_devices %}
-                    <tr>
-                        <td>{{ device.name }}</td>
-                        <td>{{ device.device_info.ip }}</td>
-                        <td style="align-items: center;">
-                            <div class="action-buttons" style="align-items: center;">
-                                <!-- ปุ่มลบ -->
-                                <form method="POST" action="/erase"
-                                    onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
-                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
-                                    <button type="submit" class="action-button erase-button" title="Erase">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                                <!-- ปุ่มรีโหลด -->
-                                <form method="POST" action="/reload"
-                                    onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
-                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
-                                    <button type="submit" class="action-button reload-button" title="Reload">
-                                        <i class="fas fa-redo"></i>
-                                    </button>
-                                </form>
-                                <!-- ปุ่มบันทึก -->
-                                <form method="POST" action="/save"
-                                    onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
-                                    <input type="hidden" name="device_index" value="{{ loop.index0 }}">
-                                    <button type="submit" class="action-button save-button" title="Save">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message }}");
                     {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="3" style="text-align: center;">No devices available.</td>
-                    </tr>
-                    {% endif %}
+                </script>
+                {% endif %}
+                {% endwith %}
+                <input type="text" id="search-input" placeholder="Search devices..."
+                    style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name devices</th>
+                            <th>IP Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if cisco_devices %}
+                        {% for device in cisco_devices %}
+                        <tr>
+                            <td>{{ device.name }}</td>
+                            <td>{{ device.device_info.ip }}</td>
+                            <td style="align-items: center;">
+                                <div class="action-buttons" style="align-items: center;">
+                                    <!-- ปุ่มลบ -->
+                                    <form method="POST" action="/erase"
+                                        onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
+                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <button type="submit" class="action-button erase-button" title="Erase">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                    <!-- ปุ่มรีโหลด -->
+                                    <form method="POST" action="/reload"
+                                        onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
+                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <button type="submit" class="action-button reload-button" title="Reload">
+                                            <i class="fas fa-redo"></i>
+                                        </button>
+                                    </form>
+                                    <!-- ปุ่มบันทึก -->
+                                    <form method="POST" action="/save"
+                                        onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
+                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <button type="submit" class="action-button save-button" title="Save">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center;">No devices available.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
                 </table>
+                <br>
+                <div class="pagination">
+                    {% for p in range(1, total_pages + 1) %}
+                    {% if p == current_page %}
+                    <span class="page-number current">{{ p }}</span>
+                    {% else %}
+                    <a href="{{ url_for('erase_config_page', page=p) }}" class="page-number">{{ p }}</a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>

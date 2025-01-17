@@ -1223,10 +1223,28 @@ def eigrp_settings():
 @app.route('/erase_config_page', methods=['GET'])
 def erase_config_page():
     try:
-        cisco_devices = list(device_collection.find())
-    except ServerSelectionTimeoutError:
-        cisco_devices = None  
-    return render_template('eraseconfig.html', cisco_devices=cisco_devices)
+        page = int(request.args.get('page', 1))
+        per_page = 10
+        skip = (page - 1) * per_page
+
+        cisco_devices = list(device_collection.find().sort("timestamp", -1).skip(skip).limit(per_page))
+
+        # Convert UTC timestamps to local time (UCT + 7)
+        for device in cisco_devices:
+            if "timestamp" in device:
+                utc_time = device["timestamp"]
+                local_time = utc_time + timedelta(hours=7)
+                device["timestamp"] = local_time
+
+        total_devices = device_collection.count_documents({})
+        total_pages = (total_devices + per_page - 1) // per_page
+
+    except Exception as e:
+        cisco_devices = None
+        total_pages = 1
+        page = 1
+
+    return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
 @app.route('/erase', methods=['POST'])
 def erase_device():
     cisco_devices = list(device_collection.find())

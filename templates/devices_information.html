@@ -70,9 +70,30 @@
             margin-top: 20px;
         }
     </style>
+    <style>
+        #search-input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            width: 100%;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#search-input").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("table tbody tr").filter(function () {
+                    // ซ่อนเฉพาะแถวที่มีข้อมูล (ไม่ใช่แถวหัวข้อ)
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1 || $(this).find('th').length > 0);
+                });
+            });
+        });
+    </script>
 </head>
 
 <body>
@@ -167,6 +188,8 @@
             <div class="container">
                 <h1 style="text-align: left;color: #2e4ead;">INFORMATION OF DEVICES</h1>
                 <br><br>
+                <input type="text" id="search-input" placeholder="Search devices..."
+                    style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;">
                 <table>
                     <tr>
                         <th>Name devices</th>
@@ -184,7 +207,8 @@
                         <td>{{ device.device_info.ip }}</td>
                         <td>{{ device.device_info.username }}</td>
                         <td>
-                            <span class="password-toggle" data-password="{{ device.device_info.password }}">•••••••</span>
+                            <span class="password-toggle"
+                                data-password="{{ device.device_info.password }}">•••••••</span>
                         </td>
                         <td>
                             <span class="password-toggle" data-password="{{ device.device_info.secret }}">•••••••</span>
