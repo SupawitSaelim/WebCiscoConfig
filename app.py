@@ -116,7 +116,8 @@ def initialization():
         interface_type = request.form.get('interfaceType')
         ip_address = request.form.get('ip_address')
         save_startup = True
-
+        tz_bangkok = pytz.timezone('Asia/Bangkok')
+        current_time = datetime.now(tz_bangkok).replace(microsecond=0)
 
         if interface_type == "DHCP":
             ip_address = "dhcp"
@@ -138,7 +139,8 @@ def initialization():
                         "password": ssh_password,
                         "secret": privilege_password,
                         "session_log": "output.log"
-                    }
+                    },
+                    "timestamp": current_time
                 }
 
                 existing_device_hostname = device_collection.find_one({"name": hostname})
@@ -150,13 +152,20 @@ def initialization():
                 if existing_device:
                     return render_template('initialization.html', ip_duplicate= "This IP address is already in use. Please enter a different IP address.")
                 
-                # call serial ####
-                serial_script.commands(consoleport, hostname, domainname, privilege_password,
+                output = serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address, save_startup)
+                if output is not None and "Invalid interface input" in output :
+                    flash("Invalid interface input. Please provide a valid interface.", "danger")
+                    return render_template('initialization.html', error="Invalid interface input. Please try again.")
+
                 device_collection.insert_one(device_data)
             else:
-                serial_script.commands(consoleport, hostname, domainname, privilege_password,
+                output = serial_script.commands(consoleport, hostname, domainname, privilege_password,
                                    ssh_username, ssh_password, interface, ip_address, save_startup)
+                if output is not None and "Invalid interface input" in output :
+                    flash("Invalid interface input. Please provide a valid interface.", "danger")
+                    return render_template('initialization.html', error="Invalid interface input. Please try again.")
+
             return render_template('initialization.html', success="Device successfully initialized!")
             
         except Exception as e:
