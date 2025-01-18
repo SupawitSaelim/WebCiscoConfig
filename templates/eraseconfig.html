@@ -97,16 +97,7 @@
     </script>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#search-input").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-                $("table tbody tr").filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-            });
-        });
-    </script>
+    <script src="../static/search_ease.js"></script>
 </head>
 
 <body>
@@ -198,8 +189,6 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Erase Startup-Configurations</h1>
-                <br><br>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -230,7 +219,7 @@
                                     <!-- ปุ่มลบ -->
                                     <form method="POST" action="/erase"
                                         onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
-                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button erase-button" title="Erase">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
@@ -238,7 +227,7 @@
                                     <!-- ปุ่มรีโหลด -->
                                     <form method="POST" action="/reload"
                                         onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
-                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button reload-button" title="Reload">
                                             <i class="fas fa-redo"></i>
                                         </button>
@@ -246,7 +235,7 @@
                                     <!-- ปุ่มบันทึก -->
                                     <form method="POST" action="/save"
                                         onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
-                                        <input type="hidden" name="device_index" value="{{ loop.index0 }}">
+                                        <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button save-button" title="Save">
                                             <i class="fas fa-save"></i>
                                         </button>

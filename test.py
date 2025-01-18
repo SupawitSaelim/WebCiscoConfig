@@ -1,11 +1,33 @@
-import netifaces
+from netmiko import ConnectHandler
 
-# Get all interfaces
-interfaces = netifaces.interfaces()
+# ข้อมูลการเชื่อมต่อ
+device = {
+    'device_type': 'cisco_ios',
+    'host': '192.168.0.3',
+    'username': 'supawit',
+    'password': 'admin',
+    'secret': 'admin',  # รหัสผ่าน enable
+}
 
-# Loop through all interfaces and get their IP addresses
-for interface in interfaces:
-    addresses = netifaces.ifaddresses(interface)
-    if netifaces.AF_INET in addresses:  # IPv4
-        for address in addresses[netifaces.AF_INET]:
-            print(f"Interface: {interface} - IP Address: {address['addr']}")
+# เชื่อมต่อไปยังอุปกรณ์
+net_connect = ConnectHandler(**device)
+
+# เข้าสู่โหมด enable
+net_connect.enable()
+
+# รีโหลดอุปกรณ์
+reload_command = 'reload'
+net_connect.send_command_timing(reload_command)
+
+# สั่งให้รีโหลดโดยไม่ต้องยืนยัน
+output = net_connect.send_command_timing('y')
+
+print(output)
+
+# สลับโหมด
+switch_command = 'show version'  # ตัวอย่างการใช้คำสั่งในโหมด enable
+output = net_connect.send_command(switch_command)
+print(output)
+
+# ปิดการเชื่อมต่อ
+net_connect.disconnect()

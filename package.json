@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "net-snmp": "^3.16.0"
+    "net-snmp": "^3.18.2"
   }
 }

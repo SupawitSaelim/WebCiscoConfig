@@ -85,6 +85,7 @@ def mongo_status():
     return jsonify({"status": status})
 
 ########## Suggest hostname ###################################
+''' Search Suggest'''
 @app.route('/search_hostname', methods=['GET'])
 def search_hostname():
     query = request.args.get('query', '')  # รับคำค้นหาจาก query string
@@ -224,9 +225,10 @@ def devices_information():
         per_page = 10
         skip = (page - 1) * per_page
 
-        cisco_devices = list(device_collection.find().sort("timestamp", -1).skip(skip).limit(per_page))
+        cisco_devices = list(
+            device_collection.find().sort("timestamp", -1).skip(skip).limit(per_page)
+        )
 
-        # Convert UTC timestamps to local time (UCT + 7)
         for device in cisco_devices:
             if "timestamp" in device:
                 utc_time = device["timestamp"]
@@ -241,7 +243,35 @@ def devices_information():
         total_pages = 1
         page = 1
 
-    return render_template('devices_information.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page) 
+    return render_template(
+        'devices_information.html',
+        cisco_devices=cisco_devices,
+        total_pages=total_pages,
+        current_page=page,
+    )
+@app.route('/search_devices', methods=['GET'])
+def search_devices():
+    search_query = request.args.get('search', '')
+    query = {}
+    if search_query:
+        query = {
+            "$or": [
+                {"name": {"$regex": search_query, "$options": "i"}},
+                {"device_info.ip": {"$regex": search_query, "$options": "i"}},
+                {"device_info.username": {"$regex": search_query, "$options": "i"}},
+            ]
+        }
+
+    results = list(device_collection.find(query).sort("timestamp", -1).limit(50))  # จำกัดจำนวนผลลัพธ์
+
+    for device in results:
+        if "_id" in device:
+            device["_id"] = str(device["_id"])  # แปลง ObjectId เป็น string
+        if "timestamp" in device:
+            utc_time = device["timestamp"]
+            device["timestamp"] = (utc_time + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M:%S')
+
+    return jsonify(results)
 @app.route('/delete', methods=['POST'])
 def delete_device():
     ip_address = request.form.get('ip_address')
@@ -1236,32 +1266,44 @@ def erase_config_page():
         per_page = 10
         skip = (page - 1) * per_page
 
-        cisco_devices = list(device_collection.find().sort("timestamp", -1).skip(skip).limit(per_page))
+        search_query = request.args.get('search', '')
+        query = {}
+        if search_query:
+            query = {
+                "$or": [
+                    {"name": {"$regex": search_query, "$options": "i"}},
+                    {"device_info.ip": {"$regex": search_query, "$options": "i"}},
+                    {"device_info.username": {"$regex": search_query, "$options": "i"}},
+                ]
+            }
 
-        # Convert UTC timestamps to local time (UCT + 7)
+        cisco_devices = list(device_collection.find(query).sort("timestamp", -1).skip(skip).limit(per_page))
+
         for device in cisco_devices:
             if "timestamp" in device:
                 utc_time = device["timestamp"]
                 local_time = utc_time + timedelta(hours=7)
                 device["timestamp"] = local_time
 
-        total_devices = device_collection.count_documents({})
-        total_pages = (total_devices + per_page - 1) // per_page
+        total_devices = device_collection.count_documents(query)
+        total_pages = (total_devices + per_page - 1) // per_page if total_devices > 0 else 1
+
+        return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
 
     except Exception as e:
-        cisco_devices = None
-        total_pages = 1
-        page = 1
-
-    return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
+        return render_template('eraseconfig.html', cisco_devices=None, total_pages=1, current_page=1)
 @app.route('/erase', methods=['POST'])
 def erase_device():
     cisco_devices = list(device_collection.find())
     try:
-        device_index = int(request.form.get('device_index'))
-        if 0 <= device_index < len(cisco_devices):
-            device = cisco_devices[device_index]
+        ip_address = request.form.get('ip_address')
+        if not ip_address:
+            return "IP address is required!", 400  
+        device = next((device for device in cisco_devices if device['device_info']['ip'] == ip_address), None)
+        
+        if device:
             device_info = device['device_info']
+            print('Erasing configuration for', device['device_info']['ip'])
 
             ssh_client = paramiko.SSHClient()
             ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -1314,11 +1356,12 @@ def erase_device():
 def reload_device():
     cisco_devices = list(device_collection.find())
     try:
-        device_index = int(request.form.get('device_index'))
-        if 0 <= device_index < len(cisco_devices):
-            device = cisco_devices[device_index]
+        ip_address = request.form.get('ip_address')  
+        device = next((device for device in cisco_devices if device['device_info']['ip'] == ip_address), None)
+        
+        if device:
             device_info = device['device_info']
-
+            print('reloading to: ', device['device_info']['ip'])
             ssh_client = paramiko.SSHClient()
             ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh_client.connect(hostname=device_info['ip'], username=device_info['username'], password=device_info['password'])
@@ -1356,122 +1399,12 @@ def reload_device():
             print(output)
 
             if "Save?" in output or "modified." in output:
-                return '''
-                <div id="loader" style="display:none;"></div>
-                <div id="confirmModal" style="display:none;">
-                    <div class="modal-content">
-                        <p>System configuration has been modified. Save?</p>
-                        <button id="yesButton" style="background-color: #2e4ead; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Yes</button>
-                        <button id="noButton" style="background-color: tomato; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">No</button>
-                    </div>
-                </div>
-                <script>
-                    function showLoader() {
-                        document.getElementById('loader').style.display = 'block'; // แสดง loader
-                    }
-
-                    function hideLoader() {
-                        document.getElementById('loader').style.display = 'none'; // ซ่อน loader
-                    }
-
-                    function showConfirmModal() {
-                        document.getElementById('confirmModal').style.display = 'flex'; // แสดง modal
-                    }
-
-                    document.getElementById('yesButton').addEventListener('click', function() {
-                        handleResponse("yes");
-                    });
-
-                    document.getElementById('noButton').addEventListener('click', function() {
-                        handleResponse("no");
-                    });
-
-                    function handleResponse(response) {
-                        showLoader(); // แสดง loader เมื่อผู้ใช้คลิก
-                        fetch("/handle_save_response", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "device_index=" + encodeURIComponent("''' + str(device_index) + '''") + "&save_response=" + encodeURIComponent(response)
-                        }).then(() => {
-                            alert("Configuration response has been sent.");
-                            hideLoader(); // ซ่อน loader หลังจากส่งข้อมูลเสร็จ
-                            window.location.href = "/erase_config_page";
-                        }).catch(() => {
-                            alert("Failed to send response. Please try again.");
-                            hideLoader(); // ซ่อน loader หากมีข้อผิดพลาด
-                        });
-
-                        hideModal(); // ซ่อน modal หลังจากเลือกแล้ว
-                    }
-
-                    function hideModal() {
-                        document.getElementById('confirmModal').style.display = 'none'; // ซ่อน modal
-                    }
-
-                    // แสดง modal เมื่อโหลดหน้า
-                    window.onload = function() {
-                        showConfirmModal();
-                    };
-                </script>
-                <style>
-                    * {
-                    font-family: 'Roboto', sans-serif;
-                    }
-                    #confirmModal {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background-color: rgba(0, 0, 0, 0.5);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                    }
-
-                    .modal-content {
-                        background-color: white;
-                        padding: 20px;
-                        border-radius: 5px;
-                        text-align: center;
-                    }
-
-                    /* Loader Styles */
-                    #loader {
-                        display: none;
-                        position: fixed; /* ใช้ fixed เพื่อให้ loader ติดอยู่ที่ตำแหน่ง */
-                        top: 50%; /* วางอยู่ที่ 50% ของความสูง */
-                        left: 50%; /* วางอยู่ที่ 50% ของความกว้าง */
-                        transform: translate(-50%, -50%); /* ปรับตำแหน่งให้แน่ใจว่ามันอยู่กลาง */
-                        z-index: 9999;
-                        border: 8px solid rgba(255, 255, 255, 0.2);
-                        border-top: 8px solid #3498db;
-                        border-radius: 50%;
-                        width: 5vw;
-                        height: 5vw;
-                        max-width: 80px;
-                        max-height: 80px;
-                        animation: spin 1.5s linear infinite;
-                        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-                    }
-
-                    @keyframes spin {
-                    0% {
-                        transform: rotate(0deg);
-                    }
-
-                    100% {
-                        transform: rotate(360deg);
-                        }
-                    }
-                </style>
-            '''
+                return render_template('confirm_modal.html', ip_address=ip_address)
             else:
                 ssh_client.close()
                 return '<script>alert("Device will reload without saving."); window.location.href="/erase_config_page";</script>'
-        
         else:
-            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</>'
+            return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
     
     except Exception as e:
         print(e)
@@ -1480,11 +1413,11 @@ def reload_device():
 def handle_save_response():
     cisco_devices = list(device_collection.find())
     try:
-        device_index = int(request.form.get('device_index'))
+        ip_address = request.form.get('ip_address') 
+        device = next((device for device in cisco_devices if device['device_info']['ip'] == ip_address), None)
         save_response = request.form.get('save_response')
         
-        if 0 <= device_index < len(cisco_devices):
-            device = cisco_devices[device_index]
+        if device:
             device_info = device['device_info']
 
             ssh_client = paramiko.SSHClient()
@@ -1521,31 +1454,40 @@ def save_configuration():
     cisco_devices = list(device_collection.find())
 
     try:
-        device_index = int(request.form.get("device_index"))
-        
-        if 0 <= device_index < len(cisco_devices):
-            device = cisco_devices[device_index]
+        ip_address = request.form.get("ip_address")  
+        print(f"Received IP address: {ip_address}")
+
+        if ip_address is None:
+            flash("IP address is missing!", "danger")
+            return redirect(url_for('erase_config_page'))
+
+        device = next((device for device in cisco_devices if device["device_info"]["ip"] == ip_address), None)
+
+        if device is not None:
             device_info = device["device_info"]
+            print(f"Attempting to save configuration for {device['name']}")
 
             device_info['timeout'] = 10
             net_connect = ConnectHandler(**device_info)
             net_connect.enable()
 
             config_command = "write memory"
-
             output = net_connect.send_command(config_command)
             print(f"Save Configuration for {device['name']}:", output)
 
             net_connect.disconnect()
             flash(f"Configuration saved for {device['name']} successfully.", "success")
         else:
-            flash("Invalid device index", "danger")
-
+            flash(f"Device with IP {ip_address} not found!", "danger")
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         flash(f"Error saving configuration: {e}", "danger")
 
-    return render_template('eraseconfig.html', cisco_devices=cisco_devices)
+    total_devices = device_collection.count_documents({})
+    per_page = 10
+    total_pages = (total_devices + per_page - 1) // per_page
+    page = 1  
 
+    return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
 
 ########## Show Configuration ##############################
 @app.route('/show_config_page', methods=['GET'])
@@ -1699,7 +1641,6 @@ def run_snmp_command(script_path, device_ip):
         return result.stdout
     except subprocess.CalledProcessError as e:
         return f"Error fetching data from {script_path}: {e}"
-
 @app.route('/get_snmp', methods=['POST'])
 def device_details_form():
     device_ip = request.form.get("device_name")  # Get IP from form
