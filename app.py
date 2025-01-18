@@ -3,7 +3,6 @@ from flask_socketio import SocketIO, emit
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 import paramiko
 import threading
-from threading import Lock
 from flask import Flask, render_template, request, redirect, url_for
 import serial_script
 from pymongo import MongoClient
@@ -22,11 +21,13 @@ from datetime import datetime, timedelta
 import os
 from auto_sec import automate_sec
 import netifaces
+from ssh_manager import SSHManager
+from ssh_routes import init_ssh_routes
+
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 socketio = SocketIO(app)
-
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -36,78 +37,8 @@ client = MongoClient(MONGO_URI)
 db = client['device_management']  
 device_collection = db['devices']  
 thailand_timezone = pytz.timezone('Asia/Bangkok')
-
-class SSHManager:
-    def __init__(self, max_sessions=50):  
-        self.ssh_sessions = {}
-        self.lock = Lock()
-        self.max_sessions = max_sessions
-        
-    def add_session(self, sid, client, channel):
-        with self.lock:
-            if len(self.ssh_sessions) >= self.max_sessions:
-                raise Exception("Maximum session limit reached")
-                
-            self.ssh_sessions[sid] = {
-                'client': client,
-                'channel': channel,
-                'last_active': time.time(),
-                'created_at': time.time()
-            }
-
-    def get_active_sessions_count(self):
-        with self.lock:
-            return len(self.ssh_sessions)
-    
-    def cleanup_long_running_sessions(self, max_session_time=3600):  # 1 hour
-        with self.lock:
-            current_time = time.time()
-            long_running_sids = [
-                sid for sid, session in self.ssh_sessions.items()
-                if current_time - session['created_at'] > max_session_time
-            ]
-            for sid in long_running_sids:
-                self.remove_session(sid)
-
-    def get_session_stats(self):
-        with self.lock:
-            stats = {
-                'active_sessions': len(self.ssh_sessions),
-                'max_sessions': self.max_sessions,
-                'available_slots': self.max_sessions - len(self.ssh_sessions)
-            }
-            return stats
-    
-    def remove_session(self, sid):
-        with self.lock:
-            if sid in self.ssh_sessions:
-                try:
-                    session = self.ssh_sessions[sid]
-                    if session['channel']:
-                        session['channel'].close()
-                    if session['client']:
-                        session['client'].close()
-                except Exception as e:
-                    print(f"Error closing session {sid}: {e}")
-                finally:
-                    del self.ssh_sessions[sid]
-    
-    def get_session(self, sid):
-        with self.lock:
-            return self.ssh_sessions.get(sid)
-    
-    def cleanup_inactive_sessions(self, timeout=300):  # 5 minutes timeout
-        with self.lock:
-            current_time = time.time()
-            inactive_sids = [
-                sid for sid, session in self.ssh_sessions.items()
-                if current_time - session['last_active'] > timeout
-            ]
-            for sid in inactive_sids:
-                self.remove_session(sid)
-
-
 ssh_manager = SSHManager(max_sessions=50)
+init_ssh_routes(app, socketio, ssh_manager)
 
 ########## Security Checker #################################
 def fetch_and_analyze():
@@ -469,102 +400,10 @@ def ping_device():
     except Exception as e:
         error_message = f"An error occurred while pinging the device: {str(e)}"
         return jsonify({"success": False, "message": error_message})
-@app.route('/cli')
-def cli():
-    hostname = request.args.get('hostname')
-    port = request.args.get('port')
-    username = request.args.get('username')
-    password = request.args.get('password')
-
-    if not (hostname and port and username and password):
-        return redirect(url_for('index'))
-
-    # Print received details to the console for demonstration
-    print(f"Hostname: {hostname}, Port: {port}, Username: {username}, Password: {password}")
-
-    session['hostname'] = hostname
-    session['port'] = port
-    session['username'] = username
-    session['password'] = password
-
-    return render_template('cli.html')
-@socketio.on('ssh_connect')
-def handle_ssh_connect(data):
-    try:
-        if ssh_manager.get_active_sessions_count() >= ssh_manager.max_sessions:
-            emit('ssh_output', {
-                'data': 'Error: Maximum session limit reached. Please try again later.\n'
-            })
-            return
-            
-        hostname = data.get('hostname')
-        port = int(data.get('port'))
-        username = data.get('username')
-        password = data.get('password')
-        sid = request.sid
-        
-        ssh_manager.remove_session(sid)
-        socketio.start_background_task(
-            ssh_connect, hostname, port, username, password, sid
-        )
-    except Exception as e:
-        emit('ssh_output', {'data': f'Connection error: {str(e)}\n'})
-@socketio.on('ssh_command')
-def handle_ssh_command(data):
-    sid = request.sid
-    command = data['command']
-    session = ssh_manager.get_session(sid)
-    
-    if session:
-        try:
-            session['channel'].send(command)
-            session['last_active'] = time.time()
-        except Exception as e:
-            emit('ssh_output', {'data': f"Error sending command: {str(e)}"}, to=sid)
-            ssh_manager.remove_session(sid)
-    else:
-        emit('ssh_output', {'data': 'No active SSH session found\n'}, to=sid)
-def ssh_connect(hostname, port, username, password, sid):
-    client = None
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(
-            hostname, 
-            port=port, 
-            username=username, 
-            password=password,
-            timeout=30,
-            auth_timeout=20
-        )
-        
-        ssh_channel = client.invoke_shell()
-        ssh_manager.add_session(sid, client, ssh_channel)
-        
-        while True:
-            if ssh_channel.recv_ready():
-                data = ssh_channel.recv(1024).decode('utf-8')
-                socketio.emit('ssh_output', {'data': data}, to=sid)
-                # Update last active timestamp
-                ssh_manager.ssh_sessions[sid]['last_active'] = time.time()
-            
-            # Small delay to prevent CPU spinning
-            socketio.sleep(0.1)
-            
-    except Exception as e:
-        socketio.emit('ssh_output', {'data': f"Error: {str(e)}"}, to=sid)
-    finally:
-        ssh_manager.remove_session(sid)
-@socketio.on('disconnect')
-def handle_disconnect():
-    sid = request.sid
-    ssh_manager.remove_session(sid)
-def cleanup_ssh_sessions():
-    ssh_manager.cleanup_inactive_sessions()
-@app.route('/ssh-stats')
-def ssh_stats():
     stats = ssh_manager.get_session_stats()
     return jsonify(stats)
+def cleanup_ssh_sessions():
+    ssh_manager.cleanup_inactive_sessions()
 
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
