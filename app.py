@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 import paramiko
 import threading
+from threading import Lock
 from flask import Flask, render_template, request, redirect, url_for
 import serial_script
 from pymongo import MongoClient
@@ -20,13 +21,12 @@ import pytz
 from datetime import datetime, timedelta
 import os
 from auto_sec import automate_sec
-import socket
 import netifaces
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'Supawitadmin123_'
 socketio = SocketIO(app)
-ssh_sessions = {}
+
 
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
@@ -37,6 +37,48 @@ db = client['device_management']
 device_collection = db['devices']  
 thailand_timezone = pytz.timezone('Asia/Bangkok')
 
+class SSHManager:
+    def __init__(self):
+        self.ssh_sessions = {}
+        self.lock = Lock()
+        
+    def add_session(self, sid, client, channel):
+        with self.lock:
+            self.ssh_sessions[sid] = {
+                'client': client,
+                'channel': channel,
+                'last_active': time.time()
+            }
+    
+    def remove_session(self, sid):
+        with self.lock:
+            if sid in self.ssh_sessions:
+                try:
+                    session = self.ssh_sessions[sid]
+                    if session['channel']:
+                        session['channel'].close()
+                    if session['client']:
+                        session['client'].close()
+                except Exception as e:
+                    print(f"Error closing session {sid}: {e}")
+                finally:
+                    del self.ssh_sessions[sid]
+    
+    def get_session(self, sid):
+        with self.lock:
+            return self.ssh_sessions.get(sid)
+    
+    def cleanup_inactive_sessions(self, timeout=300):  # 5 minutes timeout
+        with self.lock:
+            current_time = time.time()
+            inactive_sids = [
+                sid for sid, session in self.ssh_sessions.items()
+                if current_time - session['last_active'] > timeout
+            ]
+            for sid in inactive_sids:
+                self.remove_session(sid)
+
+ssh_manager = SSHManager()
 
 ########## Security Checker ##################################
 def fetch_and_analyze():
@@ -68,9 +110,28 @@ def fetch_and_analyze():
             # print(f"Error processing {device['name']}: {e}")
             pass
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_and_analyze, 'interval', seconds=10 , max_instances=2)
-scheduler.start()
+def init_scheduler():
+    scheduler = BackgroundScheduler()
+    
+    # Add Security Analysis job
+    scheduler.add_job(
+        fetch_and_analyze, 
+        'interval', 
+        seconds=10, 
+        max_instances=2,
+        id='security_analysis'
+    )
+    
+    # Add SSH cleanup job
+    scheduler.add_job(
+        cleanup_ssh_sessions, 
+        'interval', 
+        minutes=5,
+        id='ssh_cleanup'
+    )
+    
+    scheduler.start()
+    return scheduler
 
 ########## MongoDB Status ###################################
 def check_mongo_connection():
@@ -397,46 +458,67 @@ def handle_ssh_connect(data):
     username = data.get('username')
     password = data.get('password')
     sid = request.sid
-
-    # เริ่มการเชื่อมต่อ SSH ใน background
-    socketio.start_background_task(ssh_connect, hostname, port, username, password, sid)
+    
+    # Clean up any existing session for this SID
+    ssh_manager.remove_session(sid)
+    
+    # Start new SSH connection in background
+    socketio.start_background_task(
+        ssh_connect, hostname, port, username, password, sid
+    )
 @socketio.on('ssh_command')
 def handle_ssh_command(data):
     sid = request.sid
     command = data['command']
-    if sid in ssh_sessions:
-        ssh_sessions[sid].send(command)
+    session = ssh_manager.get_session(sid)
+    
+    if session:
+        try:
+            session['channel'].send(command)
+            session['last_active'] = time.time()
+        except Exception as e:
+            emit('ssh_output', {'data': f"Error sending command: {str(e)}"}, to=sid)
+            ssh_manager.remove_session(sid)
     else:
-        emit('ssh_output', {'data': 'No active SSH session found'}, to=sid)
+        emit('ssh_output', {'data': 'No active SSH session found\n'}, to=sid)
 def ssh_connect(hostname, port, username, password, sid):
+    client = None
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname, port=port, username=username, password=password)
+        client.connect(
+            hostname, 
+            port=port, 
+            username=username, 
+            password=password,
+            timeout=30,
+            auth_timeout=20
+        )
+        
         ssh_channel = client.invoke_shell()
-        ssh_sessions[sid] = ssh_channel
-
+        ssh_manager.add_session(sid, client, ssh_channel)
+        
         while True:
             if ssh_channel.recv_ready():
                 data = ssh_channel.recv(1024).decode('utf-8')
                 socketio.emit('ssh_output', {'data': data}, to=sid)
+                # Update last active timestamp
+                ssh_manager.ssh_sessions[sid]['last_active'] = time.time()
+            
+            # Small delay to prevent CPU spinning
+            socketio.sleep(0.1)
+            
     except Exception as e:
         socketio.emit('ssh_output', {'data': f"Error: {str(e)}"}, to=sid)
     finally:
-        if sid in ssh_sessions:
-            del ssh_sessions[sid]
-        client.close()
+        ssh_manager.remove_session(sid)
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
-    if sid in ssh_sessions:
-        try:
-            ssh_sessions[sid].close()
-            print(f"Closed SSH session for SID: {sid}")
-        except Exception as e:
-            print(f"Error closing SSH session for SID {sid}: {e}")
-        finally:
-            del ssh_sessions[sid]
+    ssh_manager.remove_session(sid)
+
+def cleanup_ssh_sessions():
+    ssh_manager.cleanup_inactive_sessions()
 
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
@@ -1696,11 +1778,17 @@ def device_details_form():
 
 
 if __name__ == "__main__":
+    # Initialize scheduler before running the app
+    scheduler = init_scheduler()
+
+    # Print available interfaces
     interfaces = netifaces.interfaces()
     for interface in interfaces:
         addresses = netifaces.ifaddresses(interface)
         if netifaces.AF_INET in addresses:  # IPv4
             for address in addresses[netifaces.AF_INET]:
                 print(f"Flask web server is running at: http://{address['addr']}:5000")
+
+    # Run the app
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 
