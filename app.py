@@ -38,17 +38,45 @@ device_collection = db['devices']
 thailand_timezone = pytz.timezone('Asia/Bangkok')
 
 class SSHManager:
-    def __init__(self):
+    def __init__(self, max_sessions=50):  
         self.ssh_sessions = {}
         self.lock = Lock()
+        self.max_sessions = max_sessions
         
     def add_session(self, sid, client, channel):
         with self.lock:
+            if len(self.ssh_sessions) >= self.max_sessions:
+                raise Exception("Maximum session limit reached")
+                
             self.ssh_sessions[sid] = {
                 'client': client,
                 'channel': channel,
-                'last_active': time.time()
+                'last_active': time.time(),
+                'created_at': time.time()
             }
+
+    def get_active_sessions_count(self):
+        with self.lock:
+            return len(self.ssh_sessions)
+    
+    def cleanup_long_running_sessions(self, max_session_time=3600):  # 1 hour
+        with self.lock:
+            current_time = time.time()
+            long_running_sids = [
+                sid for sid, session in self.ssh_sessions.items()
+                if current_time - session['created_at'] > max_session_time
+            ]
+            for sid in long_running_sids:
+                self.remove_session(sid)
+
+    def get_session_stats(self):
+        with self.lock:
+            stats = {
+                'active_sessions': len(self.ssh_sessions),
+                'max_sessions': self.max_sessions,
+                'available_slots': self.max_sessions - len(self.ssh_sessions)
+            }
+            return stats
     
     def remove_session(self, sid):
         with self.lock:
@@ -78,9 +106,10 @@ class SSHManager:
             for sid in inactive_sids:
                 self.remove_session(sid)
 
-ssh_manager = SSHManager()
 
-########## Security Checker ##################################
+ssh_manager = SSHManager(max_sessions=50)
+
+########## Security Checker #################################
 def fetch_and_analyze():
     security_checker = NetworkConfigSecurityChecker(
         model_path='lr_model.pkl'
@@ -110,6 +139,7 @@ def fetch_and_analyze():
             # print(f"Error processing {device['name']}: {e}")
             pass
 
+########## init scheduler ###################################
 def init_scheduler():
     scheduler = BackgroundScheduler()
     
@@ -129,6 +159,13 @@ def init_scheduler():
         minutes=5,
         id='ssh_cleanup'
     )
+
+    scheduler.add_job(
+        lambda: ssh_manager.cleanup_long_running_sessions(max_session_time=3600),
+        'interval',
+        hours=1,
+        id='long_running_cleanup'
+    )
     
     scheduler.start()
     return scheduler
@@ -145,7 +182,7 @@ def mongo_status():
     status = check_mongo_connection()
     return jsonify({"status": status})
 
-########## Suggest hostname ###################################
+########## Suggest hostname #################################
 ''' Search Suggest'''
 @app.route('/search_hostname', methods=['GET'])
 def search_hostname():
@@ -453,19 +490,25 @@ def cli():
     return render_template('cli.html')
 @socketio.on('ssh_connect')
 def handle_ssh_connect(data):
-    hostname = data.get('hostname')
-    port = int(data.get('port'))
-    username = data.get('username')
-    password = data.get('password')
-    sid = request.sid
-    
-    # Clean up any existing session for this SID
-    ssh_manager.remove_session(sid)
-    
-    # Start new SSH connection in background
-    socketio.start_background_task(
-        ssh_connect, hostname, port, username, password, sid
-    )
+    try:
+        if ssh_manager.get_active_sessions_count() >= ssh_manager.max_sessions:
+            emit('ssh_output', {
+                'data': 'Error: Maximum session limit reached. Please try again later.\n'
+            })
+            return
+            
+        hostname = data.get('hostname')
+        port = int(data.get('port'))
+        username = data.get('username')
+        password = data.get('password')
+        sid = request.sid
+        
+        ssh_manager.remove_session(sid)
+        socketio.start_background_task(
+            ssh_connect, hostname, port, username, password, sid
+        )
+    except Exception as e:
+        emit('ssh_output', {'data': f'Connection error: {str(e)}\n'})
 @socketio.on('ssh_command')
 def handle_ssh_command(data):
     sid = request.sid
@@ -516,9 +559,12 @@ def ssh_connect(hostname, port, username, password, sid):
 def handle_disconnect():
     sid = request.sid
     ssh_manager.remove_session(sid)
-
 def cleanup_ssh_sessions():
     ssh_manager.cleanup_inactive_sessions()
+@app.route('/ssh-stats')
+def ssh_stats():
+    stats = ssh_manager.get_session_stats()
+    return jsonify(stats)
 
 ########## Basic Settings ##################################
 @app.route('/basic_settings_page', methods=['GET'])
