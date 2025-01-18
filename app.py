@@ -479,11 +479,9 @@ def basic_settings():
             
             if device:
                 
-                # ตรวจสอบว่า username ในฟอร์มตรงกับในระบบไหม
                 existing_username = device["device_info"].get("username")
                 if existing_username == username:  # ถ้า username ตรงกัน
                     if password != device["device_info"].get("password"):  # ถ้ารหัสผ่านไม่ตรงกัน
-                        # อัพเดทรหัสผ่านใน DB
                         device_collection.update_one(
                             {"device_info.ip": ip}, 
                             {"$set": {"device_info.password": password}}
@@ -502,6 +500,7 @@ def basic_settings():
         for thread in threads:
             thread.join()
 
+        flash("Configuration successful for devices: " + ", ".join(device_ips), "success")
         return redirect(url_for('basic_settings_page'))
 
     return render_template('basic_settings.html', cisco_devices=cisco_devices)
