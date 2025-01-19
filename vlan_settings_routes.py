@@ -170,7 +170,7 @@ def init_vlan_settings(device_collection):
             for thread in threads:
                 thread.join()
 
-            return redirect(url_for('vlan_settings_page'))
+            return redirect(url_for('vlan_settings.vlan_settings_page'))
 
         return render_template('vlan_management.html', cisco_devices=cisco_devices)
 

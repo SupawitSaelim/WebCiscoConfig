@@ -63,6 +63,6 @@ def init_stp_routes(device_collection):
         for thread in threads:
             thread.join()
 
-        return redirect(url_for('stp_page'))
+        return redirect(url_for('stp.stp_page'))
 
     return stp_bp
