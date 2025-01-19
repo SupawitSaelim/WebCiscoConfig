@@ -27,6 +27,7 @@ from rip_routes import init_rip_routes
 from ospf_routes import init_ospf_routes
 from eigrp_routes import init_eigrp_routes
 from show_config_routes import init_show_config_routes
+from security_check_routes import init_security_check_routes
 from device_details_routes import init_device_details_routes
 
 from security_checker import SecurityChecker   
@@ -93,7 +94,8 @@ device_record_blueprint = init_device_record_routes(device_collection)
 app.register_blueprint(device_record_blueprint)
 device_init_blueprint = init_device_initialization_routes(device_collection)
 app.register_blueprint(device_init_blueprint)
-
+security_check_blueprint = init_security_check_routes(device_collection)
+app.register_blueprint(security_check_blueprint)
 
 security_checker = SecurityChecker(
     device_collection=device_collection,
@@ -552,42 +554,6 @@ def save_configuration():
     page = 1  
 
     return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
-
-
-########## Security Check ##################################
-@app.route('/config_checker', methods=['GET'])
-def config_checker():
-    try:
-        page = int(request.args.get('page', 1))  
-        per_page = 10
-        skip = (page - 1) * per_page
-
-        cisco_devices = list(device_collection.find().skip(skip).limit(per_page))
-        
-        total_devices = device_collection.count_documents({})
-        total_pages = (total_devices + per_page - 1) // per_page
-
-    except Exception as e:
-        cisco_devices = []  
-        total_pages = 1
-        page = 1
-
-    return render_template('securitychecker.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
-@app.route('/fix_device/<device_ip>', methods=['POST'])
-def fix_device(device_ip):
-    device = device_collection.find_one({"device_info.ip": device_ip})
-
-    if device:
-        result = automate_sec(device['device_info'], db)
-        if result:
-            flash("Device configured successfully!", "success")
-        else:
-            flash("Failed to configure device", "danger")
-    else:
-        flash("Device with IP {} not found.".format(device_ip), "danger")
-
-    return redirect(url_for('config_checker'))
-
 
 if __name__ == "__main__":
     # Initialize scheduler before running the app

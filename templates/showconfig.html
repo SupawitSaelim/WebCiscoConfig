@@ -245,6 +245,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        {% for category, message in messages %}
+                        alert("{{ message | safe }}");
+                        {% endfor %}
+                    });
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left;color: #2e4ead;">SHOW CONFIGURATIONS</h1><br><br>
                 <form method="POST" action="/show-config" onsubmit="return handleSubmit();">
                     <select name="device_name" required>

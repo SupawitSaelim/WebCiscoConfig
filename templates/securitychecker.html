@@ -266,7 +266,7 @@
                             </td>
                             <td>
                                 {% if device.analysis and device.analysis.warnings %}
-                                <form method="POST" action="{{ url_for('fix_device', device_ip=device['device_info']['ip']) }}" onsubmit="return handleSubmit();">
+                                <form method="POST" action="{{ url_for('security_check.fix_device', device_ip=device['device_info']['ip']) }}" onsubmit="return handleSubmit();">
                                     <button type="submit" class="fix-button">
                                         Fix <i class="fas fa-cogs"></i>
                                     </button>
@@ -285,7 +285,7 @@
                         {% if p == current_page %}
                             <span class="page-number current">{{ p }}</span>
                         {% else %}
-                            <a href="{{ url_for('config_checker', page=p) }}" class="page-number">{{ p }}</a>
+                            <a href="{{ url_for('security_check.config_checker', page=p) }}" class="page-number">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
                 </div>

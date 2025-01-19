@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 from netmiko import ConnectHandler
+from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
 
 show_config_routes = Blueprint('show_config_routes', __name__)
 
@@ -10,31 +11,42 @@ def init_show_config_routes(device_collection):
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
-            cisco_devices = []  
+            cisco_devices = []
+            flash("Database connection error. Please try again later.", "danger")
         return render_template('showconfig.html', cisco_devices=cisco_devices)
 
     @show_config_routes.route('/show-config', methods=['POST', 'GET'])
     def show_config():
-        cisco_devices = list(device_collection.find())
+        try:
+            cisco_devices = list(device_collection.find())
+        except ServerSelectionTimeoutError:
+            flash("Database connection error. Please try again later.", "danger")
+            return redirect(url_for('show_config_routes.show_config_page'))
 
         if request.method == 'POST':
             device_name = request.form.get('device_name')
-            selected_commands = request.form.getlist('selected_commands')  # รับคำสั่งที่เลือก
-
-            print("Device Name:", device_name)
-            print("Selected Commands:", selected_commands)
+            selected_commands = request.form.getlist('selected_commands')  
 
             device = device_collection.find_one({"name": device_name})
+
+            if not device:
+                flash(f"Device '{device_name}' not found in the database.", "danger")
+                return redirect(url_for('show_config_routes.show_config_page'))
+
+            device_info = device.get('device_info', {})
+            if not all(key in device_info for key in ['ip', 'username', 'password', 'secret']):
+                flash(f"Device '{device_name}' has incomplete connection details.", "danger")
+                return redirect(url_for('show_config_routes.show_config_page'))
 
             if device:
                 device_info = device['device_info']
                 try:
                     device_info = {
-                        "device_type": "cisco_ios",  # ประเภทของอุปกรณ์ Cisco
-                        "host": device_info['ip'],  # IP ของอุปกรณ์
-                        "username": device_info['username'],  # ชื่อผู้ใช้
-                        "password": device_info['password'],  # รหัสผ่าน
-                        "secret": device_info['secret'],  # รหัสผ่าน Enable
+                        "device_type": "cisco_ios",  
+                        "host": device_info['ip'],  
+                        "username": device_info['username'],  
+                        "password": device_info['password'],  
+                        "secret": device_info['secret'],  
                         "timeout": 10  # ตั้งเวลา timeout
                     }
 
@@ -89,14 +101,18 @@ def init_show_config_routes(device_collection):
                             config_data += f"<span style='color: #2e4ead; font-size: 1.2em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
 
                     net_connect.disconnect()
-                    print(config_data)
 
                     return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
-
+                
+                except NetMikoTimeoutException:
+                    flash(f"Connection timed out while trying to reach {device_info['host']}. Please check if the device is reachable and SSH is enabled.", "danger")
+                    return redirect(url_for('show_config_routes.show_config_page'))
+                except NetMikoAuthenticationException:
+                    flash(f"Authentication failed for device {device_info['host']}. Please verify the username and password.", "danger")
+                    return redirect(url_for('show_config_routes.show_config_page'))
                 except Exception as e:
-                    print(e)
-                    error_message = "ไม่สามารถดึงข้อมูลการกำหนดค่าได้ กรุณาลองใหม่อีกครั้ง"
-                    return render_template('showconfig.html', cisco_devices=cisco_devices, error_message=error_message)
+                    flash(f"An unexpected error occurred: {str(e)}", "danger")
+                    return redirect(url_for('show_config_routes.show_config_page'))
 
         return render_template('showconfig.html', cisco_devices=cisco_devices)
 
