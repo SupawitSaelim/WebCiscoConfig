@@ -13,6 +13,8 @@ import paramiko
 import netifaces
 
 # Custom route blueprints
+from device_initialization_routes import init_device_initialization_routes
+from device_record_routes import init_device_record_routes
 from basic_settings_routes import init_basic_settings
 from network_interface_routes import init_network_interface
 from ssh_routes import init_ssh_routes
@@ -27,9 +29,8 @@ from eigrp_routes import init_eigrp_routes
 from show_config_routes import init_show_config_routes
 from device_details_routes import init_device_details_routes
 
-
+from security_checker import SecurityChecker   
 from ssh_manager import SSHManager
-from ai_password_with_re import NetworkConfigSecurityChecker
 from auto_sec import automate_sec
 import serial_script
 
@@ -38,7 +39,6 @@ from concurrent.futures import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import pytz
-import threading
 import subprocess
 import time
 import os
@@ -89,64 +89,45 @@ show_config_blueprint = init_show_config_routes(device_collection)
 app.register_blueprint(show_config_blueprint)
 device_details_blueprint = init_device_details_routes(device_collection)
 app.register_blueprint(device_details_blueprint)
+device_record_blueprint = init_device_record_routes(device_collection)
+app.register_blueprint(device_record_blueprint)
+device_init_blueprint = init_device_initialization_routes(device_collection)
+app.register_blueprint(device_init_blueprint)
 
 
-########## Security Checker #################################
-def fetch_and_analyze():
-    security_checker = NetworkConfigSecurityChecker(
-        model_path='lr_model.pkl'
-    )
-
-    devices = list(device_collection.find())  
-    for device in devices:
-        device_info = device["device_info"]
-        try:
-            net_connect = ConnectHandler(**device_info)
-            net_connect.enable()
-
-            show_run = net_connect.send_command("show running-config")
-            show_ip_int_br = net_connect.send_command("show ip interface brief")
-            net_connect.disconnect()
-
-            warnings = security_checker.analyze_config_security(show_run, show_ip_int_br)
-
-            current_time_thailand = datetime.now(thailand_timezone)
-            formatted_time = current_time_thailand.strftime("%Y-%m-%d %H:%M:%S")  # ฟอร์แมตโดยไม่รวม timezone
-            
-            device_collection.update_one(
-                {"_id": device["_id"]},
-                {"$set": {"analysis": {"warnings": warnings, "last_updated": formatted_time}}}
-            )
-        except Exception as e:
-            # print(f"Error processing {device['name']}: {e}")
-            pass
+security_checker = SecurityChecker(
+    device_collection=device_collection,
+    model_path='lr_model.pkl',
+    timezone='Asia/Bangkok'
+)
 
 ########## init scheduler ###################################
 def init_scheduler():
     scheduler = BackgroundScheduler()
-    
+
     # Add Security Analysis job
     scheduler.add_job(
-        fetch_and_analyze, 
+        security_checker.fetch_and_analyze, 
         'interval', 
         seconds=10, 
         max_instances=2,
         id='security_analysis'
     )
     
+    # Add other jobs (e.g., SSH cleanup)
+    scheduler.add_job(
+        lambda: ssh_manager.cleanup_long_running_sessions(max_session_time=3600),
+        'interval',
+        hours=1,
+        id='long_running_cleanup'
+    )
+
     # Add SSH cleanup job
     scheduler.add_job(
         cleanup_ssh_sessions, 
         'interval', 
         minutes=5,
         id='ssh_cleanup'
-    )
-
-    scheduler.add_job(
-        lambda: ssh_manager.cleanup_long_running_sessions(max_session_time=3600),
-        'interval',
-        hours=1,
-        id='long_running_cleanup'
     )
     
     scheduler.start()
@@ -180,122 +161,6 @@ def search_hostname():
 def login_frist():
     return render_template('initialization.html')
 
-########## Device Initialization ###########################
-@app.route('/initialization_page', methods=['GET'])
-def initialization_page():
-    return render_template('initialization.html')
-@app.route('/initialization', methods=['GET', 'POST'])
-def initialization():
-    if request.method == 'POST':
-        consoleport = request.form.get('consoleport')
-        hostname = request.form.get('hostname')
-        domainname = request.form.get('domainname')
-        privilege_password = request.form.get('privilegepassword')
-        ssh_username = request.form.get('ssh_username')
-        ssh_password = request.form.get('ssh_password')
-        interface = request.form.get('interface')
-        interface_type = request.form.get('interfaceType')
-        ip_address = request.form.get('ip_address')
-        save_startup = True
-        tz_bangkok = pytz.timezone('Asia/Bangkok')
-        current_time = datetime.now(tz_bangkok).replace(microsecond=0)
-
-        if interface_type == "DHCP":
-            ip_address = "dhcp"
-        else:
-            if not ip_address:
-                flash("Please provide an IP address for Manual configuration.", 'danger')
-                return render_template('initialization.html')
-        try:
-            if ip_address != "dhcp":
-                if "/" in ip_address:
-                    ip_address_split = ip_address.split('/')[0]
-               
-                device_data = {
-                    "name": hostname, 
-                    "device_info": {
-                        "device_type": "cisco_ios",
-                        "ip": ip_address_split,
-                        "username": ssh_username,
-                        "password": ssh_password,
-                        "secret": privilege_password,
-                        "session_log": "output.log"
-                    },
-                    "timestamp": current_time
-                }
-
-                existing_device_hostname = device_collection.find_one({"name": hostname})
-                if existing_device_hostname:
-                    flash("This hostname is already in use. Please choose a different hostname.", "danger")
-                    return render_template('initialization.html', hostname_duplicate="This hostname is already in use. Please enter a different hostname.")
-
-                existing_device = device_collection.find_one({"device_info.ip": ip_address_split})
-                if existing_device:
-                    return render_template('initialization.html', ip_duplicate= "This IP address is already in use. Please enter a different IP address.")
-                
-                output = serial_script.commands(consoleport, hostname, domainname, privilege_password,
-                                   ssh_username, ssh_password, interface, ip_address, save_startup)
-                if output is not None and "Invalid interface input" in output :
-                    flash("Invalid interface input. Please provide a valid interface.", "danger")
-                    return render_template('initialization.html', error="Invalid interface input. Please try again.")
-
-                device_collection.insert_one(device_data)
-            else:
-                output = serial_script.commands(consoleport, hostname, domainname, privilege_password,
-                                   ssh_username, ssh_password, interface, ip_address, save_startup)
-                if output is not None and "Invalid interface input" in output :
-                    flash("Invalid interface input. Please provide a valid interface.", "danger")
-                    return render_template('initialization.html', error="Invalid interface input. Please try again.")
-
-            return render_template('initialization.html', success="Device successfully initialized!")
-            
-        except Exception as e:
-            return render_template('initialization.html', error=f"An error occurred: {e}")
-
-    return render_template('initialization.html')
-
-########## Device Record Management ########################
-@app.route('/record_mnmg_page', methods=['GET'])
-def record_mnmg_page():
-    return render_template('record_mnmg.html')
-@app.route('/record_mnmg', methods=['GET', 'POST'])
-def record_mnmg_form():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        ip_address = request.form.get('ip_address')
-        privilege_password = request.form.get('privilegepassword')
-        ssh_username = request.form.get('ssh_username')
-        ssh_password = request.form.get('ssh_password')
-        tz_bangkok = pytz.timezone('Asia/Bangkok')
-        current_time = datetime.now(tz_bangkok).replace(microsecond=0)
-        device_data = {
-            "name": name,
-            "device_info": {
-                "device_type": "cisco_ios",
-                "ip": ip_address,
-                "username": ssh_username,
-                "password": ssh_password,
-                "secret": privilege_password,
-                "session_log": "output.log"
-            },
-            "timestamp": current_time
-        }
-
-        existing_device_hostname = device_collection.find_one({"name": name})
-        if existing_device_hostname:
-            flash("This hostname is already in use. Please choose a different hostname.", "danger")
-            return redirect(url_for('record_mnmg_page'))
-
-        existing_device = device_collection.find_one({"device_info.ip": ip_address})
-        if existing_device:
-            flash("This IP address is already in use. Please enter a different IP address.", "danger")
-            return redirect(url_for('record_mnmg_page'))
-
-        device_collection.insert_one(device_data)
-        flash("Device record added successfully!", "success")
-        return redirect(url_for('record_mnmg_page'))
-
-    return render_template('record_mnmg.html')
 
 ########## Devices Informaion ##############################
 @app.route('/devices_informaion_page', methods=['GET'])
@@ -687,7 +552,6 @@ def save_configuration():
     page = 1  
 
     return render_template('eraseconfig.html', cisco_devices=cisco_devices, total_pages=total_pages, current_page=page)
-
 
 
 ########## Security Check ##################################
