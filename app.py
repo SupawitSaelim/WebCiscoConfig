@@ -16,6 +16,7 @@ from routes.device.initialization import init_device_initialization_routes
 from routes.device.record import init_device_record_routes
 from routes.device.details import init_device_details_routes
 from routes.device.info import init_device_info_routes
+from routes.device.search import init_device_search_routes
 
 # Route imports - Network
 from routes.network.interface import init_network_interface
@@ -38,6 +39,8 @@ from routes.routing.eigrp import init_eigrp_routes
 from routes.security.check import init_security_check_routes
 from routes.system.show_config import init_show_config_routes
 from routes.ssh.ssh import init_ssh_routes
+from routes.system.status import init_system_status_routes
+
 # Utility imports
 from dotenv import load_dotenv
 import os
@@ -72,6 +75,7 @@ def register_blueprints():
     app.register_blueprint(init_device_record_routes(device_collection))
     app.register_blueprint(init_device_details_routes(device_collection))
     app.register_blueprint(init_device_info_routes(device_collection))
+    app.register_blueprint(init_device_search_routes(device_collection))
     
     # Network routes
     app.register_blueprint(init_network_interface(device_collection))
@@ -93,27 +97,7 @@ def register_blueprints():
     # Security and System routes
     app.register_blueprint(init_security_check_routes(device_collection))
     app.register_blueprint(init_show_config_routes(device_collection))
-
-@app.route('/mongo_status')
-def mongo_status():
-    """Check MongoDB connection status"""
-    try:
-        db.command('ping')
-        return jsonify({"status": "connected"})
-    except Exception:
-        return jsonify({"status": "disconnected"})
-
-@app.route('/search_hostname', methods=['GET'])
-def search_hostname():
-    """Search for device hostnames"""
-    query = request.args.get('query', '')
-    if query:
-        matching_devices = device_collection.find(
-            {"name": {"$regex": query, "$options": "i"}}
-        )
-        device_names = [device["name"] for device in matching_devices]
-        return jsonify(device_names)
-    return jsonify([])
+    app.register_blueprint(init_system_status_routes(db))
 
 @app.route('/')
 def login_first():
