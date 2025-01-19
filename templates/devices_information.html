@@ -222,7 +222,7 @@
                             <td>
                                 <div class="action-buttons" style="align-items: center;">
                                     <!-- DELETE Button -->
-                                    <form method="POST" action="/delete"
+                                    <form method="POST" action="{{ url_for('device_info.delete_device') }}"
                                         onsubmit="return confirm('Are you sure you want to delete this device?');"
                                         style="display: inline-block; margin-right: 10px;">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
@@ -233,7 +233,8 @@
                                         </button>
                                     </form>
                                     <!-- EDIT Button -->
-                                    <form method="GET" action="/edit/{{ device.device_info.ip }}"
+                                    <form method="GET"
+                                        action="{{ url_for('device_info.edit_device', ip_address=device.device_info.ip) }}"
                                         style="display: inline-block;">
                                         <button type="submit" title="Edit"
                                             style="background: none; border: none; cursor: pointer;">
@@ -272,7 +273,7 @@
                     {% if p == current_page %}
                     <span class="page-number current">{{ p }}</span>
                     {% else %}
-                    <a href="{{ url_for('devices_information', page=p) }}" class="page-number">{{ p }}</a>
+                    <a href="{{ url_for('device_info.devices_information', page=p) }}" class="page-number">{{ p }}</a>
                     {% endif %}
                     {% endfor %}
                 </div>

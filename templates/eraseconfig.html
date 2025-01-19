@@ -217,7 +217,7 @@
                             <td style="align-items: center;">
                                 <div class="action-buttons" style="align-items: center;">
                                     <!-- ปุ่มลบ -->
-                                    <form method="POST" action="/erase"
+                                    <form method="POST" action="{{ url_for('erase_config.erase_device') }}"
                                         onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button erase-button" title="Erase">
@@ -225,7 +225,7 @@
                                         </button>
                                     </form>
                                     <!-- ปุ่มรีโหลด -->
-                                    <form method="POST" action="/reload"
+                                    <form method="POST" action="{{ url_for('erase_config.reload_device') }}"
                                         onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button reload-button" title="Reload">
@@ -233,7 +233,7 @@
                                         </button>
                                     </form>
                                     <!-- ปุ่มบันทึก -->
-                                    <form method="POST" action="/save"
+                                    <form method="POST" action="{{ url_for('erase_config.save_configuration') }}"
                                         onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
                                         <button type="submit" class="action-button save-button" title="Save">
@@ -257,7 +257,7 @@
                     {% if p == current_page %}
                     <span class="page-number current">{{ p }}</span>
                     {% else %}
-                    <a href="{{ url_for('erase_config_page', page=p) }}" class="page-number">{{ p }}</a>
+                    <a href="{{ url_for('erase_config.erase_config_page', page=p) }}" class="page-number">{{ p }}</a>
                     {% endif %}
                     {% endfor %}
                 </div>

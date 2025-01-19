@@ -142,7 +142,7 @@
 </head>
 
 <body onload="showAlert('{{ alert_message | safe }}')">
-    <form method="POST" action="/update" onsubmit="return validateIP()">
+    <form method="POST" action="{{ url_for('device_info.update_device') }}" onsubmit="return validateIP()">
         <input type="hidden" name="current_ip" value="{{ device.device_info.ip }}">
 
         <label for="name">Device Name:</label>
@@ -162,7 +162,7 @@
 
         <div class="button-container">
             <button type="submit">Update</button>
-            <a href="{{ url_for('devices_information') }}" class="cancel-button">Cancel</a>
+            <a href="{{ url_for('device_info.devices_information') }}" class="cancel-button">Cancel</a>
         </div>
     </form>
 </body>
