@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from device_config import manage_vlan_on_device
+from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
 
 vlan_settings_bp = Blueprint('vlan_settings', __name__)
 
@@ -11,7 +12,8 @@ def init_vlan_settings(device_collection):
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
-            cisco_devices = None  
+            cisco_devices = None
+            flash("Database connection error. Please try again later.", "danger")  
         return render_template('vlan_management.html', cisco_devices=cisco_devices)
 
     @vlan_settings_bp.route('/vlan_settings', methods=['GET', 'POST'])
@@ -20,6 +22,8 @@ def init_vlan_settings(device_collection):
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
             cisco_devices = None
+            flash("Database connection error. Please try again later.", "danger")
+            return redirect(url_for('vlan_settings.vlan_settings_page'))
 
         if request.method == 'POST':
             device_name = request.form.get('device_name')  
@@ -155,23 +159,63 @@ def init_vlan_settings(device_collection):
                     return f'<script>alert("Device with IP {device_name} not found in database"); window.location.href="/vlan_settings";</script>'
 
             threads = []
+            results = []
             for ip in device_ips:
                 device = device_collection.find_one({"device_info.ip": ip})
                 if device:
-                    thread = threading.Thread(target=manage_vlan_on_device, args=(
-                        device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable, 
-                        access_vlans, access_interface, access_vlan_id, disable_dtp, 
-                        trunk_ports, trunk_mode_select, trunk_interface, trunk_native,
-                        allow_vlan, del_vlan_dat
-                    ))
+                    result = {'ip': ip, 'status': None, 'error': None}
+                    results.append(result)
+                    
+                    thread = threading.Thread(
+                        target=configure_vlan_with_status,
+                        args=(device, vlan_range, vlan_range_del, vlan_changes, 
+                              vlan_range_enable, vlan_range_disable, access_vlans, 
+                              access_interface, access_vlan_id, disable_dtp, 
+                              trunk_ports, trunk_mode_select, trunk_interface, 
+                              trunk_native, allow_vlan, del_vlan_dat, result)
+                    )
                     threads.append(thread)
                     thread.start()
 
             for thread in threads:
                 thread.join()
+            
+            success_devices = []
+            failed_devices = []
+
+            for result in results:
+                if result['status'] == 'success':
+                    success_devices.append(result['ip'])
+                else:
+                    failed_devices.append(f"{result['ip']}: {result['error']}")
+
+            if success_devices:
+                flash(f"Configuration successful for devices: {', '.join(success_devices)}", "success")
+            
+            if failed_devices:
+                for device in failed_devices:
+                    flash(f"Configuration failed for {device}", "danger")
 
             return redirect(url_for('vlan_settings.vlan_settings_page'))
 
         return render_template('vlan_management.html', cisco_devices=cisco_devices)
 
     return vlan_settings_bp
+
+def configure_vlan_with_status(device, *args):
+    """Wrapper function for manage_vlan_on_device that handles status updates"""
+    try:
+        manage_vlan_on_device(device, *args[:-1])  # Send all arguments except result
+        args[-1]['status'] = 'success'  # Result is the last argument
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        error_message = str(e)
+        if "TCP connection to device failed" in error_message:
+            error_message = ("TCP connection to device failed. Common causes: "
+                           "1. Incorrect hostname or IP address. "
+                           "2. Wrong TCP port. "
+                           "3. Intermediate firewall blocking access.")
+        args[-1]['status'] = 'failed'
+        args[-1]['error'] = error_message
+    except Exception as e:
+        args[-1]['status'] = 'failed'
+        args[-1]['error'] = str(e)

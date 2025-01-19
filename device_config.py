@@ -21,7 +21,7 @@ def convert_cidr_to_netmask(cidr):
     return '.'.join(map(str, netmask))
 
 def configure_device(device, hostname, secret_password, banner, device_collection, enable_password_encryp, 
-                     disable_password_encryp, username, password):
+                    disable_password_encryp, username, password):
     device_info = device["device_info"]
     
     try:
@@ -58,7 +58,11 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
-        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/basic_settings";</script>'
+        # ส่ง error กลับไปให้ function ที่เรียกใช้
+        raise
+    except Exception as e:
+        print(f"Unexpected error for {device['name']}: {e}")
+        raise
 
 
 def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ipv4, subnet_mask_ipv4, 
@@ -130,12 +134,19 @@ def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ip
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
-        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/network_interface_page";</script>'
+        raise  
+    except Exception as e:
+        print(f"Unexpected error for {device['name']}: {e}")
+        raise  
 
 
 def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable,
                           access_vlans, access_interface, access_vlan_id, disable_dtp,
                           trunk_ports, trunk_mode_select, trunk_interface, trunk_native, allow_vlan, del_vlan_dat):
+    """
+    Configure VLAN settings on a device.
+    Raises exceptions for error handling by the calling function.
+    """
     device_info = device["device_info"]
 
     try:
@@ -213,13 +224,14 @@ def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan
             output = net_connect.send_config_set(trunk_config_commands)
             print(f"Trunk Mode configuration output for {device['name']}:", output)
 
-
-
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
-        return f'<script>alert("Error connecting to {device["name"]}: {str(e)}"); window.location.href="/vlan_settings";</script>'
+        raise  
+    except Exception as e:
+        print(f"Unexpected error for {device['name']}: {e}")
+        raise 
 
 
 def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty, login_method, logging_sync_vty, 
@@ -349,6 +361,10 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
+        raise  
+    except Exception as e:
+        print(f"Unexpected error for {device['name']}: {e}")
+        raise
 
 
 def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_secondary, root_secondary_vlan_id,
