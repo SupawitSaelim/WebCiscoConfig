@@ -274,6 +274,15 @@
         </div>
         <div class="main_container">
             <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <script>
+                            {% for category, message in messages %}
+                                alert("{{ message | safe }}");
+                            {% endfor %}
+                        </script>
+                        {% endif %}
+                    {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Aggregation Protocols</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>

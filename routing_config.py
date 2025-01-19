@@ -21,126 +21,156 @@ def convert_cidr_to_netmask(cidr):
 
 
 def configure_static_route(device, destination_networks, exit_interfaces_or_next_hops, 
-                           default_route, remove_default,  remove_destination_networks,
-                           remove_exit_interfaces_or_next_hops):
+                         default_route, remove_default, remove_destination_networks,
+                         remove_exit_interfaces_or_next_hops):
+    """
+    Configure static routes on a device with proper error handling
+    """
+    net_connect = None
     try:
         device_info = device["device_info"]
-        device_info['timeout'] = 10 
+        device_info['timeout'] = 10
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        config_commands = []
-        for destination, exit_interface in zip(destination_networks, exit_interfaces_or_next_hops):
-            if '/' in destination:  
-                destination_ip, cidr = destination.split('/')
-                subnet_mask = convert_cidr_to_netmask(cidr)  # แปลงเป็น subnet mask โดยใช้ cidr
-                command = f"ip route {destination_ip} {subnet_mask} {exit_interface}"
-                config_commands.append(command)
+        # Configure static routes
+        if destination_networks and exit_interfaces_or_next_hops:
+            config_commands = []
+            for destination, exit_interface in zip(destination_networks, exit_interfaces_or_next_hops):
+                if '/' in destination:
+                    destination_ip, cidr = destination.split('/')
+                    subnet_mask = convert_cidr_to_netmask(cidr)
+                    command = f"ip route {destination_ip} {subnet_mask} {exit_interface}"
+                    config_commands.append(command)
 
-        if config_commands:
-            output = net_connect.send_config_set(config_commands)
-            print(f"Static Route Configuration for {device['name']}:", output)
+            if config_commands:
+                output = net_connect.send_config_set(config_commands)
+                print(output)
         
-        if default_route:
-            if remove_default:  
-                output = net_connect.send_config_set([f"no ip route 0.0.0.0 0.0.0.0 {default_route}"])
-                print(f"Removed Default Route on {device['name']}:", output)
-            else:
+        # Handle default route
+        if default_route or remove_default:
+            if remove_default:
+                if default_route:
+                    output = net_connect.send_config_set([f"no ip route 0.0.0.0 0.0.0.0 {default_route}"])
+                    print(output)
+                else:
+                    output = net_connect.send_config_set(["no ip route 0.0.0.0 0.0.0.0"])
+                    print(output)
+            elif default_route:
                 output = net_connect.send_config_set([f"ip route 0.0.0.0 0.0.0.0 {default_route}"])
-                print(f"Added Default Route on {device['name']}:", output)
+                print(output)
         
-        if remove_default:
-            output = net_connect.send_config_set([f"no ip route 0.0.0.0 0.0.0.0"])
-            print(f"Removed Default Route on {device['name']}:", output)
-        
+        # Remove specific routes
         if remove_destination_networks and remove_exit_interfaces_or_next_hops:
+            remove_commands = []
             for remove_destination, remove_exit_interface in zip(remove_destination_networks, remove_exit_interfaces_or_next_hops):
-                if '/' in remove_destination:  
+                if '/' in remove_destination:
                     remove_destination_ip, remove_cidr = remove_destination.split('/')
-                    remove_subnet_mask = convert_cidr_to_netmask(remove_cidr) 
+                    remove_subnet_mask = convert_cidr_to_netmask(remove_cidr)
                     command = f"no ip route {remove_destination_ip} {remove_subnet_mask} {remove_exit_interface}"
-                    output = net_connect.send_config_set([command])
-                    print(f"Removed Static Route on {device['name']}:", output)
+                    remove_commands.append(command)
+
+            if remove_commands:
+                output = net_connect.send_config_set(remove_commands)
+                print(output)
+
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring static route on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring static route: {str(e)}")
 
 
-def configure_rip_route(device, destination_networks, auto_summary, remove_destination_networks, disable_rip):
+def configure_rip_route(device, destination_networks, auto_summary,
+                       remove_destination_networks, disable_rip):
+    """
+    Configure RIP routing on a device with proper error handling
+    """
+    net_connect = None
     try:
         device_info = device["device_info"]
-        device_info['timeout'] = 10 
+        device_info['timeout'] = 10
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        config_commands = ['ip routing','router rip','version 2']
-        if destination_networks:
-            destination_networks = [net for net in destination_networks if net.strip()]  
-            for network in destination_networks:
-                command = f"network {network}"
-                config_commands.append(command)
-        
-        if auto_summary == "Enable":
-            config_commands.append("auto-summary")
-        elif auto_summary == "Disable":
-            config_commands.append("no auto-summary")
-
-        if remove_destination_networks:
-            remove_destination_networks = [net for net in remove_destination_networks if net.strip()]  
-            for network in remove_destination_networks:
-                command = f"no network {network}"
-                config_commands.append(command)
-
-        if len(config_commands) > 3:
-            output = net_connect.send_config_set(config_commands)
-            print(f"RIP Configuration for {device['name']}:", output)
-        
         if disable_rip:
-            output = net_connect.send_config_set("no router rip")
-            print(f"RIP Configuration for {device['name']}:", output)
+            output = net_connect.send_config_set(["no router rip"])
+            print(output)
+        else:
+            # Base RIP configuration
+            config_commands = [
+                'ip routing',
+                'router rip',
+                'version 2'
+            ]
+
+            # Add networks
+            if destination_networks:
+                valid_networks = [net.strip() for net in destination_networks if net.strip()]
+                for network in valid_networks:
+                    config_commands.append(f"network {network}")
+
+            # Configure auto-summary
+            if auto_summary == "Enable":
+                config_commands.append("auto-summary")
+            elif auto_summary == "Disable":
+                config_commands.append("no auto-summary")
+
+            # Remove networks
+            if remove_destination_networks:
+                valid_remove_networks = [net.strip() for net in remove_destination_networks if net.strip()]
+                for network in valid_remove_networks:
+                    config_commands.append(f"no network {network}")
+
+            # Apply configuration if we have more than just the base commands
+            if len(config_commands) > 3:
+                output = net_connect.send_config_set(config_commands)
+                print(output)
 
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring RIP on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring RIP: {str(e)}")
 
 
 def configure_ospf_route(device, process_id, destination_networks, ospf_areas, router_id, 
-                         remove_destination_networks,remove_ospf_areas, delete_process_id, 
-                         process_id_input):
+                        remove_destination_networks, remove_ospf_areas, delete_process_id, 
+                        process_id_input):
     try:
         device_info = device["device_info"]
         device_info['timeout'] = 10 
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
+        # Combine all OSPF configuration commands
         config_commands = ['ip routing']
         if process_id:
             config_commands.append(f"router ospf {process_id}")
-        
-        if destination_networks and ospf_areas and process_id:
-            for network, area in zip(destination_networks, ospf_areas):
-                if network.strip() and area.strip():
-                    if '/' in network:  
-                        network_ip, cidr = network.split('/')
-                        subnet_mask = convert_cidr_to_netmask(cidr)
-                        command = f"network {network_ip} {subnet_mask} area {area}"
-                        config_commands.append(command)
+            # Add router-id configuration in the same command set
+            if router_id:
+                config_commands.append(f"router-id {router_id}")
+            
+            # Add network configurations
+            if destination_networks and ospf_areas:
+                for network, area in zip(destination_networks, ospf_areas):
+                    if network.strip() and area.strip():
+                        if '/' in network:  
+                            network_ip, cidr = network.split('/')
+                            subnet_mask = convert_cidr_to_netmask(cidr)
+                            command = f"network {network_ip} {subnet_mask} area {area}"
+                            config_commands.append(command)
 
-        if len(config_commands)> 1:
-            if config_commands:
-                output = net_connect.send_config_set(config_commands)
-                print(f"OSPF Configuration for {device['name']}:", output)
-
-        if router_id and process_id:
-            output = net_connect.send_config_set([f"router ospf {process_id}",f"router-id {router_id}"])
+        # Execute all OSPF configurations at once if there are commands
+        if len(config_commands) > 1:
+            output = net_connect.send_config_set(config_commands)
             print(f"OSPF Configuration for {device['name']}:", output)
 
         # Remove Part
-        config_commands_remove = []
         if remove_destination_networks and remove_ospf_areas and process_id:
-            config_commands_remove.append(f"router ospf {process_id}")
+            config_commands_remove = [f"router ospf {process_id}"]
             for network, area in zip(remove_destination_networks, remove_ospf_areas):
                 if network.strip() and area.strip():
                     if '/' in network:
@@ -149,10 +179,9 @@ def configure_ospf_route(device, process_id, destination_networks, ospf_areas, r
                         command = f"no network {network_ip} {subnet_mask} area {area}"
                         config_commands_remove.append(command)
 
-        if len(config_commands_remove) >1 :
-            output = net_connect.send_config_set(config_commands_remove)
-            print(f"OSPF Configuration for {device['name']}:", output)
-
+            if len(config_commands_remove) > 1:
+                output = net_connect.send_config_set(config_commands_remove)
+                print(f"OSPF Configuration for {device['name']}:", output)
 
         if delete_process_id and process_id_input:
             process_ids = process_id_input.split(',')
@@ -164,7 +193,9 @@ def configure_ospf_route(device, process_id, destination_networks, ospf_areas, r
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring OSPF on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring OSPF: {str(e)}")
 
 
 def configure_eigrp_route(device, process_id, router_id, destination_networks, 
@@ -195,10 +226,14 @@ def configure_eigrp_route(device, process_id, router_id, destination_networks,
         if len(config_commands) > 2:
             output = net_connect.send_config_set(config_commands)
             print(f"EIGRP Configuration for {device['name']}:", output)
+            if "Invalid input detected" in output or "Incomplete command" in output:
+                raise Exception(f"Configuration error: {output}")
         
         if router_id and process_id:
             output = net_connect.send_config_set([f"router eigrp {process_id}",f"router-id {router_id}"])
             print(f"EIGRP Configuration for {device['name']}:", output)
+            if "Invalid input detected" in output or "Incomplete command" in output:
+                raise Exception(f"Configuration error: {output}")
 
         # Remove networks
         config_commands_remove = []
@@ -217,6 +252,8 @@ def configure_eigrp_route(device, process_id, router_id, destination_networks,
         if len(config_commands_remove) > 1:
             output = net_connect.send_config_set(config_commands_remove)
             print(f"EIGRP Configuration for {device['name']}:", output)
+            if "Invalid input detected" in output or "Incomplete command" in output:
+                raise Exception(f"Configuration error: {output}")
 
         # Delete Process ID
         if delete_process_id and process_id_input:
@@ -225,9 +262,13 @@ def configure_eigrp_route(device, process_id, router_id, destination_networks,
                 process_id = process_id.strip()
                 output = net_connect.send_config_set(f"no router eigrp {process_id}")
                 print(f"EIGRP Configuration for {device['name']} (Process ID: {process_id}):", output)
+                if "Invalid input detected" in output or "Incomplete command" in output:
+                    raise Exception(f"Configuration error: {output}")
 
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring EIGRP on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring RIP: {str(e)}")
 

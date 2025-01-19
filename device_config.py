@@ -369,6 +369,9 @@ def configure_vty_console(device, password_vty, authen_method, exec_timeout_vty,
 
 def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_secondary, root_secondary_vlan_id,
                             portfast_enable, portfast_disable, portfast_int_enable, portfast_int_disable):
+    """
+    Configure spanning tree settings on a device with proper error handling
+    """
     try:
         net_connect = ConnectHandler(**device["device_info"])
         net_connect.enable()
@@ -406,47 +409,60 @@ def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_s
 
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring spanning tree on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring spanning tree: {str(e)}")
 
 
 def configure_etherchannel(device, etherchannel_interfaces, channel_group_number, 
                            pagp_mode, etherchannel_interfaces_lacp, channel_group_number_lacp, lacp_mode,
                            etherchannel_interfaces_lacp_delete):
+    """
+    Configure etherchannel settings on a device with proper error handling
+    """
     try:
         device_info = device["device_info"]
         device_info['timeout'] = 10  
         net_connect = ConnectHandler(**device_info)
         net_connect.enable()
 
-        # PAgP
-        pagp_commands = []
-        if 'Desirable' in pagp_mode:
-            pagp_commands.append(f"interface range {etherchannel_interfaces}")
-            pagp_commands.append(f"channel-group {channel_group_number} mode desirable")
+        # Configure PAgP if specified
+        if etherchannel_interfaces and channel_group_number and pagp_mode:
+            pagp_commands = []
+            if 'Desirable' in pagp_mode:
+                pagp_commands.extend([
+                    f"interface range {etherchannel_interfaces}",
+                    f"channel-group {channel_group_number} mode desirable"
+                ])
 
-        if 'Auto' in pagp_mode:
-            pagp_commands.append(f"interface range {etherchannel_interfaces}")
-            pagp_commands.append(f"channel-group {channel_group_number} mode auto")
+            if 'Auto' in pagp_mode:
+                pagp_commands.extend([
+                    f"interface range {etherchannel_interfaces}",
+                    f"channel-group {channel_group_number} mode auto"
+                ])
 
-        if len(pagp_commands) > 1:  
-            output = net_connect.send_config_set(pagp_commands)
-            net_connect.set_base_prompt()
-            print(f"EtherChannel Configuration for {device['name']} (PAgP):", output)
+            if pagp_commands:
+                output = net_connect.send_config_set(pagp_commands)
+                print(output)
 
-        # LACP
-        lacp_commands = []
-        if 'Active' in lacp_mode:
-            lacp_commands.append(f"interface range {etherchannel_interfaces_lacp}")
-            lacp_commands.append(f"channel-group {channel_group_number_lacp} mode active")
+        # Configure LACP if specified
+        if etherchannel_interfaces_lacp and channel_group_number_lacp and lacp_mode:
+            lacp_commands = []
+            if 'Active' in lacp_mode:
+                lacp_commands.extend([
+                    f"interface range {etherchannel_interfaces_lacp}",
+                    f"channel-group {channel_group_number_lacp} mode active"
+                ])
 
-        if 'Passive' in lacp_mode:
-            lacp_commands.append(f"interface range {etherchannel_interfaces_lacp}")
-            lacp_commands.append(f"channel-group {channel_group_number_lacp} mode passive")
+            if 'Passive' in lacp_mode:
+                lacp_commands.extend([
+                    f"interface range {etherchannel_interfaces_lacp}",
+                    f"channel-group {channel_group_number_lacp} mode passive"
+                ])
 
-        if len(lacp_commands) > 1: 
-            output = net_connect.send_config_set(lacp_commands)
-            net_connect.set_base_prompt()
-            print(f"EtherChannel Configuration for {device['name']} (LACP):", output)
+            if lacp_commands:
+                output = net_connect.send_config_set(lacp_commands)
+                print(output)
 
         # Delete Port Group
         if etherchannel_interfaces_lacp_delete:
@@ -459,4 +475,6 @@ def configure_etherchannel(device, etherchannel_interfaces, channel_group_number
         net_connect.disconnect()
 
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error configuring etherchannel on {device['name']}: {e}")
+        raise e
+    except Exception as e:
+        raise Exception(f"Error configuring etherchannel: {str(e)}")
