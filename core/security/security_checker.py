@@ -1,7 +1,7 @@
 from datetime import datetime
 from netmiko import ConnectHandler
 import pytz
-from ai_password_with_re import NetworkConfigSecurityChecker
+from core.security.ai_password_with_re import NetworkConfigSecurityChecker
 
 class SecurityChecker:
     def __init__(self, device_collection, model_path, timezone):

@@ -2,69 +2,41 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from routing_config import configure_eigrp_route
+from core.routing.routing_config import configure_rip_route
 
-eigrp_routes = Blueprint('eigrp_routes', __name__)
+rip_routes = Blueprint('rip_routes', __name__)
 
-def configure_eigrp_route_with_status(device, process_id, router_id, destination_networks,
-                                    remove_destination_networks, delete_process_id,
-                                    process_id_input, result):
-    """
-    Wrapper function for configure_eigrp_route that handles status updates
-    """
-    try:
-        configure_eigrp_route(device, process_id, router_id, destination_networks,
-                            remove_destination_networks, delete_process_id,
-                            process_id_input)
-        result['status'] = 'success'
-    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        error_message = str(e)
-        if "TCP connection to device failed" in error_message:
-            error_message = ("TCP connection to device failed. Common causes: "
-                           "1. Incorrect hostname or IP address. "
-                           "2. Wrong TCP port. "
-                           "3. Intermediate firewall blocking access.")
-        result['status'] = 'failed'
-        result['error'] = error_message
-    except Exception as e:
-        result['status'] = 'failed'
-        result['error'] = str(e)
-
-def init_eigrp_routes(device_collection):
-    @eigrp_routes.route('/eigrp_page', methods=['GET'])
-    def eigrp_page():
+def init_rip_routes(device_collection):
+    @rip_routes.route('/rip_page', methods=['GET'])
+    def rip_page():
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
             cisco_devices = None
             flash("Database connection error. Please try again later.", "danger")
-        return render_template('eigrp.html', cisco_devices=cisco_devices)
+        return render_template('ripv2.html', cisco_devices=cisco_devices)
 
-    @eigrp_routes.route('/eigrp_settings', methods=['POST'])
-    def eigrp_settings():
+    @rip_routes.route('/rip_settings', methods=['POST'])
+    def rip_settings():
         try:
+            # Get form data
             device_name = request.form.get("device_name")
             many_hostname = request.form.get("many_hostname")
-
-            process_id = request.form.get("process_id")
-            router_id = request.form.get("router_id")
+            
+            # RIP configuration settings
             destination_networks = request.form.getlist("destination_networks[]")
+            auto_summary = request.form.get("auto_summary")
             remove_destination_networks = request.form.getlist("remove_destination_networks[]")
-            delete_process_id = request.form.get("delete_process_id")
-            process_id_input = request.form.get("process_id_input")
+            disable_rip = request.form.get("disable_rip")
 
             # Validate inputs
             if not (device_name or many_hostname):
                 flash("Please select at least one device.", "danger")
-                return redirect(url_for('eigrp_routes.eigrp_page'))
+                return redirect(url_for('rip_routes.rip_page'))
 
-            if not any([process_id, delete_process_id]):
-                flash("Please specify either a process ID or select delete process ID.", "danger")
-                return redirect(url_for('eigrp_routes.eigrp_page'))
-
-            if delete_process_id and not process_id_input:
-                flash("Please specify process ID(s) to delete.", "danger")
-                return redirect(url_for('eigrp_routes.eigrp_page'))
+            if not any([destination_networks, auto_summary, remove_destination_networks, disable_rip]):
+                flash("Please specify at least one RIP configuration option.", "danger")
+                return redirect(url_for('rip_routes.rip_page'))
 
             device_ips = []
             device_names_processed = set()
@@ -76,7 +48,7 @@ def init_eigrp_routes(device_collection):
                     device_ips.append(device["device_info"]["ip"])
                 else:
                     flash(f"Device with IP {device_name} not found in database", "danger")
-                    return redirect(url_for('eigrp_routes.eigrp_page'))
+                    return redirect(url_for('rip_routes.rip_page'))
 
             # Process multiple devices
             if many_hostname:
@@ -92,10 +64,10 @@ def init_eigrp_routes(device_collection):
                             device_ips.append(ip_address)
                         else:
                             flash(f"Duplicate IP detected for device {name} with IP {ip_address}", "danger")
-                            return redirect(url_for('eigrp_routes.eigrp_page'))
+                            return redirect(url_for('rip_routes.rip_page'))
                     else:
                         flash(f"Device {name} not found in database", "danger")
-                        return redirect(url_for('eigrp_routes.eigrp_page'))
+                        return redirect(url_for('rip_routes.rip_page'))
                     
                     device_names_processed.add(name)
 
@@ -110,10 +82,9 @@ def init_eigrp_routes(device_collection):
                     results.append(result)
                     
                     thread = threading.Thread(
-                        target=configure_eigrp_route_with_status,
-                        args=(device, process_id, router_id, destination_networks,
-                              remove_destination_networks, delete_process_id,
-                              process_id_input, result)
+                        target=configure_rip_route_with_status,
+                        args=(device, destination_networks, auto_summary,
+                              remove_destination_networks, disable_rip, result)
                     )
                     threads.append(thread)
                     thread.start()
@@ -133,15 +104,37 @@ def init_eigrp_routes(device_collection):
                     failed_devices.append(f"{result['name']}: {result['error']}")
 
             if success_devices:
-                flash(f"EIGRP configuration successful for devices: {', '.join(success_devices)}", "success")
+                flash(f"RIP configuration successful for devices: {', '.join(success_devices)}", "success")
             
             if failed_devices:
                 for device in failed_devices:
-                    flash(f"EIGRP configuration failed for {device}", "danger")
+                    flash(f"RIP configuration failed for {device}", "danger")
 
         except Exception as e:
             flash(f"An unexpected error occurred: {str(e)}", "danger")
 
-        return redirect(url_for('eigrp_routes.eigrp_page'))
+        return redirect(url_for('rip_routes.rip_page'))
 
-    return eigrp_routes
+    return rip_routes
+
+def configure_rip_route_with_status(device, destination_networks, auto_summary,
+                                  remove_destination_networks, disable_rip, result):
+    """
+    Wrapper function for configure_rip_route that handles status updates
+    """
+    try:
+        configure_rip_route(device, destination_networks, auto_summary,
+                          remove_destination_networks, disable_rip)
+        result['status'] = 'success'
+    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+        error_message = str(e)
+        if "TCP connection to device failed" in error_message:
+            error_message = ("TCP connection to device failed. Common causes: "
+                           "1. Incorrect hostname or IP address. "
+                           "2. Wrong TCP port. "
+                           "3. Intermediate firewall blocking access.")
+        result['status'] = 'failed'
+        result['error'] = error_message
+    except Exception as e:
+        result['status'] = 'failed'
+        result['error'] = str(e)

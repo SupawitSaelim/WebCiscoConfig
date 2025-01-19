@@ -1,6 +1,6 @@
 # security_check_routes.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from auto_sec import automate_sec
+from core.security.auto_sec import automate_sec
 import pprint
 
 def init_security_check_routes(device_collection):

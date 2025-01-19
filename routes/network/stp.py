@@ -2,55 +2,37 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from routing_config import configure_static_route
+from core.device.device_config import configure_spanning_tree
 
-static_routes = Blueprint('static_routes', __name__)
+stp_bp = Blueprint('stp', __name__)
 
-def init_static_routes(device_collection):
-    @static_routes.route('/static_page', methods=['GET'])
-    def static_page():
+def init_stp_routes(device_collection):
+    @stp_bp.route('/stp_page', methods=['GET'])
+    def stp_page():
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
             cisco_devices = None
             flash("Database connection error. Please try again later.", "danger")
-        return render_template('static.html', cisco_devices=cisco_devices)
+        return render_template('stp.html', cisco_devices=cisco_devices)
 
-    @static_routes.route('/static_settings', methods=['POST'])
-    def static_settings():
+    @stp_bp.route('/stp_settings', methods=['POST'])
+    def stp_settings():
         try:
-            # Get form data
             device_name = request.form.get("device_name")
             many_hostname = request.form.get("many_hostname")
             
-            # Static route settings
-            destination_networks = request.form.getlist("destination_networks[]")
-            exit_interfaces_or_next_hops = request.form.getlist("exit_interfaces_or_next_hops[]")
+            stp_mode = request.form.get("stp_mode")
+            root_primary = request.form.get("root_primary") == "on"
+            root_vlan_id = request.form.get("root_vlan_id") if root_primary else None
             
-            # Default route settings
-            default_route = request.form.get("default_route")
-            remove_default = request.form.get("remove_default")
+            root_secondary = request.form.get("root_secondary") == "on"
+            root_secondary_vlan_id = request.form.get("root_secondary_vlan_id") if root_secondary else None
             
-            # Remove route settings
-            remove_destination_networks = request.form.getlist("remove_destination_networks[]")
-            remove_exit_interfaces_or_next_hops = request.form.getlist("remove_exit_interfaces_or_next_hops[]")
-
-            # Validate inputs
-            if not (device_name or many_hostname):
-                flash("Please select at least one device.", "danger")
-                return redirect(url_for('static_routes.static_page'))
-
-            if not any([destination_networks, default_route, remove_destination_networks]):
-                flash("Please specify at least one route configuration.", "danger")
-                return redirect(url_for('static_routes.static_page'))
-
-            if len(destination_networks) != len(exit_interfaces_or_next_hops):
-                flash("Number of destination networks must match number of exit interfaces/next hops.", "danger")
-                return redirect(url_for('static_routes.static_page'))
-
-            if remove_destination_networks and len(remove_destination_networks) != len(remove_exit_interfaces_or_next_hops):
-                flash("Number of remove destination networks must match number of remove exit interfaces/next hops.", "danger")
-                return redirect(url_for('static_routes.static_page'))
+            portfast_enable = request.form.get("portfast_enable") == "on"
+            portfast_disable = request.form.get("portfast_disable") == "on"
+            portfast_int_enable = request.form.get("portfast_int_enable") if portfast_enable else None
+            portfast_int_disable = request.form.get("portfast_int_disable") if portfast_disable else None
 
             device_ips = []
             device_names_processed = set()
@@ -62,7 +44,7 @@ def init_static_routes(device_collection):
                     device_ips.append(device["device_info"]["ip"])
                 else:
                     flash(f"Device with IP {device_name} not found in database", "danger")
-                    return redirect(url_for('static_routes.static_page'))
+                    return redirect(url_for('stp.stp_page'))
 
             # Process multiple devices
             if many_hostname:
@@ -78,10 +60,10 @@ def init_static_routes(device_collection):
                             device_ips.append(ip_address)
                         else:
                             flash(f"Duplicate IP detected for device {name} with IP {ip_address}", "danger")
-                            return redirect(url_for('static_routes.static_page'))
+                            return redirect(url_for('stp.stp_page'))
                     else:
                         flash(f"Device {name} not found in database", "danger")
-                        return redirect(url_for('static_routes.static_page'))
+                        return redirect(url_for('stp.stp_page'))
                     
                     device_names_processed.add(name)
 
@@ -96,10 +78,12 @@ def init_static_routes(device_collection):
                     results.append(result)
                     
                     thread = threading.Thread(
-                        target=configure_static_route_with_status,
-                        args=(device, destination_networks, exit_interfaces_or_next_hops,
-                              default_route, remove_default, remove_destination_networks,
-                              remove_exit_interfaces_or_next_hops, result)
+                        target=configure_spanning_tree_with_status,
+                        args=(device, stp_mode, root_primary, root_vlan_id,
+                              root_secondary, root_secondary_vlan_id,
+                              portfast_enable, portfast_disable,
+                              portfast_int_enable, portfast_int_disable,
+                              result)
                     )
                     threads.append(thread)
                     thread.start()
@@ -119,29 +103,32 @@ def init_static_routes(device_collection):
                     failed_devices.append(f"{result['name']}: {result['error']}")
 
             if success_devices:
-                flash(f"Static route configuration successful for devices: {', '.join(success_devices)}", "success")
+                flash(f"Spanning tree configuration successful for devices: {', '.join(success_devices)}", "success")
             
             if failed_devices:
                 for device in failed_devices:
-                    flash(f"Static route configuration failed for {device}", "danger")
+                    flash(f"Spanning tree configuration failed for {device}", "danger")
 
         except Exception as e:
             flash(f"An unexpected error occurred: {str(e)}", "danger")
 
-        return redirect(url_for('static_routes.static_page'))
+        return redirect(url_for('stp.stp_page'))
 
-    return static_routes
+    return stp_bp
 
-def configure_static_route_with_status(device, destination_networks, exit_interfaces_or_next_hops,
-                                     default_route, remove_default, remove_destination_networks,
-                                     remove_exit_interfaces_or_next_hops, result):
+def configure_spanning_tree_with_status(device, stp_mode, root_primary, root_vlan_id,
+                                      root_secondary, root_secondary_vlan_id,
+                                      portfast_enable, portfast_disable,
+                                      portfast_int_enable, portfast_int_disable,
+                                      result):
     """
-    Wrapper function for configure_static_route that handles status updates
+    Wrapper function for configure_spanning_tree that handles status updates
     """
     try:
-        configure_static_route(device, destination_networks, exit_interfaces_or_next_hops,
-                             default_route, remove_default, remove_destination_networks,
-                             remove_exit_interfaces_or_next_hops)
+        configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id,
+                              root_secondary, root_secondary_vlan_id,
+                              portfast_enable, portfast_disable,
+                              portfast_int_enable, portfast_int_disable)
         result['status'] = 'success'
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         error_message = str(e)

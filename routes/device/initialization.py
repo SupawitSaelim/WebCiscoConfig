@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash
 from datetime import datetime
 import pytz
-import serial_script
+import utils.serial_script as serial_script
 
 device_init_bp = Blueprint('device_initialization', __name__)
 

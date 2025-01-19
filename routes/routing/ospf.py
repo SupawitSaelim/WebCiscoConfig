@@ -1,8 +1,9 @@
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from routing_config import configure_ospf_route
+from core.routing.routing_config import configure_ospf_route
 
 ospf_routes = Blueprint('ospf_routes', __name__)
 

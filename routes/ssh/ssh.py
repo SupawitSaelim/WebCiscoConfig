@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, session, jsonify
 from flask_socketio import emit
-from ssh_manager import ssh_connect
+from core.ssh.ssh_manager import ssh_connect
 import time 
 
 def init_ssh_routes(app, socketio, ssh_manager):

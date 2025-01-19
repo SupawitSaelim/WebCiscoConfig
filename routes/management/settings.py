@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
-from device_config import configure_vty_console
+from core.device.device_config import configure_vty_console
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
 
 

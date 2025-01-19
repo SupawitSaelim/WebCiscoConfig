@@ -2,48 +2,55 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from device_config import configure_etherchannel
+from core.routing.routing_config import configure_static_route
 
-aggregation_routes = Blueprint('aggregation_routes', __name__)
+static_routes = Blueprint('static_routes', __name__)
 
-def init_aggregation_routes(device_collection):
-    @aggregation_routes.route('/etherchannel', methods=['GET'])
-    def etherchannel():
+def init_static_routes(device_collection):
+    @static_routes.route('/static_page', methods=['GET'])
+    def static_page():
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
             cisco_devices = None
             flash("Database connection error. Please try again later.", "danger")
-        return render_template('etherchannel.html', cisco_devices=cisco_devices)
+        return render_template('static.html', cisco_devices=cisco_devices)
 
-    @aggregation_routes.route('/etherchannel_settings', methods=['POST'])
-    def etherchannel_settings():
+    @static_routes.route('/static_settings', methods=['POST'])
+    def static_settings():
         try:
             # Get form data
             device_name = request.form.get("device_name")
             many_hostname = request.form.get("many_hostname")
             
-            # PAgP settings
-            etherchannel_interfaces = request.form.get("etherchannel_interfaces")
-            channel_group_number = request.form.get("channel_group_number")
-            pagp_mode = request.form.getlist("pagp_mode")
+            # Static route settings
+            destination_networks = request.form.getlist("destination_networks[]")
+            exit_interfaces_or_next_hops = request.form.getlist("exit_interfaces_or_next_hops[]")
             
-            # LACP settings
-            etherchannel_interfaces_lacp = request.form.get("etherchannel_interfaces_lacp")
-            channel_group_number_lacp = request.form.get("channel_group_number_lacp")
-            lacp_mode = request.form.getlist("lacp_mode")
+            # Default route settings
+            default_route = request.form.get("default_route")
+            remove_default = request.form.get("remove_default")
             
-            # Delete settings
-            etherchannel_interfaces_lacp_delete = request.form.get("etherchannel_interfaces_lacp_delete")
+            # Remove route settings
+            remove_destination_networks = request.form.getlist("remove_destination_networks[]")
+            remove_exit_interfaces_or_next_hops = request.form.getlist("remove_exit_interfaces_or_next_hops[]")
 
             # Validate inputs
             if not (device_name or many_hostname):
                 flash("Please select at least one device.", "danger")
-                return redirect(url_for('aggregation_routes.etherchannel'))
+                return redirect(url_for('static_routes.static_page'))
 
-            if not any([etherchannel_interfaces, etherchannel_interfaces_lacp, etherchannel_interfaces_lacp_delete]):
-                flash("Please specify at least one interface configuration.", "danger")
-                return redirect(url_for('aggregation_routes.etherchannel'))
+            if not any([destination_networks, default_route, remove_destination_networks]):
+                flash("Please specify at least one route configuration.", "danger")
+                return redirect(url_for('static_routes.static_page'))
+
+            if len(destination_networks) != len(exit_interfaces_or_next_hops):
+                flash("Number of destination networks must match number of exit interfaces/next hops.", "danger")
+                return redirect(url_for('static_routes.static_page'))
+
+            if remove_destination_networks and len(remove_destination_networks) != len(remove_exit_interfaces_or_next_hops):
+                flash("Number of remove destination networks must match number of remove exit interfaces/next hops.", "danger")
+                return redirect(url_for('static_routes.static_page'))
 
             device_ips = []
             device_names_processed = set()
@@ -55,7 +62,7 @@ def init_aggregation_routes(device_collection):
                     device_ips.append(device["device_info"]["ip"])
                 else:
                     flash(f"Device with IP {device_name} not found in database", "danger")
-                    return redirect(url_for('aggregation_routes.etherchannel'))
+                    return redirect(url_for('static_routes.static_page'))
 
             # Process multiple devices
             if many_hostname:
@@ -71,10 +78,10 @@ def init_aggregation_routes(device_collection):
                             device_ips.append(ip_address)
                         else:
                             flash(f"Duplicate IP detected for device {name} with IP {ip_address}", "danger")
-                            return redirect(url_for('aggregation_routes.etherchannel'))
+                            return redirect(url_for('static_routes.static_page'))
                     else:
                         flash(f"Device {name} not found in database", "danger")
-                        return redirect(url_for('aggregation_routes.etherchannel'))
+                        return redirect(url_for('static_routes.static_page'))
                     
                     device_names_processed.add(name)
 
@@ -89,11 +96,10 @@ def init_aggregation_routes(device_collection):
                     results.append(result)
                     
                     thread = threading.Thread(
-                        target=configure_etherchannel_with_status,
-                        args=(device, etherchannel_interfaces, channel_group_number,
-                              pagp_mode, etherchannel_interfaces_lacp,
-                              channel_group_number_lacp, lacp_mode,
-                              etherchannel_interfaces_lacp_delete, result)
+                        target=configure_static_route_with_status,
+                        args=(device, destination_networks, exit_interfaces_or_next_hops,
+                              default_route, remove_default, remove_destination_networks,
+                              remove_exit_interfaces_or_next_hops, result)
                     )
                     threads.append(thread)
                     thread.start()
@@ -113,31 +119,29 @@ def init_aggregation_routes(device_collection):
                     failed_devices.append(f"{result['name']}: {result['error']}")
 
             if success_devices:
-                flash(f"EtherChannel configuration successful for devices: {', '.join(success_devices)}", "success")
+                flash(f"Static route configuration successful for devices: {', '.join(success_devices)}", "success")
             
             if failed_devices:
                 for device in failed_devices:
-                    flash(f"EtherChannel configuration failed for {device}", "danger")
+                    flash(f"Static route configuration failed for {device}", "danger")
 
         except Exception as e:
             flash(f"An unexpected error occurred: {str(e)}", "danger")
 
-        return redirect(url_for('aggregation_routes.etherchannel'))
+        return redirect(url_for('static_routes.static_page'))
 
-    return aggregation_routes
+    return static_routes
 
-def configure_etherchannel_with_status(device, etherchannel_interfaces, channel_group_number,
-                                     pagp_mode, etherchannel_interfaces_lacp,
-                                     channel_group_number_lacp, lacp_mode,
-                                     etherchannel_interfaces_lacp_delete, result):
+def configure_static_route_with_status(device, destination_networks, exit_interfaces_or_next_hops,
+                                     default_route, remove_default, remove_destination_networks,
+                                     remove_exit_interfaces_or_next_hops, result):
     """
-    Wrapper function for configure_etherchannel that handles status updates
+    Wrapper function for configure_static_route that handles status updates
     """
     try:
-        configure_etherchannel(device, etherchannel_interfaces, channel_group_number,
-                             pagp_mode, etherchannel_interfaces_lacp,
-                             channel_group_number_lacp, lacp_mode,
-                             etherchannel_interfaces_lacp_delete)
+        configure_static_route(device, destination_networks, exit_interfaces_or_next_hops,
+                             default_route, remove_default, remove_destination_networks,
+                             remove_exit_interfaces_or_next_hops)
         result['status'] = 'success'
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         error_message = str(e)

@@ -2,37 +2,48 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from device_config import configure_spanning_tree
+from core.device.device_config import configure_etherchannel
 
-stp_bp = Blueprint('stp', __name__)
+aggregation_routes = Blueprint('aggregation_routes', __name__)
 
-def init_stp_routes(device_collection):
-    @stp_bp.route('/stp_page', methods=['GET'])
-    def stp_page():
+def init_aggregation_routes(device_collection):
+    @aggregation_routes.route('/etherchannel', methods=['GET'])
+    def etherchannel():
         try:
             cisco_devices = list(device_collection.find())
         except ServerSelectionTimeoutError:
             cisco_devices = None
             flash("Database connection error. Please try again later.", "danger")
-        return render_template('stp.html', cisco_devices=cisco_devices)
+        return render_template('etherchannel.html', cisco_devices=cisco_devices)
 
-    @stp_bp.route('/stp_settings', methods=['POST'])
-    def stp_settings():
+    @aggregation_routes.route('/etherchannel_settings', methods=['POST'])
+    def etherchannel_settings():
         try:
+            # Get form data
             device_name = request.form.get("device_name")
             many_hostname = request.form.get("many_hostname")
             
-            stp_mode = request.form.get("stp_mode")
-            root_primary = request.form.get("root_primary") == "on"
-            root_vlan_id = request.form.get("root_vlan_id") if root_primary else None
+            # PAgP settings
+            etherchannel_interfaces = request.form.get("etherchannel_interfaces")
+            channel_group_number = request.form.get("channel_group_number")
+            pagp_mode = request.form.getlist("pagp_mode")
             
-            root_secondary = request.form.get("root_secondary") == "on"
-            root_secondary_vlan_id = request.form.get("root_secondary_vlan_id") if root_secondary else None
+            # LACP settings
+            etherchannel_interfaces_lacp = request.form.get("etherchannel_interfaces_lacp")
+            channel_group_number_lacp = request.form.get("channel_group_number_lacp")
+            lacp_mode = request.form.getlist("lacp_mode")
             
-            portfast_enable = request.form.get("portfast_enable") == "on"
-            portfast_disable = request.form.get("portfast_disable") == "on"
-            portfast_int_enable = request.form.get("portfast_int_enable") if portfast_enable else None
-            portfast_int_disable = request.form.get("portfast_int_disable") if portfast_disable else None
+            # Delete settings
+            etherchannel_interfaces_lacp_delete = request.form.get("etherchannel_interfaces_lacp_delete")
+
+            # Validate inputs
+            if not (device_name or many_hostname):
+                flash("Please select at least one device.", "danger")
+                return redirect(url_for('aggregation_routes.etherchannel'))
+
+            if not any([etherchannel_interfaces, etherchannel_interfaces_lacp, etherchannel_interfaces_lacp_delete]):
+                flash("Please specify at least one interface configuration.", "danger")
+                return redirect(url_for('aggregation_routes.etherchannel'))
 
             device_ips = []
             device_names_processed = set()
@@ -44,7 +55,7 @@ def init_stp_routes(device_collection):
                     device_ips.append(device["device_info"]["ip"])
                 else:
                     flash(f"Device with IP {device_name} not found in database", "danger")
-                    return redirect(url_for('stp.stp_page'))
+                    return redirect(url_for('aggregation_routes.etherchannel'))
 
             # Process multiple devices
             if many_hostname:
@@ -60,10 +71,10 @@ def init_stp_routes(device_collection):
                             device_ips.append(ip_address)
                         else:
                             flash(f"Duplicate IP detected for device {name} with IP {ip_address}", "danger")
-                            return redirect(url_for('stp.stp_page'))
+                            return redirect(url_for('aggregation_routes.etherchannel'))
                     else:
                         flash(f"Device {name} not found in database", "danger")
-                        return redirect(url_for('stp.stp_page'))
+                        return redirect(url_for('aggregation_routes.etherchannel'))
                     
                     device_names_processed.add(name)
 
@@ -78,12 +89,11 @@ def init_stp_routes(device_collection):
                     results.append(result)
                     
                     thread = threading.Thread(
-                        target=configure_spanning_tree_with_status,
-                        args=(device, stp_mode, root_primary, root_vlan_id,
-                              root_secondary, root_secondary_vlan_id,
-                              portfast_enable, portfast_disable,
-                              portfast_int_enable, portfast_int_disable,
-                              result)
+                        target=configure_etherchannel_with_status,
+                        args=(device, etherchannel_interfaces, channel_group_number,
+                              pagp_mode, etherchannel_interfaces_lacp,
+                              channel_group_number_lacp, lacp_mode,
+                              etherchannel_interfaces_lacp_delete, result)
                     )
                     threads.append(thread)
                     thread.start()
@@ -103,32 +113,31 @@ def init_stp_routes(device_collection):
                     failed_devices.append(f"{result['name']}: {result['error']}")
 
             if success_devices:
-                flash(f"Spanning tree configuration successful for devices: {', '.join(success_devices)}", "success")
+                flash(f"EtherChannel configuration successful for devices: {', '.join(success_devices)}", "success")
             
             if failed_devices:
                 for device in failed_devices:
-                    flash(f"Spanning tree configuration failed for {device}", "danger")
+                    flash(f"EtherChannel configuration failed for {device}", "danger")
 
         except Exception as e:
             flash(f"An unexpected error occurred: {str(e)}", "danger")
 
-        return redirect(url_for('stp.stp_page'))
+        return redirect(url_for('aggregation_routes.etherchannel'))
 
-    return stp_bp
+    return aggregation_routes
 
-def configure_spanning_tree_with_status(device, stp_mode, root_primary, root_vlan_id,
-                                      root_secondary, root_secondary_vlan_id,
-                                      portfast_enable, portfast_disable,
-                                      portfast_int_enable, portfast_int_disable,
-                                      result):
+def configure_etherchannel_with_status(device, etherchannel_interfaces, channel_group_number,
+                                     pagp_mode, etherchannel_interfaces_lacp,
+                                     channel_group_number_lacp, lacp_mode,
+                                     etherchannel_interfaces_lacp_delete, result):
     """
-    Wrapper function for configure_spanning_tree that handles status updates
+    Wrapper function for configure_etherchannel that handles status updates
     """
     try:
-        configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id,
-                              root_secondary, root_secondary_vlan_id,
-                              portfast_enable, portfast_disable,
-                              portfast_int_enable, portfast_int_disable)
+        configure_etherchannel(device, etherchannel_interfaces, channel_group_number,
+                             pagp_mode, etherchannel_interfaces_lacp,
+                             channel_group_number_lacp, lacp_mode,
+                             etherchannel_interfaces_lacp_delete)
         result['status'] = 'success'
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         error_message = str(e)

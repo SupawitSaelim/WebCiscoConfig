@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
-from device_config import manage_vlan_on_device
+from core.device.device_config import manage_vlan_on_device
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
 
 vlan_settings_bp = Blueprint('vlan_settings', __name__)

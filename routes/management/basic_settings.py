@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 import threading
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
-from device_config import configure_device
+from core.device.device_config import configure_device
 
 basic_settings = Blueprint('basic_settings', __name__)
 
