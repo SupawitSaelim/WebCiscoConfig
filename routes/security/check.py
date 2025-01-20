@@ -9,24 +9,51 @@ def init_security_check_routes(device_collection):
     @security_check.route('/config_checker', methods=['GET'])
     def config_checker():
         try:
-            page = int(request.args.get('page', 1))  
+            page = int(request.args.get('page', 1))
             per_page = 10
             skip = (page - 1) * per_page
 
-            cisco_devices = list(device_collection.find().skip(skip).limit(per_page))
+            # Create aggregation pipeline to sort devices
+            pipeline = [
+                {
+                    "$addFields": {
+                        "hasWarnings": {
+                            "$cond": [
+                                {"$and": [
+                                    {"$isArray": "$analysis.warnings"},
+                                    {"$gt": [{"$size": "$analysis.warnings"}, 0]}
+                                ]},
+                                1,  # devices with warnings
+                                0   # devices without warnings
+                            ]
+                        }
+                    }
+                },
+                {"$sort": {
+                    "hasWarnings": -1,  # Sort by warning status (1 first, then 0)
+                    "name": 1  # Secondary sort by name
+                }},
+                {"$skip": skip},
+                {"$limit": per_page}
+            ]
+
+            # Execute the aggregation pipeline
+            cisco_devices = list(device_collection.aggregate(pipeline))
             
+            # Get total count for pagination
             total_devices = device_collection.count_documents({})
             total_pages = (total_devices + per_page - 1) // per_page
 
         except Exception as e:
-            cisco_devices = []  
+            print(f"Error in config_checker: {str(e)}")
+            cisco_devices = []
             total_pages = 1
             page = 1
 
-        return render_template('securitychecker.html', 
-                             cisco_devices=cisco_devices, 
-                             total_pages=total_pages, 
-                             current_page=page)
+        return render_template('securitychecker.html',
+                            cisco_devices=cisco_devices,
+                            total_pages=total_pages,
+                            current_page=page)
 
     @security_check.route('/fix_device/<device_ip>', methods=['POST'])
     def fix_device(device_ip):

@@ -7,7 +7,7 @@ load_dotenv()
 # Flask Configuration
 SECRET_KEY = 'Supawitadmin123_'
 DEBUG = True
-PORT = 8888
+PORT = 5000
 HOST = "0.0.0.0"
 
 # MongoDB Configuration
@@ -35,6 +35,8 @@ class Config:
     DEBUG = DEBUG
     MONGO_URI = MONGO_URI
     TIMEZONE = TIMEZONE
+    HOST = HOST
+    PORT = PORT
 
 class ProductionConfig(Config):
     """Production configuration."""

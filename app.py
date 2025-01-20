@@ -1,15 +1,21 @@
 # Flask imports
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 
 # Configuration imports
 from config.settings import SECRET_KEY
 from config.mongodb import init_mongodb_connection
+from config.settings import active_config
+from config.settings import (
+    MAX_SSH_SESSIONS,
+    MODEL_PATH,
+    TIMEZONE
+)
 
 # Core components
 from core.ssh.ssh_manager import SSHManager
 from core.security.security_checker import SecurityChecker
-from core.scheduler.tasks import init_scheduler, cleanup_ssh_sessions
+from core.scheduler.tasks import init_scheduler
 
 # Route imports - Device
 from routes.device.initialization import init_device_initialization_routes
@@ -43,7 +49,6 @@ from routes.system.status import init_system_status_routes
 
 # Utility imports
 from dotenv import load_dotenv
-import os
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
@@ -57,11 +62,11 @@ load_dotenv()
 db, device_collection = init_mongodb_connection()
 
 # Initialize core components
-ssh_manager = SSHManager(max_sessions=50)
+ssh_manager = SSHManager(max_sessions=MAX_SSH_SESSIONS)
 security_checker = SecurityChecker(
     device_collection=device_collection,
-    model_path='models/ml/lr_model.pkl',
-    timezone='Asia/Bangkok'
+    model_path=MODEL_PATH,
+    timezone=TIMEZONE
 )
 
 def register_blueprints():
@@ -105,11 +110,11 @@ def login_first():
     return render_template('initialization.html')
 
 if __name__ == "__main__":
-    # Register all blueprints
     register_blueprints()
-    
-    # Initialize scheduler
     scheduler = init_scheduler(security_checker, ssh_manager)
-    
-    # Run the app
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    socketio.run(
+        app, 
+        host=active_config.HOST,
+        port=active_config.PORT,
+        debug=active_config.DEBUG
+    )

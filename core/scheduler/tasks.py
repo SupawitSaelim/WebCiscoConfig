@@ -24,8 +24,9 @@ def init_scheduler(security_checker, ssh_manager):
         security_checker.fetch_and_analyze, 
         'interval', 
         seconds=SECURITY_CHECK_INTERVAL,
-        max_instances=2,
-        id='security_analysis'
+        max_instances=1,
+        id='security_analysis',
+        coalesce=True #จะรันทุก job ที่พลาดไป (missed jobs) ทั้งหมด
     )
     
     # Add SSH cleanup jobs
