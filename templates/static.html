@@ -340,7 +340,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -354,7 +354,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -370,19 +370,19 @@
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Destination Network (e.g., 192.168.1.0/24)"
+                                    placeholder="Enter destination network (Example: 192.168.1.0/24)"
                                     title="Enter the destination network in CIDR notation (e.g., 192.168.1.0/24). This defines the target network for the static route.">
                             </div>
                             <div class="form-group">
                                 <input type="text" name="exit_interfaces_or_next_hops[]"
-                                    placeholder="Exit Interface (e.g., fa0/1) or Next Hop IP (e.g., 192.168.1.1)"
+                                    placeholder="Enter exit interface or next hop IP (Example: fa0/1 or 192.168.1.1)"
                                     title="Enter the exit interface (e.g., fa0/1) or the next hop IP address (e.g., 192.168.1.1) for the static route.">
                             </div>
                         </div>
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRoutePair()">Add more networks to route</button>
+                        onclick="addRoutePair()">Add network</button>
                     <br><br>
 
                     <!-- Default Route -->
@@ -391,7 +391,7 @@
                             placeholder="Exit interface or IP next hop"
                             title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop (e.g., 192.168.1.1) for the default route. The default route is used to direct traffic to destinations outside the local network, typically used for accessing the internet or remote networks.">
                         <div class="checkbox-wrapper-22">
-                            <label style="font-size: small;color: #2e4ead;">Remove Default Route</label>
+                            <label style="font-size: small;color: #2e4ead;">Remove default route</label>
                             <label class="switch">
                                 <input type="checkbox" id="remove_default" name="remove_default">
                                 <span class="slider"></span>
@@ -418,9 +418,9 @@
                         </div>
                         <button type="button"
                             style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                            onclick="addRemoveRoutePair()">Add more networks to remove</button>
+                            onclick="addRemoveRoutePair()">Add network to remove</button>
                         <br><br>
-                        <input style="margin-left: 90%;" type="submit" value="Submit">
+                        <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

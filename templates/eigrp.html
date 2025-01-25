@@ -378,14 +378,14 @@
                         </script>
                         {% endif %}
                     {% endwith %}
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">EIGRP Configuration</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">EIGRP</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/eigrp_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -399,7 +399,7 @@
                     </div><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -414,20 +414,20 @@
                     <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="AS Number"
                         title="Enter the Autonomous System (AS) Number (1-65535). This is used for EIGRP process identification.">
                     <input type="text" name="router_id" id="router_id"
-                        placeholder="(Optional) Router ID (e.g., 1.1.1.1)"
+                        placeholder="Router ID - Optional"
                         title="Specify the Router ID in the format of an IP address (e.g., 1.1.1.1). This is optional, but if provided, you must also specify the AS Number. The Router ID uniquely identifies the router in the EIGRP process.">
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Network (e.g., 192.168.1.0/24)"
+                                    placeholder="Enter network"
                                     title="Specify the network to be included in the routing table. Use the format of an IP address followed by a subnet mask (e.g., 192.168.1.0/24). This defines the network and its range for routing.">
                             </div>
                         </div>
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRoutePair()">Add more networks to route</button>
+                        onclick="addRoutePair()">Add network</button>
                     <br>
 
                     <!-- Remove network Route -->
@@ -443,7 +443,7 @@
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRemoveRoutePair()">Add more networks to remove</button><br>
+                        onclick="addRemoveRoutePair()">Add network to remove</button><br>
 
                     <!-- Delete Process ID -->
                     <div class="checkbox-wrapper-22">
@@ -453,11 +453,11 @@
                             <span class="slider"></span>
                         </label>
                         <br>
-                        <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter AS Number"
+                        <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter AS Numbers"
                         title="Enter one or more AS Numbers to delete, separated by commas (e.g., 100,200,300). AS Numbers identify different EIGRP routing processes." style="display: none; width: 30%;">
                     </div>
                     <br><br>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

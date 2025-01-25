@@ -433,14 +433,14 @@
                         </script>
                         {% endif %}
                     {% endwith %}
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">ospf Configuration</h1>
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">ospf</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/ospf_settings" onsubmit="return handleSubmit()">
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -454,7 +454,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -468,24 +468,24 @@
                     <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="Process ID"
                         title="Enter the OSPF Process ID, a unique identifier for the OSPF routing process between 1 and 65535.">
                     <input type="text" name="router_id" id="router_id"
-                        placeholder="(Optional) Router ID (e.g., 1.1.1.1)"
+                        placeholder="Router ID (Example: 1.1.1.1) - Optional"
                         title="Enter the Router ID, which is an optional identifier for the router in OSPF. It should be in the format of an IP address (e.g., 1.1.1.1).">
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Network (e.g., 192.168.1.0/24)"
+                                    placeholder="Enter network (Example: 192.168.1.0/24)"
                                     title="Enter the network address you want to route to. This is the destination network that will be used in routing protocols. It is typically defined in CIDR format. Example: 192.168.1.0/24">
                             </div>
                             <div class="form-group">
-                                <input type="text" name="ospf_areas[]" placeholder="OSPF Area (e.g., 0)"
+                                <input type="text" name="ospf_areas[]" placeholder="Enter OSPF area (Example: 0)"
                                     title="Enter the OSPF area ID. This is the identifier for the OSPF area, which is used to group networks in OSPF routing. The value should be a number, typically 0 for the backbone area (Area 0). Example: 0">
                             </div>
                         </div>
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRoutePair()">Add more networks to route</button>
+                        onclick="addRoutePair()">Add network</button>
                     <br><br>
 
                     <!-- Remove OSPF Networks -->
@@ -507,7 +507,7 @@
                     </div>
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRemoveRoutePair()">Add more networks to remove</button><br>
+                        onclick="addRemoveRoutePair()">Add network to remove</button><br>
 
 
                     <!-- Delete Process ID -->
@@ -524,7 +524,7 @@
                             style="display: none; width: 30%;">
                     </div>
                     <br><br>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

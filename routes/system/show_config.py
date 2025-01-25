@@ -2,6 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from pymongo.errors import ServerSelectionTimeoutError
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetMikoTimeoutException, NetMikoAuthenticationException
+from datetime import datetime
+from pytz import timezone
+th_tz = timezone('Asia/Bangkok')
 
 show_config_routes = Blueprint('show_config_routes', __name__)
 
@@ -99,10 +102,11 @@ def init_show_config_routes(device_collection):
                         if command in commands_to_execute:
                             output = net_connect.send_command(commands_to_execute[command])
                             config_data += f"<span style='color: #2e4ead; font-size: 1.2em; font-weight: bold;'>{command.replace('_', ' ')}</span> \n" + output + "\n"
+                            config_data = f"Generated at: {datetime.now(th_tz).strftime('%Y-%m-%d %H:%M:%S')} (UTC+7)\n\n" + config_data
 
                     net_connect.disconnect()
 
-                    return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data)
+                    return render_template('showconfig.html', cisco_devices=cisco_devices, config_data=config_data, selected_device=device_name)
                 
                 except NetMikoTimeoutException:
                     flash(f"Connection timed out while trying to reach {device_info['host']}. Please check if the device is reachable and SSH is enabled.", "danger")

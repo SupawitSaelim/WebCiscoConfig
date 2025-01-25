@@ -295,7 +295,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -309,7 +309,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -327,7 +327,7 @@
                             placeholder="e.g., gi0/0-1, gi1/0" title="Enter network interfaces (e.g., gi0/0-1, gi1/0)"
                             minlength="3" maxlength="25">
                         <div class="input-container" style="text-align: left;">
-                            <label for="config_type">Configuration Type: </label>
+                            <label for="config_type">Configuration Mode: </label>
                             <input type="radio" id="dhcp" name="config_type" value="dhcp_ipv4"> DHCP
                             <input type="radio" id="manual" name="config_type" value="manual" checked> Manual
                         </div><br>
@@ -399,11 +399,11 @@
                     <input type="text" id="interfaces_du" name="interfaces_du" placeholder="e.g., gi0/0-1, gi1/0"
                         title="Enter network interfaces (e.g., gi0/0-1, gi1/0)" minlength="3" maxlength="25">
                     <select id="speed_duplex" name="speed_duplex">
-                        <option value="auto">Auto-Negotiation(default)</option>
+                        <option value="auto">Auto-Negotiation (default)</option>
                         <option value="full">Full</option>
                         <option value="half">Half</option>
                     </select>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;"class="fix-button" type="submit" value="Submit">
                 </form>
             </div>
         </div>

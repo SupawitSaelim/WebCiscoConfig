@@ -352,7 +352,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -366,7 +366,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -544,7 +544,7 @@
                         </div>
                         <br><br>
                     </div>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
 
             </div>

@@ -1,7 +1,7 @@
 const snmp = require('net-snmp');
 
-const host = process.argv[2]; // IP address หรือ hostname ของอุปกรณ์
-const community = 'public'; // community string ที่ใช้ในการเชื่อมต่อ
+const host = process.argv[2]; 
+const community = process.argv[3] || 'public'; 
 const sysNameOID = '1.3.6.1.2.1.1.5.0'; // OID สำหรับ sysName
 
 const session = snmp.createSession(host, community);

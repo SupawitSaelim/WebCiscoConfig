@@ -284,7 +284,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -298,7 +298,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
                         placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
@@ -313,7 +313,7 @@
                             <div class="form-group">
                                 <input type="text" id="password_vty" name="password_vty" placeholder="Enter Password"
                                     minlength="8"
-                                    title="Enter a secure password for VTY access. Use at least 8 characters,"><br><br>
+                                    title="Enter password for VTY access. Use at least 8 characters,"><br><br>
                                 <label for="authen_method">Authentication Method</label>
                                 <select id="authen_method_select" name="authen_method_select"
                                     title="Select the authentication method for VTY access. Options: VTY Password or Local User.">
@@ -333,7 +333,7 @@
                                     <option value="all">All</option>
                                     <option value="ssh">SSH</option>
                                     <option value="telnet">Telnet</option>
-                                    <option value="none">None(No protocols)</option>
+                                    <option value="none">None (No protocols)</option>
                                 </select>
                                 <div class="checkbox-wrapper-22" style="margin-left: 0%;">
                                     <label>Enable Synchronized message output </label>
@@ -392,7 +392,7 @@
                                     title="Enter a valid network address in the format: xxx.xxx.xxx.xxx (e.g., 192.168.1.0)"
                                     pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"><br><br>
                                 <input type="text" id="dhcp_exclude" name="dhcp_exclude"
-                                    placeholder="Enter IP DHCP Exclude Range"
+                                    placeholder="Enter DHCP Exclude Range"
                                     title="Enter a valid IP address range to exclude from DHCP allocation. The format should be: start IP - end IP (e.g., 192.168.1.1-192.168.1.10)"><br><br>
                             </div>
                             <div class="form-group">
@@ -441,7 +441,7 @@
                                     <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Setting</th>
                                     <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Description
                                     </th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Effect</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Result</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -524,7 +524,7 @@
                         </label>
                         <br>
                     </div>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

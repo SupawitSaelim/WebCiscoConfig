@@ -2,13 +2,19 @@ from flask import Blueprint, render_template, request, flash
 from datetime import datetime
 import pytz
 import utils.serial_script as serial_script
+from serial.tools import list_ports
 
 device_init_bp = Blueprint('device_initialization', __name__)
 
 def init_device_initialization_routes(device_collection):
     @device_init_bp.route('/initialization_page', methods=['GET'])
     def initialization_page():
-        return render_template('initialization.html')
+        ports = list_ports.comports()
+        available_ports = [{
+            'device': port.device,
+            'description': port.description
+        } for port in ports]
+        return render_template('initialization.html', ports=available_ports)
 
     @device_init_bp.route('/initialization', methods=['GET', 'POST'])
     def initialization():
@@ -80,6 +86,11 @@ def init_device_initialization_routes(device_collection):
             except Exception as e:
                 return render_template('initialization.html', error=f"An error occurred: {e}")
 
-        return render_template('initialization.html')
+        ports = list_ports.comports()
+        available_ports = [{
+            'device': port.device,
+            'description': port.description
+        } for port in ports]
+        return render_template('initialization.html', ports=available_ports)
 
     return device_init_bp

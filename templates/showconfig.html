@@ -259,16 +259,16 @@
                 <h1 style="text-align: left;color: #2e4ead;">SHOW CONFIGURATIONS</h1><br><br>
                 <form method="POST" action="/show-config" onsubmit="return handleSubmit();">
                     <select name="device_name" required>
-                        <option value="" disabled {% if cisco_devices|length==0 %}selected{% endif %}>Select a device
-                        </option>
                         {% if cisco_devices %}
+                        <option value="" disabled {% if not selected_device %}selected{% endif %}>Select a device
+                        </option>
                         {% for device in cisco_devices %}
-                        <option value="{{ device.name }}" {% if cisco_devices|length==1 %}selected{% endif %}>
+                        <option value="{{ device.name }}" {% if device.name==selected_device %}selected{% endif %}>
                             {{ device.name }} ({{ device.device_info.ip }})
                         </option>
                         {% endfor %}
                         {% else %}
-                        <option disabled>No devices available</option>
+                        <option value="" disabled selected>No devices available</option>
                         {% endif %}
                     </select>
                     <br><br><br>
@@ -283,6 +283,7 @@
                                         Device Information
                                     </button>
                                     <div class="submenu">
+                                        <label><input type="checkbox" class="select-all"> Select All</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_version">
                                             Show Version</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_clock"> Show
@@ -305,6 +306,7 @@
                                         Network Configuration
                                     </button>
                                     <div class="submenu">
+                                        <label><input type="checkbox" class="select-all"> Select All</label>
                                         <label><input type="checkbox" name="selected_commands"
                                                 value="show_running_config"> Show Running Config</label>
                                         <label><input type="checkbox" name="selected_commands"
@@ -345,6 +347,7 @@
                                         Routing and Protocols
                                     </button>
                                     <div class="submenu">
+                                        <label><input type="checkbox" class="select-all"> Select All</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_ip_route">
                                             Show IP Route</label>
                                         <label><input type="checkbox" name="selected_commands"
@@ -381,6 +384,7 @@
                                         Performance & Diagnostics
                                     </button>
                                     <div class="submenu">
+                                        <label><input type="checkbox" class="select-all"> Select All</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_logging">
                                             Show Logging</label>
                                         <label><input type="checkbox" name="selected_commands" value="show_flash">
@@ -403,7 +407,38 @@
                             </pre>
                         </div>
                     </div>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <div
+                        style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px;">
+                        <input type="submit" value="Submit" class="fix-button">
+                        <button type="button" onclick="exportOutput()" class="btn-primary"
+                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
+                            <i class="fas fa-file-export"></i> Export
+                        </button>
+                    </div>
+                    <script>
+                        function exportOutput() {
+                            const output = document.querySelector('.blue-pre').innerText.trim();
+                            if (!output) {
+                                alert("No data available to export");
+                                return;
+                            }
+                            const blob = new Blob([output], { type: 'text/plain' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'device_config.txt';
+                            a.click();
+                        }
+                    </script>
+                    <script>
+                        document.querySelectorAll('.select-all').forEach(checkbox => {
+                            checkbox.addEventListener('change', e => {
+                                const submenu = e.target.closest('.submenu');
+                                submenu.querySelectorAll('input[name="selected_commands"]')
+                                    .forEach(box => box.checked = e.target.checked);
+                            });
+                        });
+                    </script>
                 </form>
             </div>
         </div>

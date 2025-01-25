@@ -270,7 +270,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -284,7 +284,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -294,13 +294,13 @@
                     <br><br>
                     <h3 style="color: #2e4ead;text-align: left;">Spanning Tree Mode</h3><br>
                     <select id="stp_mode" name="stp_mode">
-                        <option value="">None</option>
-                        <option value="pvst">Per-Vlan spanning tree mode (pvst)</option>
-                        <option value="rapid-pvst">Per-Vlan rapid spanning tree mode (rapid-pvst)</option>
+                        <option value="">Not select</option>
+                        <option value="pvst">Per-Vlan spanning tree (pvst)</option>
+                        <option value="rapid-pvst">Per-Vlan rapid spanning tree (rapid-pvst)</option>
                     </select><br><br>
                     <h3 style="color: #2e4ead;text-align: left;">Optional</h3><br>
                     <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead;">Root Primary</label>
+                        <label style="color: #2e4ead;">Root primary</label>
                         <label class="switch">
                             <input type="checkbox" id="root_primary" name="root_primary">
                             <span class="slider"></span>
@@ -314,7 +314,7 @@
                         <br>
                     </div>
                     <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead;">Root Secondary</label>
+                        <label style="color: #2e4ead;">Root secondary</label>
                         <label class="switch">
                             <input type="checkbox" id="root_secondary" name="root_secondary">
                             <span class="slider"></span>
@@ -345,13 +345,13 @@
                         <br>
                         <!-- Input fields for VLAN IDs -->
                         <input type="text" id="portfast_int_enable" name="portfast_int_enable"
-                            placeholder="Enter Interfaces for Enable PortFast (e.g.,e2/0-3,e1/1)"
+                            placeholder="Enter Interfaces for enable PortFast (e.g.,e2/0-3,e1/1)"
                             style="display: none; width: 30%;">
                         <input type="text" id="portfast_int_disable" name="portfast_int_disable"
-                            placeholder="Enter Interfaces for Disable PortFast (e.g.,e2/0-3,e1/1)"
+                            placeholder="Enter Interfaces for disable PortFast (e.g.,e2/0-3,e1/1)"
                             style="display: none; width: 30%;">
                     </div>
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

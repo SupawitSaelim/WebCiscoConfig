@@ -64,16 +64,26 @@ def init_erase_config_routes(device_collection):
 
                 shell.send('enable\n')
                 time.sleep(1)
+                output = shell.recv(65535).decode('utf-8')
                 shell.send(device_info['secret'] + '\n')
                 time.sleep(1)
+                output += shell.recv(65535).decode('utf-8')
 
                 shell.send('config terminal\n')
                 time.sleep(1)
+                output += shell.recv(65535).decode('utf-8')
+
+                if output.count("Password:") >= 3:
+                    ssh_client.close()
+                    return '<script>alert("Authentication failed: Incorrect enable password"); window.location.href="/erase_config_page";</script>'
+                
                 shell.send('config-register 0x2102\n')
                 time.sleep(1)
+                output += shell.recv(65535).decode('utf-8')
+                print(output)
                 shell.send('exit\n')
                 time.sleep(1)
-
+                
                 shell.send('erase startup-config\n')
                 time.sleep(1)
                 shell.send('\n')
@@ -86,20 +96,29 @@ def init_erase_config_routes(device_collection):
                 shell.send('\n')
                 time.sleep(1)
 
-                output = shell.recv(65535).decode('utf-8')
-                print(output)
+                shell.settimeout(30)  
+                try:
+                    output = shell.recv(65535).decode('utf-8')
+                except socket.timeout:
+                    ssh_client.close()
+                    return '<script>alert("Command timeout: Device not responding"); window.location.href="/erase_config_page";</script>'
+                if "unless the configuration" in output:
+                    ssh_client.close()
+                    return '''<script>
+                        alert("Reload to the ROM monitor only allowed from console line unless the configuration register boot bits are non-zero.");
+                        window.location.href="/erase_config_page";
+                    </script>'''
+                
 
                 ssh_client.close()
-
                 device_collection.delete_one({"device_info.ip": device_info['ip']})
-
                 return '<script>alert("Configuration erased successfully! Device will reload."); window.location.href="/erase_config_page";</script>'
-
             else:
                 return '<script>alert("Device not found!"); window.location.href="/erase_config_page";</script>'
-
         except Exception as e:
-            print(e)
+            print(f"Error: {e}")
+            if ssh_client:
+                ssh_client.close()
             return '<script>alert("Failed to erase configuration. Please try again."); window.location.href="/erase_config_page";</script>'
 
     @erase_config_blueprint.route('/reload', methods=['POST'])
@@ -150,6 +169,12 @@ def init_erase_config_routes(device_collection):
                         output = shell.recv(65535).decode('utf-8')
                         if "Save?" in output or "modified" in output:
                             return render_template('confirm_modal.html', ip_address=ip_address)
+                        elif "unless the configuration" in output:
+                            ssh_client.close()
+                            return '''<script>
+                                alert("Reload to the ROM monitor only allowed from console line unless the configuration register boot bits are non-zero.");
+                                window.location.href="/erase_config_page";
+                            </script>'''
                     except Exception:
                         # Connection might be closed here, which is expected
                         pass

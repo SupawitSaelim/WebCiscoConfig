@@ -136,11 +136,13 @@
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3>
                 <form method="POST" action="/get_snmp" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                    <div class="input-container" style="display: flex; align-items: center; gap: 10px;">
+                        <select id="device_dropdown" name="device_name"
+                            style="min-width: 200px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
+                            <option value="{{ device.device_info.ip }}" {% if selected_ip==device.device_info.ip
+                                %}selected{% endif %}>
                                 {{ device.name }} ({{ device.device_info.ip }})
                             </option>
                             {% endfor %}
@@ -148,8 +150,16 @@
                             <option disabled>No devices available</option>
                             {% endif %}
                         </select>
-                        <input type="submit" value="Submit"
-                            style="padding: 5px 20px; cursor: pointer; border: none; border-radius: 5px; background-color: #2e4ead; color: white;">
+
+                        <div style="display: flex; flex-direction: column;">
+                            <label for="community" style="color: #2e4ead; font-size: 14px; margin-bottom: 4px;">SNMP
+                                Community:</label>
+                            <input type="text" id="community" name="community"
+                                value="{{ community if community else 'public' }}"
+                                style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 180px;">
+                        </div>
+
+                        <input type="submit" value="Submit" class="fix-button" style="align-self: flex-end;">
                     </div>
                 </form>
                 {% if not cisco_devices %}

@@ -3,6 +3,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from datetime import timedelta
 import subprocess
+import platform
 
 def init_device_info_routes(device_collection):
     device_info_blueprint = Blueprint('device_info', __name__)
@@ -153,10 +154,18 @@ def init_device_info_routes(device_collection):
         
         if ip_address is None:
             return jsonify({"success": False, "message": "IP address is required."})
+        
+        system = platform.system().lower()
 
-        print(f"Ping to: {ip_address}")
         try:
-            result = subprocess.run(['ping', '-n', '3', ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if system == "windows":
+                command = ['ping', '-n', '3', ip_address]
+            elif system in ["linux", "darwin"]:  # Linux and macOS
+                command = ['ping', '-c', '3', ip_address]
+            else:
+                return jsonify({"success": False, "message": f"Unsupported operating system: {system}"})
+
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
             if result.returncode == 0:
                 output = f"Ping to {ip_address} successful.\n{result.stdout}"
@@ -164,6 +173,7 @@ def init_device_info_routes(device_collection):
             else:
                 output = f"Ping to {ip_address} failed.\n{result.stderr}"
                 return jsonify({"success": False, "message": output})
+                
         except Exception as e:
             error_message = f"An error occurred while pinging the device: {str(e)}"
             return jsonify({"success": False, "message": error_message})

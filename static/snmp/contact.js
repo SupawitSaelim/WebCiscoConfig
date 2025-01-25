@@ -1,7 +1,7 @@
 const snmp = require('net-snmp');
 
 const host = process.argv[2];
-const community = 'public';
+const community = process.argv[3] || 'public'; 
 const contactOID = '1.3.6.1.2.1.1.4.0'; // OID สำหรับ contact
 
 const session = snmp.createSession(host, community);

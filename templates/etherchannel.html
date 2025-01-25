@@ -290,7 +290,7 @@
                     <div class="input-container" style="display: flex; align-items: center;">
                         <!-- Dropdown with ID for JavaScript to access -->
                         <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">None</option>
+                            <option value="">Please Select</option>
                             {% if cisco_devices %}
                             {% for device in cisco_devices %}
                             <option value="{{ device.device_info.ip }}">
@@ -304,7 +304,7 @@
                     </div><br><br>
 
                     <label for="many_name" style="text-align: left;">
-                        If more than one device, input names of devices here (separate by comma)
+                        Enter device names separated by commas
                     </label>
                     <!-- Input field for many_hostname with ID -->
                     <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
@@ -323,19 +323,19 @@
                         </div>
                         <div class="form-group">
                             <input type="number" min="1" max="255" id="channel_group_number" name="channel_group_number"
-                                placeholder="Channel-group Number (1-255)"><br><br>
+                                placeholder="Enter channel group (1-255)"><br><br>
                         </div>
                     </div>
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: bold;">Mode</label>
                         <label>Desirable</label>
-                        <label class="switch" title="PAgP mode set to Desirable">
+                        <label class="switch" title="Set PAgP mode to desirable">
                             <input type="checkbox" id="pagp_desirable" name="pagp_mode" value="Desirable">
                             <span class="slider"></span>
                         </label>
                         <br>
                         <label>Auto</label>
-                        <label class="switch" title="PAgP mode set to Auto">
+                        <label class="switch" title="Set PAgP mode to auto">
                             <input type="checkbox" id="pagp_auto" name="pagp_mode" value="Auto">
                             <span class="slider"></span>
                         </label>
@@ -358,13 +358,13 @@
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead; font-weight: bold;">Mode</label>
                         <label>Active</label>
-                        <label class="switch" title="LACP mode set to Active">
+                        <label class="switch" title="Set LACP mode to active">
                             <input type="checkbox" id="lacp_active" name="lacp_mode" value="Active">
                             <span class="slider"></span>
                         </label>
                         <br>
                         <label>Passive</label>
-                        <label class="switch" title="LACP mode set to Passive">
+                        <label class="switch" title="Set LACP mode to passive">
                             <input type="checkbox" id="lacp_passive" name="lacp_mode" value="Passive">
                             <span class="slider"></span>
                         </label>
@@ -375,10 +375,10 @@
                     <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Delete Port Group</h3>
                     <input type="text" id="etherchannel_interfaces_lacp_delete"
                         name="etherchannel_interfaces_lacp_delete"
-                        placeholder="Enter Port group to delete (e.g., Po1)"
+                        placeholder="Enter port group to delete (e.g., Po1)"
                         title="Separate with commas (e.g., Po1,Po2). Ranges like Po2-3 are not allowed."><br><br>
 
-                    <input style="margin-left: 90%;" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

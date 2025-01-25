@@ -47,17 +47,16 @@ class SSHManager:
 
     def remove_session(self, sid):
         with self.lock:
-            if sid in self.ssh_sessions:
-                try:
+            try:
+                if sid in self.ssh_sessions:
                     session = self.ssh_sessions[sid]
                     if session['channel']:
                         session['channel'].close()
                     if session['client']:
                         session['client'].close()
-                except Exception as e:
-                    print(f"Error closing session {sid}: {e}")
-                finally:
-                    del self.ssh_sessions[sid]
+            finally:
+                # Ensure session is removed even if close fails
+                self.ssh_sessions.pop(sid, None)
 
     def get_session(self, sid):
         with self.lock:
@@ -83,8 +82,8 @@ def ssh_connect(hostname, port, username, password, sid, ssh_manager, socketio):
             port=port, 
             username=username, 
             password=password,
-            timeout=30,
-            auth_timeout=20
+            timeout=30, # Connection timeout
+            auth_timeout=20 # Authentication timeout
         )
         
         ssh_channel = client.invoke_shell()
@@ -95,7 +94,8 @@ def ssh_connect(hostname, port, username, password, sid, ssh_manager, socketio):
                 data = ssh_channel.recv(1024).decode('utf-8')
                 socketio.emit('ssh_output', {'data': data}, to=sid)
                 # Update last active timestamp
-                ssh_manager.ssh_sessions[sid]['last_active'] = time.time()
+                if session := ssh_manager.get_session(sid):
+                    session['last_active'] = time.time()
                 
             # Small delay to prevent CPU spinning
             socketio.sleep(0.1)

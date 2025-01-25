@@ -17,6 +17,7 @@ class SecurityChecker:
         devices = list(self.device_collection.find())
         for device in devices:
             device_info = device["device_info"]
+            net_connect = None
             try:
                 device_info['timeout'] = 10  # global_delay_factor
                 device_info['conn_timeout'] = 5  # connection timeout
@@ -44,3 +45,12 @@ class SecurityChecker:
                         "last_updated": datetime.now(self.timezone).strftime("%Y-%m-%d %H:%M:%S")
                     }}}
                 )
+            finally:
+                # If there is an active connection (net_connect is not None)
+                if net_connect:
+                    try:
+                        # Attempt to close the connection
+                        net_connect.disconnect()
+                    except:
+                        # If disconnect fails, silently continue
+                        pass
