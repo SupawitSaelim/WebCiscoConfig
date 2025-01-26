@@ -7,14 +7,9 @@ from serial.tools import list_ports
 device_init_bp = Blueprint('device_initialization', __name__)
 
 def init_device_initialization_routes(device_collection):
-    @device_init_bp.route('/initialization_page', methods=['GET'])
+    @device_init_bp.route('/initialization_page', methods=['GET']) 
     def initialization_page():
-        ports = list_ports.comports()
-        available_ports = [{
-            'device': port.device,
-            'description': port.description
-        } for port in ports]
-        return render_template('initialization.html', ports=available_ports)
+        return render_template('initialization.html')
 
     @device_init_bp.route('/initialization', methods=['GET', 'POST'])
     def initialization():
@@ -86,11 +81,6 @@ def init_device_initialization_routes(device_collection):
             except Exception as e:
                 return render_template('initialization.html', error=f"An error occurred: {e}")
 
-        ports = list_ports.comports()
-        available_ports = [{
-            'device': port.device,
-            'description': port.description
-        } for port in ports]
-        return render_template('initialization.html', ports=available_ports)
+        return render_template('initialization.html')
 
     return device_init_bp

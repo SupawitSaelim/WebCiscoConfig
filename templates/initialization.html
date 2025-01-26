@@ -203,12 +203,8 @@
                 <br><br>
                 <form method="post" action="/initialization" onsubmit="return handleSubmit()">
                     <div class="input-container">
-                        <select name="consoleport" id="consoleport" style="width: 49%;" required title="Select the console port for device connection">
-                            <option value="">Select COM Port</option>
-                            {% for port in ports %}
-                                <option value="{{ port.device }}">{{ port.device }} - {{ port.description }}</option>
-                            {% endfor %}
-                        </select>
+                        <input type="text" name="consoleport" id="consoleport" placeholder="Comport" style="width: 49%;" title="Enter COM port (e.g., COM3) for serial connection"
+                        required>
                     </div>
                     <div class="input-container">
                         <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;" max="63"
