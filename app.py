@@ -116,5 +116,6 @@ if __name__ == "__main__":
         app, 
         host=active_config.HOST,
         port=active_config.PORT,
-        debug=active_config.DEBUG
+        debug=active_config.DEBUG,
+        allow_unsafe_werkzeug=True
     )

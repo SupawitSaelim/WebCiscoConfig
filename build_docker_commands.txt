@@ -1,1 +1,5 @@
 docker build -t  webappconfigcisco:v1.0 .
+docker tag webappconfigcisco:v1.0 supawitsaelim/webappconfigcisco:v1.0
+docker push supawitsaelim/webappconfigcisco:v1.0
+
+sudo docker run -d  -p 5000:5000  -e MONGO_URI=mongodb+srv://..../  supawitsaelim/webappconfigcisco:v2.0
