@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,700&display=swap');
 
-*{
+* {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -9,15 +9,15 @@
   font-family: 'Roboto', sans-serif;
 }
 
-body{
+body {
   background: #e1ecf2;
 }
 
-.wrapper{
+.wrapper {
   margin: 10px;
 }
 
-.wrapper .top_navbar{
+.wrapper .top_navbar {
   width: calc(100% - 20px);
   height: 60px;
   display: flex;
@@ -26,7 +26,7 @@ body{
   z-index: 1000;
 }
 
-.wrapper .top_navbar .hamburger{
+.wrapper .top_navbar .hamburger {
   width: 70px;
   height: 100%;
   background: #fff;
@@ -34,7 +34,7 @@ body{
   border-top-left-radius: 20px;
 }
 
-.wrapper .top_navbar .hamburger div{
+.wrapper .top_navbar .hamburger div {
   width: 35px;
   height: 4px;
   background: #92a6e2;
@@ -42,7 +42,7 @@ body{
   border-radius: 5px;
 }
 
-.wrapper .top_navbar .top_menu{
+.wrapper .top_navbar .top_menu {
   width: calc(100% - 70px);
   height: 100%;
   background: #fff;
@@ -51,21 +51,21 @@ body{
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
-.wrapper .top_navbar .top_menu .logo{
+.wrapper .top_navbar .top_menu .logo {
   color: #2e4ead;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 3px;
 }
 
-.wrapper .top_navbar .top_menu ul{
+.wrapper .top_navbar .top_menu ul {
   display: flex;
 }
 
-.wrapper .top_navbar .top_menu ul li a{
+.wrapper .top_navbar .top_menu ul li a {
   display: block;
   margin: 0px;
   width: 35px;
@@ -75,13 +75,14 @@ body{
   color: #2e4ead;
 }
 
-.wrapper .top_navbar .top_menu ul li a:hover{
+.wrapper .top_navbar .top_menu ul li a:hover {
   color: midnightblue
 }
 
-.wrapper .top_navbar .top_menu ul li a:hover i{
+.wrapper .top_navbar .top_menu ul li a:hover i {
   color: midnightblue
 }
+
 .sidebar {
   z-index: 1;
   position: relative;
@@ -136,7 +137,7 @@ body{
   transform: translateX(26px);
 }
 
-.wrapper .sidebar{
+.wrapper .sidebar {
   position: fixed;
   top: 70px;
   left: 10px;
@@ -145,20 +146,21 @@ body{
   height: calc(100% - 80px);
   border-bottom-left-radius: 20px;
   transition: all 0.3s ease;
-  transition: color 0.3s ease; /* เพิ่มการเปลี่ยนสีแบบนุ่มนวล */
+  transition: color 0.3s ease;
+  /* เพิ่มการเปลี่ยนสีแบบนุ่มนวล */
 }
 
-.wrapper .sidebar ul li a{
-    display: block;
-    padding: 20px;
-    color: #fff;
-    position: relative;
-    margin-bottom: 1px;
-    color: #92a6e2;
-    white-space: nowrap;
+.wrapper .sidebar ul li a {
+  display: block;
+  padding: 20px;
+  color: #fff;
+  position: relative;
+  margin-bottom: 1px;
+  color: #92a6e2;
+  white-space: nowrap;
 }
 
-.wrapper .sidebar ul li a:before{
+.wrapper .sidebar ul li a:before {
   content: "";
   position: absolute;
   top: 0;
@@ -169,36 +171,38 @@ body{
   display: none;
 }
 
-.wrapper .sidebar ul li a span.icon{
+.wrapper .sidebar ul li a span.icon {
   margin-right: 10px;
   display: inline-block;
 }
 
-.wrapper .sidebar ul li a span.title{
+.wrapper .sidebar ul li a span.title {
   display: inline-block;
 }
 
 .wrapper .sidebar ul li a:hover,
-.wrapper .sidebar ul li a.active{
+.wrapper .sidebar ul li a.active {
   transition: background-color 0.2s ease-in-out;
   background: #4360b5;
   color: #fff;
 }
 
 .wrapper .sidebar ul li a:hover:before,
-.wrapper .sidebar ul li a.active:before{
+.wrapper .sidebar ul li a.active:before {
   display: block;
 }
 
 .wrapper .main_container {
-  width: calc(100% - 220px); /* เปลี่ยนจาก 200px เป็น 220px เพื่อคำนึงถึงความกว้างของ sidebar */
+  width: calc(100% - 220px);
+  /* เปลี่ยนจาก 200px เป็น 220px เพื่อคำนึงถึงความกว้างของ sidebar */
   margin-top: 70px;
-  margin-left: 220px; /* เปลี่ยนจาก 200px เป็น 220px */
+  margin-left: 220px;
+  /* เปลี่ยนจาก 200px เป็น 220px */
   padding: 15px;
   transition: all 0.3s ease;
 }
 
-.wrapper .main_container .item{
+.wrapper .main_container .item {
   background: #fff;
   margin-bottom: 10px;
   padding: 15px;
@@ -206,31 +210,31 @@ body{
   line-height: 22px;
 }
 
-.wrapper.collapse .sidebar{
+.wrapper.collapse .sidebar {
   width: 70px;
 }
 
-.wrapper.collapse .sidebar ul li a{
-  text-align: center; 
+.wrapper.collapse .sidebar ul li a {
+  text-align: center;
 }
 
-.wrapper.collapse .sidebar ul li a span.icon{
+.wrapper.collapse .sidebar ul li a span.icon {
   margin: 0;
 }
 
-.wrapper.collapse .sidebar ul li a span.title{
+.wrapper.collapse .sidebar ul li a span.title {
   display: none;
 }
 
-.wrapper.collapse .main_container{
+.wrapper.collapse .main_container {
   width: (100% - 70px);
   margin-left: 70px;
 }
 
 
 .button-container {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
 .container {
@@ -241,65 +245,69 @@ body{
   padding: 60px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: calc(100% - 10px); /* ทำให้มีความกว้างที่เหลือจาก sidebar */
+  width: calc(100% - 10px);
+  /* ทำให้มีความกว้างที่เหลือจาก sidebar */
 }
 
 h1 {
-    text-align: center;
-    color: #333;
+  text-align: center;
+  color: #333;
 }
 
 form {
-    text-align: center;
+  text-align: center;
 }
 
 label {
-    display: block;
-    margin-bottom: 10px;
-    color: #555;
+  display: block;
+  margin-bottom: 10px;
+  color: #555;
 }
 
 input[type="text"],
 input[type="password"],
 input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
 input[type="text"],
 input[type="password"],
-input[type="number"]{
-  transition: border-color 0.3s ease, background-color 0.3s ease; /* เพิ่ม transition */
+input[type="number"] {
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  /* เพิ่ม transition */
 }
 
 input[type="text"]:hover {
-  border-color:#2e4ead
+  border-color: #2e4ead
 }
+
 input[type="password"]:hover {
-  border-color:#2e4ead
+  border-color: #2e4ead
 }
+
 input[type="number"]:hover {
-  border-color:#2e4ead
+  border-color: #2e4ead
 }
 
 /* Button styles */
 
 input[type="submit"] {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    cursor: pointer;
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 input[type="submit"]:hover {
-    background-color: #555;
+  background-color: #555;
 }
 
 
@@ -315,13 +323,14 @@ th {
   color: white;
 }
 
-th:hover{
+th:hover {
   transition: background-color 0.2s ease-in-out;
   background-color: #526cba;
   color: white;
 }
 
-th, td {
+th,
+td {
   padding: 10px;
   border: 1px solid #dcdcdc;
 }
@@ -340,7 +349,8 @@ select {
   cursor: pointer;
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
-select:hover{
+
+select:hover {
   border-color: #2e4ead;
 }
 
@@ -423,11 +433,11 @@ input[type="submit"]:hover {
 
 @keyframes spin {
   0% {
-      transform: rotate(0deg);
+    transform: rotate(0deg);
   }
 
   100% {
-      transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
@@ -439,9 +449,11 @@ input[type="submit"]:hover {
   display: inline-block;
   position: relative;
 }
+
 .status-connected {
   background-color: green;
 }
+
 .status-disconnected {
   background-color: red;
 }
@@ -493,6 +505,7 @@ input[type="submit"]:hover {
   transform: scale(0.95);
   background-color: #162c65;
 }
+
 .export-button {
   color: #2e4ead;
   border: none;
@@ -509,4 +522,91 @@ input[type="submit"]:hover {
 
 .export-button i {
   margin-right: 8px;
+}
+
+.sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.sortable::after {
+  content: '↕️';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+}
+
+.sortable.asc::after {
+  content: '⬆️';
+  opacity: 1;
+}
+
+.sortable.desc::after {
+  content: '⬇️';
+  opacity: 1;
+}
+
+/* เพิ่ม transition เพื่อให้การเปลี่ยน state ดูนุ่มนวลขึ้น */
+.sortable::after {
+  transition: opacity 0.2s ease;
+}
+
+.protocol-toggle {
+  display: inline-block;
+  height: 34px;
+  width: 60px;
+  position: relative;
+  margin-left: 10px;
+}
+
+.toggle-button {
+  width: 100%;
+  height: 100%;
+  background-color: #ccc;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: .4s;
+  position: relative;
+  border: none;
+}
+
+.toggle-button.on {
+  background-color: #4caf50;
+}
+
+.toggle-button.off {
+  background-color: #fd6262;
+}
+
+.toggle-knob {
+  width: 26px;
+  height: 26px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  transition: .4s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-button.on .toggle-knob {
+  transform: translateX(26px);
+}
+
+.toggle-button.off .toggle-knob {
+  transform: translateX(0);
+}
+
+.toggle-button.none .toggle-knob {
+  transform: translateX(13px);
+}
+
+.checkbox-wrapper-22 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
 }

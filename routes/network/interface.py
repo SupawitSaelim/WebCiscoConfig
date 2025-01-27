@@ -155,5 +155,8 @@ def configure_network_interface_with_status(device, *args):
         args[-1]['status'] = 'failed'
         args[-1]['error'] = error_message
     except Exception as e:
+        error_message = str(e)
+        if "Pattern not detected:" in error_message:
+            error_message = "Unable to access privileged mode (#). Please ensure your enable password or secret password is correct."
         args[-1]['status'] = 'failed'
-        args[-1]['error'] = str(e)
+        args[-1]['error'] = error_message

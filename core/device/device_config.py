@@ -58,7 +58,6 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
         net_connect.disconnect()
     except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
         print(f"Error connecting to {device['name']}: {e}")
-        # ส่ง error กลับไปให้ function ที่เรียกใช้
         raise
     except Exception as e:
         print(f"Unexpected error for {device['name']}: {e}")

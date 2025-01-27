@@ -123,7 +123,6 @@ def init_management_settings(device_collection):
 def configure_vty_console_with_status(device, *args, result=None):
     """Wrapper function for configure_vty_console that handles status updates."""
     try:
-        # Pass the required arguments, including disable_lldp, to configure_vty_console
         configure_vty_console(device, *args)
         if result is not None:
             result['status'] = 'success'
@@ -138,7 +137,9 @@ def configure_vty_console_with_status(device, *args, result=None):
             result['status'] = 'failed'
             result['error'] = error_message
     except Exception as e:
-        if result is not None:
-            result['status'] = 'failed'
-            result['error'] = str(e)
+        error_message = str(e)
+        if "Pattern not detected:" in error_message:  
+            error_message = "Unable to access privileged mode (#). Please ensure your enable password or secret password is correct."
+        result['status'] = 'failed'
+        result['error'] = error_message
 

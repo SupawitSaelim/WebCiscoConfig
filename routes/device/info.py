@@ -43,6 +43,11 @@ def init_device_info_routes(device_collection):
     @device_info_blueprint.route('/search_devices', methods=['GET'])
     def search_devices():
         search_query = request.args.get('search', '')
+        page = int(request.args.get('page', 1))
+        sort_column = request.args.get('sort_column')
+        sort_direction = request.args.get('sort_direction')
+        per_page = 10
+
         query = {}
         if search_query:
             query = {
@@ -53,7 +58,35 @@ def init_device_info_routes(device_collection):
                 ]
             }
 
-        results = list(device_collection.find(query).sort("timestamp", -1).limit(50))
+        total_results = device_collection.count_documents(query)
+        total_pages = (total_results + per_page - 1) // per_page
+
+        skip = (page - 1) * per_page
+
+        if sort_column and sort_direction:  # ต้องมีทั้ง column และ direction
+            if sort_column == 'name':
+                import re
+                def natural_sort_key(s):
+                    return [int(text) if text.isdigit() else text.lower()
+                        for text in re.split('([0-9]+)', s['name'])]
+                
+                results = list(device_collection.find(query))
+                results.sort(key=natural_sort_key, reverse=(sort_direction == 'desc'))
+                results = results[skip:skip + per_page]
+            else:
+                sort_field_map = {
+                    'ip': 'device_info.ip',
+                    'time': 'timestamp'
+                }
+                if sort_column in sort_field_map:
+                    mongodb_field = sort_field_map[sort_column]
+                    results = list(device_collection.find(query).sort(
+                        mongodb_field, 1 if sort_direction == 'asc' else -1
+                    ).skip(skip).limit(per_page))
+        else:
+            results = list(device_collection.find(query).sort(
+                'timestamp', -1
+            ).skip(skip).limit(per_page))
 
         for device in results:
             if "_id" in device:
@@ -62,7 +95,11 @@ def init_device_info_routes(device_collection):
                 utc_time = device["timestamp"]
                 device["timestamp"] = (utc_time + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M:%S')
 
-        return jsonify(results)
+        return jsonify({
+            "devices": results,
+            "total_pages": total_pages,
+            "current_page": page
+        })
 
     @device_info_blueprint.route('/delete', methods=['POST'])
     def delete_device(): 

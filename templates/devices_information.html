@@ -84,17 +84,7 @@
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <script src="../static/search.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#search-input").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-                $("table tbody tr").filter(function () {
-                    // ซ่อนเฉพาะแถวที่มีข้อมูล (ไม่ใช่แถวหัวข้อ)
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1 || $(this).find('th').length > 0);
-                });
-            });
-        });
-    </script>
+    <script src="../static/sortable.js"></script>
 </head>
 
 <body>
@@ -190,16 +180,16 @@
                 <h1 style="text-align: left;color: #2e4ead;">INFORMATION OF DEVICES</h1>
                 <br><br>
                 <input type="text" id="search-input" placeholder="Search devices..."
-                    style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;">
+                    style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;" autofocus>
                 <table>
                     <thead>
                         <tr>
-                            <th>Name devices</th>
-                            <th>IP Address</th>
+                            <th class="sortable" data-sort="name">Name devices</th>
+                            <th class="sortable" data-sort="ip">IP Address</th>
                             <th>SSH Username</th>
                             <th>SSH Password</th>
                             <th>Secret Password</th>
-                            <th>Created Time</th>
+                            <th class="sortable" data-sort="time">Created Time</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -273,7 +263,7 @@
                     {% if p == current_page %}
                     <span class="page-number current">{{ p }}</span>
                     {% else %}
-                    <a href="{{ url_for('device_info.devices_information', page=p) }}" class="page-number">{{ p }}</a>
+                    <a href="#" class="page-number" data-page="{{ p }}">{{ p }}</a>
                     {% endif %}
                     {% endfor %}
                 </div>

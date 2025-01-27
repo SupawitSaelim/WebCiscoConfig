@@ -106,6 +106,36 @@
     </script>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
+    <!-- Add this JavaScript to handle port refresh -->
+    <script>
+        async function refreshPorts() {
+            try {
+                const response = await fetch('/get_ports');
+                const ports = await response.json();
+                const select = document.getElementById('consoleport');
+                select.innerHTML = '<option value="">Select COM Port</option>';
+
+                ports.forEach(port => {
+                    const option = document.createElement('option');
+                    option.value = port.port;
+                    option.textContent = `${port.port} - ${port.description}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching ports:', error);
+            }
+        }
+
+        // Add refresh button next to the dropdown
+        document.querySelector('.input-container').innerHTML += `
+        <button type="button" onclick="refreshPorts()" style="margin-left: 10px;" title="Refresh COM ports">
+            <i class="fas fa-sync"></i>
+        </button>
+    `;
+
+        // Refresh ports when page loads
+        document.addEventListener('DOMContentLoaded', refreshPorts);
+    </script>
 </head>
 
 <body>
@@ -203,12 +233,16 @@
                 <br><br>
                 <form method="post" action="/initialization" onsubmit="return handleSubmit()">
                     <div class="input-container">
-                        <input type="text" name="consoleport" id="consoleport" placeholder="Comport" style="width: 49%;" title="Enter COM port (e.g., COM3) for serial connection"
-                        required>
-                    </div>
+                        <select name="consoleport" id="consoleport" style="width: 49%;" required>
+                            <option value="">Select COM Port</option>
+                            {% for port in available_ports %}
+                            <option value="{{ port.port }}">{{ port.port }} - {{ port.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div><br>
                     <div class="input-container">
-                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;" max="63"
-                            required title="(e.g.,) DSW1-B415">
+                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;"
+                            max="40" required title="(e.g.,) DSW1-B415">
                     </div>
                     <div class="input-container">
                         <input type="text" id="domainname" name="domainname" placeholder="Domain Name" required
@@ -255,28 +289,32 @@
                     </div> -->
                     <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
-                {% if success %}
+                <div id="error-message" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; white-space: pre-line; font-family: 'Sarabun', sans-serif;">
+                </div>
                 <script>
-                    alert("{{ success }}");
+                    document.addEventListener('DOMContentLoaded', function() {
+                        {% if error %}
+                            const errorDiv = document.getElementById('error-message');
+                            errorDiv.style.display = 'block';
+                            // ใช้ innerHTML แทน textContent และใช้ safe filter
+                            errorDiv.innerHTML = `{{ error|safe }}`.replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+                            document.getElementById("interface").focus();
+                        {% endif %}
+                    });
+                
+                    // แทนที่ alert scripts ที่มีอยู่
+                    {% if success %}
+                        alert("{{ success|safe }}");
+                    {% endif %}
+                
+                    {% if ip_duplicate %}
+                        alert("{{ ip_duplicate|safe }}");
+                    {% endif %}
+                
+                    {% if hostname_duplicate %}
+                        alert("{{ hostname_duplicate|safe }}");
+                    {% endif %}
                 </script>
-                {% endif %}
-                {% if error %}
-                <script>
-                    alert("{{ error }}");
-                    document.getElementById("interface").focus();
-                </script>
-                {% endif %}
-
-                {% if ip_duplicate %}
-                <script>
-                    alert("{{ ip_duplicate }}");
-                </script>
-                {% endif %}
-                {% if hostname_duplicate %}
-                <script>
-                    alert("{{ hostname_duplicate }}");
-                </script>
-                {% endif %}
             </div>
         </div>
     </div>

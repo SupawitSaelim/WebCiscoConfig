@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Spanning-Tree Conf. </title>
     <style>
     </style>
@@ -38,6 +37,79 @@
         });
     </script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function handlePortFastToggle() {
+                const button = document.getElementById('portfastToggle');
+                const interfacesInput = document.getElementById('portfast_interfaces');
+
+                // Create hidden inputs for backend compatibility
+                const enableInput = document.createElement('input');
+                enableInput.type = 'hidden';
+                enableInput.name = 'portfast_enable';
+
+                const disableInput = document.createElement('input');
+                disableInput.type = 'hidden';
+                disableInput.name = 'portfast_disable';
+
+                // Add hidden inputs to form
+                button.form.appendChild(enableInput);
+                button.form.appendChild(disableInput);
+
+                let currentState = 'none';
+
+                button.addEventListener('click', function () {
+                    switch (currentState) {
+                        case 'on':
+                            currentState = 'none';
+                            enableInput.value = '';
+                            disableInput.value = '';
+                            interfacesInput.style.display = 'none';
+                            interfacesInput.name = 'portfast_interfaces';
+                            interfacesInput.placeholder = 'Select toggle to Enable/Disable PortFast';
+                            break;
+                        case 'none':
+                            currentState = 'off';
+                            enableInput.value = '';
+                            disableInput.value = 'on';
+                            interfacesInput.style.display = 'inline-block';
+                            interfacesInput.name = 'portfast_int_disable';
+                            interfacesInput.placeholder = 'Enter interfaces to DISABLE PortFast (e.g., g1/0/1-24, fa0/1)';
+                            break;
+                        case 'off':
+                            currentState = 'on';
+                            enableInput.value = 'on';
+                            disableInput.value = '';
+                            interfacesInput.style.display = 'inline-block';
+                            interfacesInput.name = 'portfast_int_enable';
+                            interfacesInput.placeholder = 'Enter interfaces to ENABLE PortFast (e.g., g1/0/1-24, fa0/1)';
+                            break;
+                    }
+
+                    button.className = `toggle-button ${currentState}`;
+                });
+            }
+
+            handlePortFastToggle();
+        });</script>
+    <script>
+        function validatePortFastConfiguration() {
+            const portfastToggle = document.getElementById('portfastToggle');
+            const interfacesInput = document.getElementById('portfast_interfaces');
+
+            // Get current state by checking the complete class name
+            const currentState = portfastToggle.className.split(' ')[1]; // This will get 'none', 'on', or 'off'
+
+            // Only validate if state is explicitly 'on' or 'off'
+            if (currentState === 'on' || currentState === 'off') {
+                if (interfacesInput.value.trim() === '') {
+                    const action = currentState === 'on' ? 'ENABLE' : 'DISABLE';
+                    alert(`Please enter interfaces to ${action} PortFast.`);
+                    return false;
+                }
+            }
+
+            return true;
+        }
         function validateDeviceSelection() {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
@@ -71,26 +143,6 @@
 
             return true;
         }
-
-        function validatePortFastConfiguration() {
-            const portfastEnableCheckbox = document.getElementById("portfast_enable");
-            const portfastDisableCheckbox = document.getElementById("portfast_disable");
-            const portfastEnableInput = document.getElementById("portfast_int_enable");
-            const portfastDisableInput = document.getElementById("portfast_int_disable");
-
-            if (portfastEnableCheckbox.checked && portfastEnableInput.value.trim() === "") {
-                alert("Please enter interfaces for Enable PortFast.");
-                return false; // หยุดการส่งฟอร์ม
-            }
-
-            if (portfastDisableCheckbox.checked && portfastDisableInput.value.trim() === "") {
-                alert("Please enter interfaces for Disable PortFast.");
-                return false; // หยุดการส่งฟอร์ม
-            }
-
-            return true;
-        }
-
 
         function handleSubmit() {
 
@@ -128,39 +180,6 @@
                 rootSecondaryFields.style.display = this.checked ? 'block' : 'none';
             });
         });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // ฟังก์ชันในการแสดง/ซ่อนช่องกรอกสำหรับ PortFast
-            function togglePortFastInputFields() {
-                const enablePortFastField = document.getElementById('portfast_int_enable');
-                const disablePortFastField = document.getElementById('portfast_int_disable');
-
-                if (document.getElementById('portfast_enable').checked) {
-                    enablePortFastField.style.display = 'block';
-                    disablePortFastField.style.display = 'none';
-                } else if (document.getElementById('portfast_disable').checked) {
-                    disablePortFastField.style.display = 'block';
-                    enablePortFastField.style.display = 'none';
-                } else {
-                    enablePortFastField.style.display = 'none';
-                    disablePortFastField.style.display = 'none';
-                }
-            }
-
-            document.getElementById('portfast_enable').addEventListener('change', function () {
-                document.getElementById('portfast_disable').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                togglePortFastInputFields(); // อัพเดตการแสดงช่องกรอก
-            });
-
-            document.getElementById('portfast_disable').addEventListener('change', function () {
-                document.getElementById('portfast_enable').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                togglePortFastInputFields(); // อัพเดตการแสดงช่องกรอก
-            });
-
-            togglePortFastInputFields();
-        });
-
     </script>
 </head>
 
@@ -255,14 +274,14 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Spanning tree SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
@@ -328,28 +347,21 @@
                         <br>
                     </div><br><br>
 
-                    <!-- PortFast -->
+                    <!-- PortFast Configuration Section -->
                     <h3 style="color: #2e4ead;text-align: left;">PortFast Configuration</h3><br>
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch" title="BPDU-Guard will be enabled">
-                            <input type="checkbox" id="portfast_enable" name="portfast_enable">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="portfast_disable" name="portfast_disable">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <!-- Input fields for VLAN IDs -->
-                        <input type="text" id="portfast_int_enable" name="portfast_int_enable"
-                            placeholder="Enter Interfaces for enable PortFast (e.g.,e2/0-3,e1/1)"
-                            style="display: none; width: 30%;">
-                        <input type="text" id="portfast_int_disable" name="portfast_int_disable"
-                            placeholder="Enter Interfaces for disable PortFast (e.g.,e2/0-3,e1/1)"
-                            style="display: none; width: 30%;">
+                    <div class="checkbox-wrapper-22" style="display: flex; align-items: center; gap: 10px;">
+                        <label style="color: #2e4ead; font-weight: 1000; margin: 0;">PortFast</label>
+                        <span class="question-mark"
+                            title="PortFast immediately transitions the port into Spanning Tree forwarding state, bypassing the listening and learning states"
+                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">?</span>
+                        <div class="protocol-toggle" style="display: inline-block; margin: 0;">
+                            <button type="button" id="portfastToggle" class="toggle-button none">
+                                <div class="toggle-knob"></div>
+                            </button>
+                        </div>
+                        <input type="text" id="portfast_interfaces" name="portfast_interfaces"
+                            placeholder="Select toggle to Enable/Disable PortFast"
+                            style="display: none; flex: 1; min-width: 200px; max-width: 500px; margin-top: 20px;">
                     </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>

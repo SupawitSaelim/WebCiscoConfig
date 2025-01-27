@@ -1,12 +1,36 @@
 import serial
 import time
+from serial.tools import list_ports
+
+def get_available_ports():
+    ports = list_ports.comports()
+    return [{"port": port.device, "description": port.description} for port in ports]
+
+def validate_port(consoleport):
+    """Validate if the selected port exists"""
+    available_ports = get_available_ports()
+    available_port_names = [p["port"] for p in available_ports]
+    
+    if consoleport not in available_port_names:
+        return {
+            "valid": False,
+            "error": "Invalid COM port selected",
+            "message": f"The selected port '{consoleport}' is not available.",
+            "available_ports": available_ports
+        }
+    return {"valid": True}
+
+def get_available_interfaces(ser):
+    """Get list of available interfaces from the device"""
+    send_command(ser, 'enable')
+    output = send_command(ser, 'show ip int br')
+    output = output.replace('&lt;br&gt;', '\n').replace('&#39;', "'")
+    return output
 
 def send_command(ser, command):
-    # Send the command to the terminal
     ser.write(command.encode() + b'\r\n')  # Ensure the command is followed by a newline and carriage return
     time.sleep(3)  # Allow the terminal time to process the command
 
-    # Read the output
     output = ''
     while ser.in_waiting > 0:
         output += ser.read(ser.in_waiting).decode('utf-8')  # Read all available data in the buffer
@@ -35,70 +59,94 @@ def convert_cidr_to_netmask(cidr):
 
 def commands(consoleport, hostname, domainname, privilege_password, ssh_username, ssh_password, interface, ip_address, save_startup):
     print(consoleport, hostname, domainname, privilege_password, ssh_username, ssh_password, interface, ip_address, save_startup)
-    
-    # Open serial port connection
-    ser = serial.Serial(port=consoleport, baudrate=9600, timeout=3)
-    
-    # Split IP and CIDR if necessary
-    if '/' in ip_address:
-        ip, cidr = ip_address.split('/')
-        subnet_mask = convert_cidr_to_netmask(ip_address)
-        print(subnet_mask)
-    else:
-        ip = ip_address
-        subnet_mask = "255.255.255.0"
+    port_check = validate_port(consoleport)
+    if not port_check["valid"]:
+        return port_check
 
-    # Send an empty command to capture the initial output (like configuration prompts)
-    output = send_command(ser, '')
-    print("1", output)  # Debugging: Check what we get after sending the command
+    try:
+        ser = serial.Serial(port=consoleport, baudrate=9600, timeout=3)
+    except serial.SerialException as e:
+        return {
+            "valid": False,
+            "error": "COM Port Error",
+            "message": f"Could not open port {consoleport}: {str(e)}",
+            "available_ports": get_available_ports()
+        }
 
-    # Check for the initial configuration dialog prompt
-    if "Would you like to enter the initial configuration dialog? [yes/no]:" in output:
-        print("Detected terminal asking for initial configuration, sending 'no' and waiting.")
-        send_command(ser, 'no')  # Send 'no' to skip initial configuration dialog
+    try:
+        if '/' in ip_address:
+            ip, cidr = ip_address.split('/')
+            subnet_mask = convert_cidr_to_netmask(ip_address)
+        else:
+            ip = ip_address
+            subnet_mask = "255.255.255.0"
+
+        # Initial dialog check and configuration - keeping this exactly as is
+        output = send_command(ser, '')
         
-        # Wait until we enter the `>` prompt (indicating we're in user exec mode)
-        while '>' not in output:
-            send_command(ser, '\n')  # Send a newline (Enter) to continue the terminal's prompt
-            output = send_command(ser, '')  # Read the output after sending newline
-            print(f"Waiting for prompt: {output}")  # Debugging: Check the output
+        if "Would you like to enter the initial configuration dialog? [yes/no]:" in output:
+            print("Detected terminal asking for initial configuration, sending 'no' and waiting.")
+            send_command(ser, 'no')
+            
+            while '>' not in output:
+                send_command(ser, '\n')
+                output = send_command(ser, '')
+                print(f"Waiting for prompt: {output}")
 
-        print("Entered user exec mode, proceeding to enable mode.")
-    else:
-        print("Initial configuration prompt not detected, continuing...")
+            print("Entered user exec mode, proceeding to enable mode.")
+        else:
+            print("Initial configuration prompt not detected, continuing...")
 
-    # Continue with the configuration commands
-    send_command(ser, 'enable')
-    send_command(ser, 'conf t')
-    output = send_command(ser, f'int {interface}')
-    output = output.strip() 
-    output = output.replace("\r\n", " ").replace("\n", " ")
-    if "Invalid input detected" in output:
+        interfaces_output = get_available_interfaces(ser)
+
+        # Rest of the configuration commands - keeping these exactly as is
+        send_command(ser, 'enable')
+        send_command(ser, 'conf t')
+        output = send_command(ser, f'int {interface}')
+        output = output.strip() 
+        output = output.replace("\r\n", " ").replace("\n", " ")
+        
+        if "Invalid input detected" in output or "^" in output:
+            send_command(ser, 'end')
+            ser.close()
+            return {
+                "error": "Invalid Interface",
+                "message": f"The interface '{interface}' is not valid or doesn't exist on this device.",
+                "available_interfaces": interfaces_output
+            }
+
+        send_command(ser, f'int {interface}')
+        send_command(ser, f'no switchport')
+        if ip_address == "dhcp":
+            send_command(ser, 'ip address dhcp')
+        else:
+            send_command(ser, f'ip address {ip} {subnet_mask}')
+        send_command(ser, 'no shutdown')
+
+        send_command(ser, 'conf t')
+        send_command(ser, f'hostname {hostname}')
+        send_command(ser, f'ip domain-name {domainname}')
+        send_command(ser, f'enable password {privilege_password}')
+        send_command(ser, f'username {ssh_username} password {ssh_password}')
+        send_command(ser, 'line vty 0 4')
+        send_command(ser, 'transport input all')
+        send_command(ser, 'login local')
+        send_command(ser, 'crypto key generate rsa general-keys modulus 1024')
+        send_command(ser, 'end')
+        
+        if save_startup:
+            send_command(ser, 'write memory')
+
         ser.close()
-        print("Detect err!")
-        return "Invalid interface input. Please provide a valid interface."
+        return None  # Success case
 
-    send_command(ser, f'int {interface}')  # Configure interface
-    send_command(ser, f'no switchport')  # Configure interface
-    if ip_address == "dhcp":
-        send_command(ser, 'ip address dhcp')  # Set IP to DHCP
-    else:
-        send_command(ser, f'ip address {ip} {subnet_mask}')  # Set static IP and subnet mask
-    send_command(ser, 'no shutdown')  # Enable interface (no shutdown)
-
-    send_command(ser, 'conf t')  # Enter global configuration mode
-    send_command(ser, f'hostname {hostname}')  # Set the hostname
-    send_command(ser, f'ip domain-name {domainname}')  # Set the domain name
-    send_command(ser, f'enable password {privilege_password}')  # Set privilege password
-    send_command(ser, f'username {ssh_username} password {ssh_password}')  # Set SSH username and password
-    send_command(ser, 'line vty 0 4')  # Configure VTY lines for SSH access
-    send_command(ser, 'transport input all')  # Allow SSH input on VTY lines
-    send_command(ser, 'login local')  # Enable local login
-    send_command(ser, 'crypto key generate rsa general-keys modulus 1024')  # Generate RSA keys
-    send_command(ser, 'end')  # Exit configuration mode
-    if save_startup:
-        send_command(ser, 'write memory')  # Save the configuration
-
-    # Close serial connection
-    ser.close()
+    except Exception as e:
+        if ser and ser.is_open:
+            ser.close()
+        return {
+            "valid": False,
+            "error": "Configuration Error",
+            "message": str(e).replace('&#39;', "'"),
+            "available_ports": get_available_ports()
+        }
 

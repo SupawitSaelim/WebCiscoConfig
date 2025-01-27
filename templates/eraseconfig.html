@@ -98,6 +98,7 @@
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <script src="../static/search_ease.js"></script>
+    <script src="../static/sortable.js"></script>
 </head>
 
 <body>
@@ -198,13 +199,15 @@
                 </script>
                 {% endif %}
                 {% endwith %}
+                
+                <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">DEVICE CONFIGURATION RESET</h1><br>
                 <input type="text" id="search-input" placeholder="Search devices..."
                     style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Name devices</th>
-                            <th>IP Address</th>
+                            <th class="sortable" data-sort="name">Name devices</th>
+                            <th class="sortable" data-sort="ip">IP Address</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -257,7 +260,7 @@
                     {% if p == current_page %}
                     <span class="page-number current">{{ p }}</span>
                     {% else %}
-                    <a href="{{ url_for('erase_config.erase_config_page', page=p) }}" class="page-number">{{ p }}</a>
+                    <a href="#" class="page-number" data-page="{{ p }}">{{ p }}</a>
                     {% endif %}
                     {% endfor %}
                 </div>

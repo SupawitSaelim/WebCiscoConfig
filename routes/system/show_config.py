@@ -115,7 +115,10 @@ def init_show_config_routes(device_collection):
                     flash(f"Authentication failed for device {device_info['host']}. Please verify the username and password.", "danger")
                     return redirect(url_for('show_config_routes.show_config_page'))
                 except Exception as e:
-                    flash(f"An unexpected error occurred: {str(e)}", "danger")
+                    error_message = str(e)
+                    if "Pattern not detected:" in error_message: 
+                        error_message = "Unable to access privileged mode (#). Please ensure your enable password or secret password is correct."
+                    flash(f"An unexpected error occurred: {error_message}", "danger")
                     return redirect(url_for('show_config_routes.show_config_page'))
 
         return render_template('showconfig.html', cisco_devices=cisco_devices)

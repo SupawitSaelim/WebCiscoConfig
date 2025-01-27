@@ -27,8 +27,11 @@ def configure_eigrp_route_with_status(device, process_id, router_id, destination
         result['status'] = 'failed'
         result['error'] = error_message
     except Exception as e:
+        error_message = str(e)
+        if "Pattern not detected:" in error_message: 
+            error_message = "Unable to access privileged mode (#). Please ensure your enable password or secret password is correct."
         result['status'] = 'failed'
-        result['error'] = str(e)
+        result['error'] = error_message
 
 def init_eigrp_routes(device_collection):
     @eigrp_routes.route('/eigrp_page', methods=['GET'])

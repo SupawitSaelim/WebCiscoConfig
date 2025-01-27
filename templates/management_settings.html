@@ -37,6 +37,53 @@
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
     <script>
+        window.onload = function () {
+            toggleIpInput();
+        };
+
+        // เพิ่มโค้ด JavaScript ใหม่ตรงนี้
+        document.addEventListener('DOMContentLoaded', function () {
+            function handleToggle(buttonId, enableId, disableId) {
+                const button = document.getElementById(buttonId);
+                const enableInput = document.createElement('input');
+                enableInput.type = 'hidden';
+                enableInput.name = enableId;
+
+                const disableInput = document.createElement('input');
+                disableInput.type = 'hidden';
+                disableInput.name = disableId;
+
+                button.form.appendChild(enableInput);
+                button.form.appendChild(disableInput);
+
+                let currentState = 'none';
+
+                button.addEventListener('click', function () {
+                    switch (currentState) {
+                        case 'on':
+                            currentState = 'none';
+                            enableInput.value = '';
+                            disableInput.value = '';
+                            break;
+                        case 'none':
+                            currentState = 'off';
+                            enableInput.value = '';
+                            disableInput.value = 'on';
+                            break;
+                        case 'off':
+                            currentState = 'on';
+                            enableInput.value = 'on';
+                            disableInput.value = '';
+                            break;
+                    }
+
+                    button.className = `toggle-button ${currentState}`;
+                });
+            }
+
+            handleToggle('cdpToggle', 'enable_cdp', 'disable_cdp');
+            handleToggle('lldpToggle', 'enable_lldp', 'disable_lldp');
+        });
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
@@ -198,13 +245,6 @@
                             <h4 style="display: none;">Refresh</h4>
                         </a>
                     </li>
-                    <!-- <form method="POST" action="/logout" style="display: inline;">
-                        <button type="submit" title="Logout"
-                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
-                            <i class="fas fa-sign-out-alt" style="font-size: 24px; margin-right: 8px;"></i>
-                            <span style="display: none;">Logout</span>
-                        </button>
-                    </form> -->
                 </ul>
             </div>
         </div>
@@ -269,14 +309,14 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Management SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
@@ -346,7 +386,7 @@
                                     <br>
                                 </div>
                             </div>
-                        </div><br><br>
+                        </div>
                     </div>
                     <!-- Console -->
                     <div>
@@ -483,46 +523,27 @@
                                 title="Enter the physical location of the SNMP device, e.g., server room or data center."><br><br>
                         </div>
                     </div>
-                    <!-- CDP -->
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">CDP</label>
                         <span class="question-mark"
                             title="CDP (Cisco Discovery Protocol) is a proprietary protocol used by Cisco devices to discover and share information about directly connected devices."
-                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
-                            ?
-                        </span><br><br>
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_cdp" name="enable_cdp">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_cdp" name="disable_cdp">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
+                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">?</span>
+                        <div class="protocol-toggle" style="margin-top: 10px;">
+                            <button type="button" id="cdpToggle" class="toggle-button none">
+                                <div class="toggle-knob"></div>
+                            </button>
+                        </div>
                     </div>
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">LLDP</label>
                         <span class="question-mark"
                             title="LLDP (Link Layer Discovery Protocol) is an open standard protocol used by devices to advertise and discover information about directly connected devices in a network."
-                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
-                            ?
-                        </span><br><br>
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_lldp" name="enable_lldp">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_lldp" name="disable_lldp">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
+                            style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; margin-left: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">?</span>
+                        <div class="protocol-toggle">
+                            <button type="button" id="lldpToggle" class="toggle-button none">
+                                <div class="toggle-knob"></div>
+                            </button>
+                        </div>
                     </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
