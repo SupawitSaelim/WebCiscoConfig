@@ -18,8 +18,9 @@
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
+            const hostnameLabel = document.querySelector('label[for="many_name"]');
 
-            // ซ่อน dropdown ถ้ามีการกรอกข้อมูลใน many_hostname
+            // จัดการการแสดงผลเมื่อมีการพิมพ์ใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -28,13 +29,16 @@
                 }
             });
 
-            // ซ่อนช่อง many_hostname เมื่อเลือกอุปกรณ์จาก dropdown
+            // จัดการการแสดงผลเมื่อมีการเลือกจาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
+                    // แสดงทั้ง input และ label เมื่อเลือก "Please Select"
                     manyHostnameInput.style.display = "block";
+                    hostnameLabel.style.display = "block";
                 } else {
+                    // ซ่อนทั้ง input และ label เมื่อเลือกอุปกรณ์
                     manyHostnameInput.style.display = "none";
+                    hostnameLabel.style.display = "none";
                 }
             });
         });
@@ -271,12 +275,10 @@
                     <h3 style="color: #2e4ead; text-align: left;">Username and Password Management</h3>
                     <div class="form-container route_pair">
                         <div class="form-group">
-                            <input type="text" name="username" placeholder="Username"
-                                title="Enter device username">
+                            <input type="text" name="username" placeholder="Username" title="Enter device username">
                         </div>
                         <div class="form-group">
-                            <input type="password" name="password" placeholder="Password"
-                                title="Enter device password">
+                            <input type="password" name="password" placeholder="Password" title="Enter device password">
                         </div>
                     </div>
 

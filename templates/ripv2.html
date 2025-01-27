@@ -91,6 +91,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
+            const hostnameLabel = document.querySelector('label[for="many_name"]');
 
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
@@ -102,9 +103,13 @@
 
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
+                    // แสดงทั้ง input และ label เมื่อเลือก "Please Select"
                     manyHostnameInput.style.display = "block";
+                    hostnameLabel.style.display = "block";
                 } else {
+                    // ซ่อนทั้ง input และ label เมื่อเลือกอุปกรณ์
                     manyHostnameInput.style.display = "none";
+                    hostnameLabel.style.display = "none";
                 }
             });
         });

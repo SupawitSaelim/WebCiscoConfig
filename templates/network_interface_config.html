@@ -15,7 +15,9 @@
         document.addEventListener("DOMContentLoaded", function () {
             const deviceDropdown = document.getElementById("device_dropdown");
             const manyHostnameInput = document.getElementById("many_hostname");
+            const hostnameLabel = document.querySelector('label[for="many_name"]');
 
+            // จัดการการแสดงผลเมื่อมีการพิมพ์ใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -24,16 +26,19 @@
                 }
             });
 
+            // จัดการการแสดงผลเมื่อมีการเลือกจาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงช่องกรอก many_hostname เมื่อเลือก "None"
+                    // แสดงทั้ง input และ label เมื่อเลือก "Please Select"
                     manyHostnameInput.style.display = "block";
+                    hostnameLabel.style.display = "block";
                 } else {
+                    // ซ่อนทั้ง input และ label เมื่อเลือกอุปกรณ์
                     manyHostnameInput.style.display = "none";
+                    hostnameLabel.style.display = "none";
                 }
             });
         });
-
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -280,14 +285,14 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">network interface SETTINGS</h1>
                 <br>
                 <h3 style="color: #2e4ead;">Select Device:</h3><br>
@@ -403,7 +408,7 @@
                         <option value="full">Full</option>
                         <option value="half">Half</option>
                     </select>
-                    <input style="margin-left: 90%;"class="fix-button" type="submit" value="Submit">
+                    <input style="margin-left: 90%;" class="fix-button" type="submit" value="Submit">
                 </form>
             </div>
         </div>

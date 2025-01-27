@@ -13,26 +13,30 @@ def init_security_check_routes(device_collection):
             per_page = 10
             skip = (page - 1) * per_page
 
-            # Create aggregation pipeline to sort devices
+            # Create aggregation pipeline to sort devices by warning count
             pipeline = [
                 {
                     "$addFields": {
-                        "hasWarnings": {
+                        "warningCount": {
                             "$cond": [
-                                {"$and": [
-                                    {"$isArray": "$analysis.warnings"},
-                                    {"$gt": [{"$size": "$analysis.warnings"}, 0]}
-                                ]},
-                                1,  # devices with warnings
-                                0   # devices without warnings
+                                {
+                                    "$and": [
+                                        {"$isArray": "$analysis.warnings"},
+                                        {"$gt": [{"$size": "$analysis.warnings"}, 0]}
+                                    ]
+                                },
+                                {"$size": "$analysis.warnings"},  # actual count if warnings exist
+                                0  # 0 if no warnings
                             ]
                         }
                     }
                 },
-                {"$sort": {
-                    "hasWarnings": -1,  # Sort by warning status (1 first, then 0)
-                    "name": 1  # Secondary sort by name
-                }},
+                {
+                    "$sort": {
+                        "warningCount": -1,  # Sort by warning count (descending)
+                        "name": 1  # Secondary sort by name
+                    }
+                },
                 {"$skip": skip},
                 {"$limit": per_page}
             ]
