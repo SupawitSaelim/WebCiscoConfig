@@ -229,90 +229,87 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="color:#2e4ead;text-align: left;text-transform: uppercase;">Device Initialization</h1>
-                <br><br>
+                <h1 style="color:#2e4ead;text-align: left;text-transform: uppercase;">Device Initialization</h1><br><br>
                 <form method="post" action="/initialization" onsubmit="return handleSubmit()">
-                    <div class="input-container">
-                        <select name="consoleport" id="consoleport" style="width: 49%;" required>
+                    <!-- Console Connection -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Console Connection</div>
+                        <select name="consoleport" id="consoleport" required>
                             <option value="">Select COM Port</option>
                             {% for port in available_ports %}
                             <option value="{{ port.port }}">{{ port.port }} - {{ port.description }}</option>
                             {% endfor %}
                         </select>
-                    </div><br>
-                    <div class="input-container">
-                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" style="width: 49%;"
-                            max="40" required title="(e.g.,) DSW1-B415">
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="domainname" name="domainname" placeholder="Domain Name" required
-                            title="(e.g.,) kmutnb.ac.th">
-                        <input type="password" id="privilegepassword" name="privilegepassword"
-                            placeholder="Privilege Password" required
-                            title="Password for the privilege mode (must be in English)">
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required
-                            title="Username for SSH login">
-                        <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password" required
-                            title="Password for SSH login">
                     </div>
 
-                    <!-- Interface Type Dropdown -->
-                    <div class="input-container">
+                    <!-- Device Identity -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Device Identity</div>
+                        <input type="text" name="hostname" id="hostname" placeholder="Hostname" max="40" required
+                            title="(e.g.,) DSW1-B415">
+                        <input type="text" id="domainname" name="domainname" placeholder="Domain Name" required
+                            title="(e.g.,) kmutnb.ac.th">
+                    </div>
+                    <!-- Authentication Configuration -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Authentication Settings</div>
+                        <div class="input-container">
+                            <input type="password" id="privilegepassword" name="privilegepassword"
+                                placeholder="Privilege Password" required
+                                title="Password for the privilege mode (must be in English)">
+                        </div>
+                        <div class="input-container">
+                            <input type="text" id="ssh_username" name="ssh_username" placeholder="SSH username" required
+                                title="Username for SSH login">
+                            <input type="password" id="ssh_password" name="ssh_password" placeholder="SSH password"
+                                required title="Password for SSH login">
+                        </div>
+                    </div>
+
+                    <!-- Network Configuration -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Network Configuration</div>
                         <input type="text" id="interface" name="interface" placeholder="Interface" required
                             title="Specify the interface (e.g., fa0/1 or vlan1) used to assign IP for network connectivity">
-                        <select id="interfaceType" name="interfaceType" onchange="toggleIpInput()" style="width: 40%;"
-                            required>
+                        <select id="interfaceType" name="interfaceType" onchange="toggleIpInput()" required>
                             <option value="Manual">Manual</option>
                             <option value="DHCP">DHCP</option>
                         </select>
+                        <p id="dhcpMessage" style="display: none;"><br>
+                            If you select DHCP, the device will not be inserted into the database.
+                        </p>
+                        <div id="ipAddressInput">
+                            <input type="text" id="ip_address" name="ip_address"
+                                placeholder="Enter IP Address (e.g., 192.168.0.1/24)">
+                        </div>
                     </div>
-                    <!-- Message to display when DHCP is selected -->
-                    <p id="dhcpMessage" style="display: none; color: red;">If you select DHCP, the device will not be
-                        inserted into the database.</p>
-
-                    <!-- IP Address Input Field (shown only if "Manual" is selected) -->
-                    <div id="ipAddressInput">
-                        <input type="text" id="ip_address" name="ip_address"
-                            placeholder="Enter IP Address (e.g., 192.168.0.1/24)">
-                    </div>
-                    <br><br>
-
-                    <!-- Save to startup config checkbox
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;">Save</label>
-                        <label class="switch" title="Save to startup-config">
-                            <input type="checkbox" id="save_startup" name="save_startup" value="true">
-                            <span class="slider"></span>
-                        </label>
-                    </div> -->
                     <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
-                <div id="error-message" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; white-space: pre-line; font-family: 'Sarabun', sans-serif;">
+                <div id="error-message"
+                    style="display: none; margin-top: 20px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; white-space: pre-line; font-family: 'Sarabun', sans-serif;">
                 </div>
                 <script>
-                    document.addEventListener('DOMContentLoaded', function() {
+                    document.addEventListener('DOMContentLoaded', function () {
                         {% if error %}
-                            const errorDiv = document.getElementById('error-message');
-                            errorDiv.style.display = 'block';
-                            // ใช้ innerHTML แทน textContent และใช้ safe filter
-                            errorDiv.innerHTML = `{{ error|safe }}`.replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-                            document.getElementById("interface").focus();
+                        const errorDiv = document.getElementById('error-message');
+                        errorDiv.style.display = 'block';
+                        // ใช้ innerHTML แทน textContent และใช้ safe filter
+                        errorDiv.innerHTML = `{{ error|safe }}`.replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+                        document.getElementById("interface").focus();
                         {% endif %}
                     });
-                
+
                     // แทนที่ alert scripts ที่มีอยู่
                     {% if success %}
-                        alert("{{ success|safe }}");
+                    alert("{{ success|safe }}");
                     {% endif %}
-                
+
                     {% if ip_duplicate %}
-                        alert("{{ ip_duplicate|safe }}");
+                    alert("{{ ip_duplicate|safe }}");
                     {% endif %}
-                
+
                     {% if hostname_duplicate %}
-                        alert("{{ hostname_duplicate|safe }}");
+                    alert("{{ hostname_duplicate|safe }}");
                     {% endif %}
                 </script>
             </div>

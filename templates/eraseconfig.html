@@ -189,6 +189,7 @@
             </ul>
         </div>
         <div class="main_container">
+            <!-- Device Configuration Reset Table -->
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -199,47 +200,60 @@
                 </script>
                 {% endif %}
                 {% endwith %}
-                
-                <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">DEVICE CONFIGURATION RESET</h1><br>
-                <input type="text" id="search-input" placeholder="Search devices..."
-                    style="margin-bottom: 10px; padding: 5px; width: 100%; font-size: 16px;">
-                <table>
+
+                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">DEVICE CONFIGURATION RESET</h1>
+                <br>
+
+                <input type="text" id="search-input" placeholder="Search devices..." autofocus
+                    style="margin-bottom: 20px; padding: 5px; width: 100%; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+                <table
+                    style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
                     <thead>
-                        <tr>
-                            <th class="sortable" data-sort="name">Name devices</th>
-                            <th class="sortable" data-sort="ip">IP Address</th>
-                            <th>Actions</th>
+                        <tr style="background-color: #2e4ead; color: white;">
+                            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;" class="sortable"
+                                data-sort="name">Name devices</th>
+                            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;" class="sortable"
+                                data-sort="ip">IP Address</th>
+                            <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if cisco_devices %}
                         {% for device in cisco_devices %}
-                        <tr>
-                            <td>{{ device.name }}</td>
-                            <td>{{ device.device_info.ip }}</td>
-                            <td style="align-items: center;">
-                                <div class="action-buttons" style="align-items: center;">
-                                    <!-- ปุ่มลบ -->
+                        <tr style="border-bottom: 1px solid #dddddd; background-color: {% if loop.index is even %}#f8f9fc{% else %}#ffffff{% endif %};"
+                            onmouseover="this.style.backgroundColor='#f2f2f2'"
+                            onmouseout="this.style.backgroundColor='{% if loop.index is even %}#f8f9fc{% else %}#ffffff{% endif %}'">
+                            <td style="padding: 12px 15px; border: 1px solid #ddd;">{{ device.name }}</td>
+                            <td style="padding: 12px 15px; border: 1px solid #ddd;">{{ device.device_info.ip }}</td>
+                            <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: center;">
+                                <div class="action-buttons" style="display: flex; justify-content: center; gap: 10px;">
+                                    <!-- Erase Button -->
                                     <form method="POST" action="{{ url_for('erase_config.erase_device') }}"
                                         onsubmit="return confirm('Are you sure you want to erase the configuration for {{ device.name }}? Please note that the system will reload after the configuration is erased.') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
-                                        <button type="submit" class="action-button erase-button" title="Erase">
+                                        <button type="submit" class="action-button erase-button" title="Erase"
+                                            style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 5px;">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
-                                    <!-- ปุ่มรีโหลด -->
+
+                                    <!-- Reload Button -->
                                     <form method="POST" action="{{ url_for('erase_config.reload_device') }}"
                                         onsubmit="return confirm('Are you sure you want to reload the configuration for {{ device.name }}?') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
-                                        <button type="submit" class="action-button reload-button" title="Reload">
+                                        <button type="submit" class="action-button reload-button" title="Reload"
+                                            style="background: none; border: none; color: #ffc107; cursor: pointer; padding: 5px;">
                                             <i class="fas fa-redo"></i>
                                         </button>
                                     </form>
-                                    <!-- ปุ่มบันทึก -->
+
+                                    <!-- Save Button -->
                                     <form method="POST" action="{{ url_for('erase_config.save_configuration') }}"
                                         onsubmit="return confirm('Are you sure you want to save the configuration for {{ device.name }}?') && handleSubmit();">
                                         <input type="hidden" name="ip_address" value="{{ device.device_info.ip }}">
-                                        <button type="submit" class="action-button save-button" title="Save">
+                                        <button type="submit" class="action-button save-button" title="Save"
+                                            style="background: none; border: none; color: #28a745; cursor: pointer; padding: 5px;">
                                             <i class="fas fa-save"></i>
                                         </button>
                                     </form>
@@ -249,18 +263,23 @@
                         {% endfor %}
                         {% else %}
                         <tr>
-                            <td colspan="3" style="text-align: center;">No devices available.</td>
+                            <td colspan="3" style="padding: 12px 15px; text-align: center; border: 1px solid #ddd;">No
+                                devices available.</td>
                         </tr>
                         {% endif %}
                     </tbody>
                 </table>
-                <br>
-                <div class="pagination">
+
+                <div class="pagination" style="margin-top: 20px; text-align: center;">
                     {% for p in range(1, total_pages + 1) %}
                     {% if p == current_page %}
-                    <span class="page-number current">{{ p }}</span>
+                    <span class="page-number current">
+                        {{ p }}
+                    </span>
                     {% else %}
-                    <a href="#" class="page-number" data-page="{{ p }}">{{ p }}</a>
+                    <a href="#" class="page-number" data-page="{{ p }}">
+                        {{ p }}
+                    </a>
                     {% endif %}
                     {% endfor %}
                 </div>

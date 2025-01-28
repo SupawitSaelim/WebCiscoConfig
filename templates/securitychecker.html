@@ -14,22 +14,25 @@
     <script src="../static/mongoStatus.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        /* Enhanced table styles */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 25px 0;
+            font-size: 0.9em;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        thead tr {
+            background-color: #2e4ead;
+            color: white;
         }
 
         th,
         td {
+            padding: 12px 15px;
             border: 1px solid #ddd;
-            padding: 8px;
             text-align: left;
-        }
-
-        th {
-            background-color: #2e4ead;
-            color: white;
         }
 
         th:nth-child(1),
@@ -45,6 +48,23 @@
         th:nth-child(4),
         td:nth-child(4) {
             min-width: 100px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        tbody tr:nth-of-type(even) {
+            background-color: #f8f9fc;
+        }
+
+        tbody tr:nth-of-type(odd) {
+            background-color: #ffffff;
+        }
+
+        tbody tr:hover {
+            background-color: #f2f2f2;
+            transition: background-color 0.3s ease;
         }
 
         .warning-list {
@@ -145,23 +165,23 @@
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Set document properties
             doc.setProperties({
                 title: 'Security Check Report',
                 creator: 'Network Config Security Checker'
             });
-    
+
             // Header
             doc.setFillColor(46, 78, 173); // #2e4ead
             doc.rect(0, 0, 210, 30, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(24);
             doc.text('SECURITY CHECK REPORT', 105, 20, { align: 'center' });
-    
+
             let yPos = 45;
             const devices = document.querySelectorAll('table tbody tr');
-            
+
             devices.forEach((device, index) => {
                 const deviceName = device.cells[0].textContent.trim();
                 const warnings = device.cells[1].textContent.trim()
@@ -169,25 +189,25 @@
                     .filter(w => w.trim())
                     .map(w => w.replace(/^[•●✖] /, '').trim());
                 const lastUpdated = device.cells[2].textContent.trim();
-                
+
                 // Device section
                 doc.setTextColor(46, 78, 173);
                 doc.setFontSize(16);
                 doc.text(`Device: ${deviceName}`, 20, yPos);
                 yPos += 8;
-                
+
                 // Last updated
                 doc.setTextColor(100, 100, 100);
                 doc.setFontSize(12);
                 doc.text(`Last Updated: ${lastUpdated}`, 20, yPos);
                 yPos += 10;
-                
+
                 // Warnings section
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(14);
                 doc.text('Warnings:', 20, yPos);
                 yPos += 8;
-                
+
                 // Warning items
                 doc.setFontSize(11);
                 warnings.forEach(warning => {
@@ -210,14 +230,14 @@
                     });
                     yPos += 2;
                 });
-                
+
                 if (index < devices.length - 1) {
                     yPos += 5;
                     doc.setDrawColor(200, 200, 200);
                     doc.line(20, yPos, 190, yPos);
                     yPos += 15;
                 }
-                
+
                 if (yPos > 250 && index < devices.length - 1) {
                     doc.addPage();
                     // Add header to new page
@@ -229,7 +249,7 @@
                     yPos = 30;
                 }
             });
-            
+
             doc.save('security_check_report.pdf');
         }
     </script>

@@ -80,6 +80,86 @@
             width: 100%;
         }
     </style>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        thead tr {
+            background-color: #2e4ead;
+            color: white;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        tbody tr:nth-of-type(even) {
+            background-color: #f8f9fc;
+        }
+
+        tbody tr:nth-of-type(odd) {
+            background-color: #ffffff;
+        }
+
+        tbody tr:hover {
+            background-color: #f2f2f2;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Enhanced search input */
+        #search-input {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Maintain existing action buttons styling while enhancing it */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-buttons form {
+            margin: 0 5px;
+        }
+
+        .action-buttons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Maintain password toggle functionality with enhanced styling */
+        .password-toggle {
+            cursor: pointer;
+            position: relative;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            background-color: #f8f9fc;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="../static/time.js" defer></script>
     <script src="../static/mongoStatus.js"></script>
@@ -190,7 +270,7 @@
                             <th>SSH Password</th>
                             <th>Secret Password</th>
                             <th class="sortable" data-sort="time">Created Time</th>
-                            <th>Actions</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

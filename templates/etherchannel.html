@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- เพิ่มการเชื่อมโยง Font Awesome -->
     <title>Aggregation Protocols</title>
     <style>
     </style>
@@ -209,13 +208,6 @@
                             <h4 style="display: none;">Refresh</h4>
                         </a>
                     </li>
-                    <!-- <form method="POST" action="/logout" style="display: inline;">
-                        <button type="submit" title="Logout"
-                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
-                            <i class="fas fa-sign-out-alt" style="font-size: 24px; margin-right: 8px;"></i>
-                            <span style="display: none;">Logout</span>
-                        </button>
-                    </form> -->
                 </ul>
             </div>
         </div>
@@ -280,109 +272,117 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Aggregation Protocols</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/etherchannel_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <!-- Input field for many_hostname with ID -->
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br><br>
-
-                    <!-- PAgP -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Port Aggregation Protocol
-                        (PAgP)</h3>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="etherchannel_interfaces" name="etherchannel_interfaces"
-                                placeholder="Interface (e.g., fa0/3-5)"><br><br>
+                    <!-- Device Selection Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device</div>
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <input type="number" min="1" max="255" id="channel_group_number" name="channel_group_number"
-                                placeholder="Enter channel group (1-255)"><br><br>
+                        <br>
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
+                        </label>
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <div id="suggestions" class="suggestions-container"></div>
+                    </div>
+
+                    <!-- PAgP Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Port Aggregation Protocol (PAgP)</div>
+
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="etherchannel_interfaces" name="etherchannel_interfaces"
+                                    placeholder="Interface (e.g., fa0/3-5)">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" min="1" max="255" id="channel_group_number"
+                                    name="channel_group_number" placeholder="Enter channel group (1-255)">
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper-22">
+                            <label style="color: #2e4ead; font-weight: bold;">Mode</label>
+                            <label>Desirable</label>
+                            <label class="switch" title="Set PAgP mode to desirable">
+                                <input type="checkbox" id="pagp_desirable" name="pagp_mode" value="Desirable">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                            <label>Auto</label>
+                            <label class="switch" title="Set PAgP mode to auto">
+                                <input type="checkbox" id="pagp_auto" name="pagp_mode" value="Auto">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
                         </div>
                     </div>
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead;font-weight: bold;">Mode</label>
-                        <label>Desirable</label>
-                        <label class="switch" title="Set PAgP mode to desirable">
-                            <input type="checkbox" id="pagp_desirable" name="pagp_mode" value="Desirable">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Auto</label>
-                        <label class="switch" title="Set PAgP mode to auto">
-                            <input type="checkbox" id="pagp_auto" name="pagp_mode" value="Auto">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                    </div><br>
 
-                    <!-- LACP -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Link Aggregation Control
-                        Protocol (LACP)</h3>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="etherchannel_interfaces_lacp" name="etherchannel_interfaces_lacp"
-                                placeholder="Interface (e.g., fa0/3-5)"><br><br>
+                    <!-- LACP Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Link Aggregation Control Protocol (LACP)
                         </div>
-                        <div class="form-group">
-                            <input type="number" min="1" max="255" id="channel_group_number_lacp"
-                                name="channel_group_number_lacp" placeholder="Channel-group Number (1-255)"><br><br>
+
+                        <div class="form-container">
+                            <div class="form-group">
+                                <input type="text" id="etherchannel_interfaces_lacp" name="etherchannel_interfaces_lacp"
+                                    placeholder="Interface (e.g., fa0/3-5)">
+                            </div>
+                            <div class="form-group">
+                                <input type="number" min="1" max="255" id="channel_group_number_lacp"
+                                    name="channel_group_number_lacp" placeholder="Channel-group Number (1-255)">
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper-22">
+                            <label style="color: #2e4ead; font-weight: bold;">Mode</label>
+                            <label>Active</label>
+                            <label class="switch" title="Set LACP mode to active">
+                                <input type="checkbox" id="lacp_active" name="lacp_mode" value="Active">
+                                <span class="slider"></span>
+                            </label>
+                            <br>
+                            <label>Passive</label>
+                            <label class="switch" title="Set LACP mode to passive">
+                                <input type="checkbox" id="lacp_passive" name="lacp_mode" value="Passive">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;">Mode</label>
-                        <label>Active</label>
-                        <label class="switch" title="Set LACP mode to active">
-                            <input type="checkbox" id="lacp_active" name="lacp_mode" value="Active">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                        <label>Passive</label>
-                        <label class="switch" title="Set LACP mode to passive">
-                            <input type="checkbox" id="lacp_passive" name="lacp_mode" value="Passive">
-                            <span class="slider"></span>
-                        </label>
-                        <br>
-                    </div><br>
 
-                    <!-- Delete Port group -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Delete Port Group</h3>
-                    <input type="text" id="etherchannel_interfaces_lacp_delete"
-                        name="etherchannel_interfaces_lacp_delete"
-                        placeholder="Enter port group to delete (e.g., Po1)"
-                        title="Separate with commas (e.g., Po1,Po2). Ranges like Po2-3 are not allowed."><br><br>
+                    <!-- Delete Port Group Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Delete Port Group</div>
 
+                        <input type="text" id="etherchannel_interfaces_lacp_delete"
+                            name="etherchannel_interfaces_lacp_delete"
+                            placeholder="Enter port group to delete (e.g., Po1)"
+                            title="Separate with commas (e.g., Po1,Po2). Ranges like Po2-3 are not allowed.">
+                    </div>
                     <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>

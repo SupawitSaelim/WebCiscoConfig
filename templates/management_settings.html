@@ -325,41 +325,49 @@
                 {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Management SETTINGS</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/management_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br><br>
-                    <!-- VTY -->
-                    <div>
-                        <h3 style="color: #2e4ead; text-align: left;">VTY (Virtual Terminal Lines) Configuration</h3>
-                        <br>
+                    <!-- Device Selection Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device</div>
+
+                        <!-- Dropdown Device Selection -->
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
+                        </div><br>
+
+                        <!-- Multiple Device Selection -->
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
+                        </label>
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <div id="suggestions" class="suggestions-container"></div>
+                    </div>
+
+
+                    <!-- VTY Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">VTY (Virtual Terminal Lines) Configuration
+                        </div>
+
                         <div class="form-container">
+                            <!-- Authentication Settings -->
                             <div class="form-group">
                                 <input type="text" id="password_vty" name="password_vty" placeholder="Enter Password"
-                                    minlength="8"
-                                    title="Enter password for VTY access. Use at least 8 characters,"><br><br>
+                                    minlength="8" title="Enter password for VTY access. Use at least 8 characters">
+
                                 <label for="authen_method">Authentication Method</label>
                                 <select id="authen_method_select" name="authen_method_select"
                                     title="Select the authentication method for VTY access. Options: VTY Password or Local User.">
@@ -368,10 +376,13 @@
                                     <option value="login local">Local User</option>
                                 </select>
                             </div>
+
+                            <!-- Access Control Settings -->
                             <div class="form-group">
                                 <input type="number" min="0" max="35791" id="exec_timeout_vty" name="exec_timeout_vty"
                                     placeholder="Exec Timeout (in minutes)"
-                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout."><br><br>
+                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout">
+
                                 <label for="login_method">Login Method</label>
                                 <select id="login_method_select" name="login_method_select"
                                     title="Select the login method for device access. Options: All, SSH, Telnet, or None (to disable all protocols).">
@@ -381,27 +392,32 @@
                                     <option value="telnet">Telnet</option>
                                     <option value="none">None (No protocols)</option>
                                 </select>
-                                <div class="checkbox-wrapper-22" style="margin-left: 0%;">
-                                    <label>Enable Synchronized message output </label>
+
+                                <!-- Logging Sync Option -->
+                                <div class="checkbox-wrapper-22">
+                                    <label>Enable Synchronized message output</label>
                                     <label class="switch"
                                         title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
                                         <input type="checkbox" id="logging_sync_vty" name="logging_sync_vty"
                                             title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
                                         <span class="slider"></span>
                                     </label>
-                                    <br>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Console -->
-                    <div>
-                        <h3 style="color: #2e4ead; text-align: left;">Console Configuration</h3><br>
+
+                    <!-- Console Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Console Configuration</div>
+
                         <div class="form-container">
+                            <!-- Authentication Settings -->
                             <div class="form-group">
                                 <input type="text" id="password_console" name="password_console"
                                     placeholder="Enter Password" minlength="8"
-                                    title="Enter a secure password for console access. Use at least 8 characters,"><br><br>
+                                    title="Enter a secure password for console access. Use at least 8 characters">
+
                                 <label for="authen_method_console">Authentication Method</label>
                                 <select id="authen_method_console_select" name="authen_method_console_select"
                                     title="Select the authentication method for Console access. Options: Console Password or Local User.">
@@ -410,125 +426,166 @@
                                     <option value="login local">Local User</option>
                                 </select>
                             </div>
+
+                            <!-- Timeout and Logging Settings -->
                             <div class="form-group">
                                 <input type="number" min="0" max="35791" id="exec_timeout_console"
                                     name="exec_timeout_console" placeholder="Exec Timeout (in minutes)"
-                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout."><br><br>
-                                <div class="checkbox-wrapper-22" style="margin-left: 0%;">
+                                    title="Enter the timeout value in minutes. This specifies the inactivity period before the VTY session is automatically closed. Use 0 for no timeout">
+
+                                <!-- Logging Sync Option -->
+                                <div class="checkbox-wrapper-22">
                                     <label>Enable Synchronized message output</label>
                                     <label class="switch"
                                         title="Enable synchronized message output for logging. When checked, logs will be output in sync with device operations.">
                                         <input type="checkbox" id="loggin_sync" name="logging_sync_con">
                                         <span class="slider"></span>
                                     </label>
-                                    <br>
                                 </div>
                             </div>
                         </div>
-                    </div><br><br>
-                    <!-- DHCP -->
-                    <div>
-                        <h3 style="color: #2e4ead; text-align: left;">DHCP Management</h3><br>
+                    </div>
+
+                    <!-- DHCP Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">DHCP Management</div>
+
                         <div class="form-container">
+                            <!-- Pool and Network Settings -->
                             <div class="form-group">
                                 <input type="text" id="pool_name" name="pool_name" placeholder="Enter DHCP Pool Name"
-                                    title="Enter a name for the DHCP pool. This name will identify the pool of IP addresses available for assignment."><br><br>
+                                    title="Enter a name for the DHCP pool. This name will identify the pool of IP addresses available for assignment">
+
                                 <input type="text" id="network" name="network"
                                     placeholder="Enter Network (e.g., 192.168.1.0)"
                                     title="Enter a valid network address in the format: xxx.xxx.xxx.xxx (e.g., 192.168.1.0)"
-                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"><br><br>
+                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+
                                 <input type="text" id="dhcp_exclude" name="dhcp_exclude"
                                     placeholder="Enter DHCP Exclude Range"
-                                    title="Enter a valid IP address range to exclude from DHCP allocation. The format should be: start IP - end IP (e.g., 192.168.1.1-192.168.1.10)"><br><br>
+                                    title="Enter a valid IP address range to exclude from DHCP allocation. The format should be: start IP - end IP (e.g., 192.168.1.1-192.168.1.10)">
                             </div>
+
+                            <!-- Network Configuration Settings -->
                             <div class="form-group">
                                 <input type="text" id="default_router" name="default_router"
                                     placeholder="Enter Default Router"
                                     title="Enter the IP address of the default router for the network. This router will be used to forward traffic to destinations outside the local subnet, typically used for internet access."
-                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"><br><br>
+                                    pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+
                                 <input type="text" id="dhcp_subnet" name="dhcp_subnet" placeholder="Enter Subnet Mask"
                                     title="Enter the subnet mask for the DHCP network. The subnet mask defines the network and host portions of an IP address, such as 255.255.255.0 for a typical home network."
-                                    pattern="^(255\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0))$"><br><br>
+                                    pattern="^(255\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0)\.(255|254|252|248|240|224|192|128|0))$">
+
                                 <input type="text" id="dns_server" name="dns_server"
                                     placeholder="Enter DNS Server (e.g., 8.8.8.8)"
-                                    title="Enter the IP address of the DNS server. This server is used to resolve domain names to IP addresses, for example, 8.8.8.8 is a Google Public DNS server."><br><br>
+                                    title="Enter the IP address of the DNS server. This server is used to resolve domain names to IP addresses, for example, 8.8.8.8 is a Google Public DNS server">
                             </div>
                         </div>
+
+                        <!-- Domain Name Setting -->
                         <input type="text" id="domain_name" name="domain_name"
                             placeholder="Enter Domain Name (e.g., example.com)"
-                            title="Enter the domain name for the network. This name is used for network identification and domain resolution, such as example.com.">
-                        <h3 style="color: #2e4ead; text-align: left;">Delete DHCP pool</h3><br>
-                        <input type="text" id="pool_name_del" name="pool_name_del"
-                            placeholder="Enter DHCP Pool Name (e.g., MyPool)" title="Enter the name of the DHCP pool you want to delete. This name identifies the DHCP pool to be removed, such as 'MyPool'.
-                        Please note that the name is case sensitive (e.g., 'lan' and 'LAN' are different)."><br><br>
+                            title="Enter the domain name for the network. This name is used for network identification and domain resolution, such as example.com">
                     </div>
 
-                    <!-- NTP -->
-                    <div>
-                        <h3 style="color: #2e4ead; text-align: left;">NTP Configuration</h3><br>
+                    <!-- DHCP Pool Deletion Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Delete DHCP Pool</div>
+
+                        <input type="text" id="pool_name_del" name="pool_name_del"
+                            placeholder="Enter DHCP Pool Name (e.g., MyPool)"
+                            title="Enter the name of the DHCP pool you want to delete. This name identifies the DHCP pool to be removed, such as 'MyPool'. Please note that the name is case sensitive (e.g., 'lan' and 'LAN' are different)">
+                    </div>
+
+
+                    <!-- NTP Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">NTP Configuration</div>
+
+                        <!-- NTP Server Settings -->
                         <input type="text" id="ntp_server" name="ntp_server" placeholder="Enter NTP Server"
                             title="Enter a valid NTP server IP address. Example: 202.28.18.72"
                             pattern="^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+
+                        <!-- Time Zone Settings -->
                         <div class="form-container">
                             <div class="form-group">
                                 <input type="text" id="time_zone_name" name="time_zone_name" maxlength="11"
                                     placeholder="Enter Time Zone Name (e.g., UTC)"
-                                    title="Enter the name of the time zone, such as UTC or GMT. This is used to define the time zone for the system."><br><br>
+                                    title="Enter the name of the time zone, such as UTC or GMT. This is used to define the time zone for the system">
                             </div>
                             <div class="form-group">
                                 <input type="number" id="hour_offset" name="hour_offset" min="-23" max="23"
                                     placeholder="Enter Hour Offset (-23 to 23)"
-                                    title="Enter the hour offset from UTC. It can range from -23 to 23, representing the time difference from UTC."><br><br>
+                                    title="Enter the hour offset from UTC. It can range from -23 to 23, representing the time difference from UTC">
                             </div>
                         </div>
-                        <table style="width: 100%; border-collapse: collapse;">
+
+                        <!-- Reference Table -->
+                        <!-- Table with Styling -->
+                        <table
+                            style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
                             <thead>
-                                <tr style="background-color: #f2f2f2;">
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Setting</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Description
+                                <tr style="background-color: #2e4ead; color: white;">
+                                    <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">Setting
                                     </th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Result</th>
+                                    <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">
+                                        Description</th>
+                                    <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">Result
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">NTP Server</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">Configures time synchronization
-                                        using
-                                        an NTP server</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">Synchronizes the device’s time
-                                        with
-                                        the NTP server (usually UTC)</td>
+                                <tr style="border-bottom: 1px solid #dddddd; background-color: #ffffff;"
+                                    onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                    onmouseout="this.style.backgroundColor='#ffffff'">
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">NTP Server</td>
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">Configures time
+                                        synchronization using an NTP server</td>
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">Synchronizes the device's
+                                        time with the NTP server (usually UTC)</td>
                                 </tr>
-                                <tr>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">Time Zone</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">Sets the local time zone for the
-                                        device</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">Adjusts the device’s time to match
-                                        the
-                                        local time zone (e.g., UTC+7)</td>
+                                <tr style="border-bottom: 2px solid #2e4ead; background-color: #f8f9fc;"
+                                    onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                    onmouseout="this.style.backgroundColor='#f8f9fc'">
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">Time Zone</td>
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">Sets the local time zone for
+                                        the device</td>
+                                    <td style="padding: 12px 15px; border: 1px solid #ddd;">Adjusts the device's time to
+                                        match the local time zone (e.g., UTC+7)</td>
                                 </tr>
                             </tbody>
-                        </table><br>
+                        </table>
                     </div>
 
-                    <!-- SNMP -->
-                    <h3 style="color: #2e4ead; text-align: left;">SNMP Management</h3><br>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <input type="text" id="snmp_ro" name="snmp_ro" placeholder="Enter RO Community String"
-                                title="Recommended: 'public'"><br><br>
-                            <input type="text" id="snmp_rw" name="snmp_rw" placeholder="Enter RW Community String"
-                                title="Recommended: 'private'"><br><br>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="snmp_contact" name="snmp_contact"
-                                placeholder="Enter Contact Information"
-                                title="Provide contact information for SNMP management, such as email or phone number."><br><br>
-                            <input type="text" id="snmp_location" name="snmp_location" placeholder="Enter Location"
-                                title="Enter the physical location of the SNMP device, e.g., server room or data center."><br><br>
+                    <!-- SNMP Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">SNMP Management</div>
+
+                        <div class="form-container">
+                            <!-- Access Control Settings -->
+                            <div class="form-group">
+                                <input type="text" id="snmp_ro" name="snmp_ro" placeholder="Enter RO Community String"
+                                    title="Recommended: 'public'">
+
+                                <input type="text" id="snmp_rw" name="snmp_rw" placeholder="Enter RW Community String"
+                                    title="Recommended: 'private'">
+                            </div>
+
+                            <!-- Information Settings -->
+                            <div class="form-group">
+                                <input type="text" id="snmp_contact" name="snmp_contact"
+                                    placeholder="Enter Contact Information"
+                                    title="Provide contact information for SNMP management, such as email or phone number.">
+
+                                <input type="text" id="snmp_location" name="snmp_location" placeholder="Enter Location"
+                                    title="Enter the physical location of the SNMP device, e.g., server room or data center.">
+                            </div>
                         </div>
                     </div>
+
+                    <!-- CDP -->
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">CDP</label>
                         <span class="question-mark"
@@ -540,6 +597,7 @@
                             </button>
                         </div>
                     </div>
+                    <!-- LLDP -->
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead;font-weight: 1000;">LLDP</label>
                         <span class="question-mark"
