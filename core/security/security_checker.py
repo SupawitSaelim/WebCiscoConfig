@@ -20,7 +20,7 @@ class SecurityChecker:
             net_connect = None
             try:
                 device_info['timeout'] = 10  # global_delay_factor
-                device_info['conn_timeout'] = 5  # connection timeout
+                device_info['conn_timeout'] = 10  # connection timeout
                 
                 net_connect = ConnectHandler(**device_info)
                 net_connect.enable()

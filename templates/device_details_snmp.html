@@ -124,6 +124,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Device Details (SNMP)</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script type="text/javascript">
@@ -131,98 +142,146 @@
                 </script>
                 {% endif %}
                 {% endwith %}
-
                 <h1 style="text-align: left;color: #2e4ead;text-transform: uppercase;">Device Details SNMP</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3>
                 <form method="POST" action="/get_snmp" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center; gap: 10px;">
-                        <select id="device_dropdown" name="device_name"
-                            style="min-width: 200px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}" {% if selected_ip==device.device_info.ip
-                                %}selected{% endif %}>
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device:</div>
+                        <div class="input-container" style="display: flex; align-items: center; gap: 10px;">
+                            <select id="device_dropdown" name="device_name"
+                                style="min-width: 200px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}" {% if selected_ip==device.device_info.ip
+                                    %}selected{% endif %}>
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
 
-                        <div style="display: flex; flex-direction: column;">
-                            <label for="community" style="color: #2e4ead; font-size: 14px; margin-bottom: 4px;">SNMP
-                                Community</label>
-                            <input type="text" id="community" name="community"
-                                value="{{ community if community else 'public' }}"
-                                style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 180px;">
+                            <div style="display: flex; flex-direction: column;">
+                                <label for="community" style="color: #2e4ead; font-size: 14px; margin-bottom: 4px;">SNMP
+                                    Community</label>
+                                <input type="text" id="community" name="community"
+                                    value="{{ community if community else 'public' }}"
+                                    style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 180px;">
+                            </div>
                         </div>
-
-                        <input type="submit" value="Submit" class="fix-button" style="align-self: flex-end;">
+                        <input type="submit" value="Submit" class="fix-button" style="margin-left: 90%;">
                     </div>
                 </form>
                 {% if not cisco_devices %}
                 <p style="color: red;">No devices found in the database.</p>
                 {% endif %}
-                <br><br>
 
-                <!-- แสดงประเภทอุปกรณ์ (Router หรือ Switch) -->
-                {% if device_type %}
-                <div id="device_type_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">Device Type:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ device_type }}</p>
-                </div>
-                {% endif %}
+                <!-- Device Information Table -->
+                <div class="info-section">
+                    <table
+                        style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
+                        <thead>
+                            <tr style="background-color: #2e4ead; color: white;">
+                                <th
+                                    style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;text-align: center;">
+                                    Parameter</th>
+                                <th
+                                    style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;text-align: center;">
+                                    Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if device_type %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #ffffff;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#ffffff'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">Device Type
+                                </td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ device_type
+                                    }}</td>
+                            </tr>
+                            {% endif %}
 
-                <!-- แสดงค่า SysName -->
-                {% if sysname %}
-                <div id="sysname_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">System Name:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ sysname }}</p>
+                            {% if sysname %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #f8f9fc;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#f8f9fc'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">System Name
+                                </td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ sysname }}
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                            {% if description %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #ffffff;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#ffffff'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">System
+                                    Description</td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ description
+                                    }}</td>
+                            </tr>
+                            {% endif %}
+
+                            {% if uptime %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #f8f9fc;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#f8f9fc'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">Uptime</td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ uptime }}
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                            {% if location %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #ffffff;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#ffffff'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">Location</td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ location }}
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                            {% if contact %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: #f8f9fc;"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='#f8f9fc'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; font-weight: 500;">Contact</td>
+                                <td style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;">{{ contact }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-                {% endif %}
-                <!-- แสดงค่า System Description -->
-                {% if description %}
-                <div id="description_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; overflow: auto;">
-                    <h3 style="color: #2e4ead;">System Description:</h3>
-                    <pre
-                        style="font-size: 16px; color: #333; overflow-wrap: break-word; white-space: pre-wrap;">{{ description }}</pre>
-                </div>
-                {% endif %}
-                <!-- แสดงค่า Uptime -->
-                {% if uptime %}
-                <div id="uptime_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">Uptime:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ uptime }}</p>
-                </div>
-                {% endif %}
-                <!-- แสดงค่า Location -->
-                {% if location %}
-                <div id="location_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">Location:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ location }}</p>
-                </div>
-                {% endif %}
-                <!-- แสดงค่า Contact -->
-                {% if contact %}
-                <div id="contact_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">Contact:</h3>
-                    <p style="font-size: 16px; color: #333;">{{ contact }}</p>
-                </div>
-                {% endif %}
+
                 <!-- Port Descriptions -->
                 {% if output %}
-                <div id="port_output"
-                    style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead;">
-                    <h3 style="color: #2e4ead;">Port Descriptions:</h3>
-                    <p style="font-size: 16px; color: #333; white-space: pre-line;">{{ output }}</p>
+                <div id="port_output" style="margin-bottom: 20px; padding: 15px;">
+                    <!-- ลบ background-color และ border-left ออก -->
+                    <table
+                        style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
+                        <thead>
+                            <tr style="background-color: #2e4ead; color: white;">
+                                <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: center;">Ports</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in output.split('\n') %}
+                            {% if line.strip() %}
+                            {% set port = line.split(' - ')[0].strip() %}
+                            <tr style="border-bottom: 1px solid #dddddd; background-color: {% if loop.index is even %}#f8f9fc{% else %}#ffffff{% endif %};"
+                                onmouseover="this.style.backgroundColor='#f2f2f2'"
+                                onmouseout="this.style.backgroundColor='{% if loop.index is even %}#f8f9fc{% else %}#ffffff{% endif %}'">
+                                <td style="padding: 12px 15px; border: 1px solid #ddd;">{{ port }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
                 {% endif %}
             </div>

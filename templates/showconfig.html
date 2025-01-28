@@ -117,6 +117,31 @@
         .left-column .menu {
             width: 100%;
         }
+
+        .config-table {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .config-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .config-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .table-responsive {
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .timestamp {
+            font-size: 0.9em;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #2e4ead;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -175,13 +200,6 @@
                             <h4 style="display: none;">Refresh</h4>
                         </a>
                     </li>
-                    <!-- <form method="POST" action="/logout" style="display: inline;">
-                        <button type="submit" title="Logout"
-                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
-                            <i class="fas fa-sign-out-alt" style="font-size: 24px; margin-right: 8px;"></i>
-                            <span style="display: none;">Logout</span>
-                        </button>
-                    </form> -->
                 </ul>
             </div>
         </div>
@@ -245,6 +263,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Show Configurations</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -258,20 +287,22 @@
                 {% endwith %}
                 <h1 style="text-align: left;color: #2e4ead;">SHOW CONFIGURATIONS</h1><br><br>
                 <form method="POST" action="/show-config" onsubmit="return handleSubmit();">
-                    <select name="device_name" required>
-                        {% if cisco_devices %}
-                        <option value="" disabled {% if not selected_device %}selected{% endif %}>Select a device
-                        </option>
-                        {% for device in cisco_devices %}
-                        <option value="{{ device.name }}" {% if device.name==selected_device %}selected{% endif %}>
-                            {{ device.name }} ({{ device.device_info.ip }})
-                        </option>
-                        {% endfor %}
-                        {% else %}
-                        <option value="" disabled selected>No devices available</option>
-                        {% endif %}
-                    </select>
-                    <br><br><br>
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device</div>
+                        <select name="device_name" required style="padding: 5px;">
+                            {% if cisco_devices %}
+                            <option value="" disabled {% if not selected_device %}selected{% endif %}>Select a device
+                            </option>
+                            {% for device in cisco_devices %}
+                            <option value="{{ device.name }}" {% if device.name==selected_device %}selected{% endif %}>
+                                {{ device.name }} ({{ device.device_info.ip }})
+                            </option>
+                            {% endfor %}
+                            {% else %}
+                            <option value="" disabled selected>No devices available</option>
+                            {% endif %}
+                        </select>
+                    </div>
                     <div class="columns">
                         <div class="left-column">
                             <h2 style="color: #2e4ead;">Device Configuration</h2>
@@ -394,36 +425,86 @@
                                     </div>
                                 </div>
                             </div>
+                            <div
+                                style="display: flex; justify-content: flex-start; align-items: center; gap: 10px; margin-top: 20px;">
+                                <input type="submit" value="Submit" class="fix-button">
+                                <button type="button" onclick="exportOutput()" class="btn-primary"
+                                    style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                            </div>
                         </div>
                         <div class="right-column">
                             <h2 style="color: #2e4ead;">CONFIGURATIONS OUTPUT</h2><br><br>
-                            <pre class="blue-pre"
-                                style="margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-left: 5px solid #2e4ead; text-align: left; margin-left: 0; white-space: pre-wrap; word-wrap: break-word;">
-                                {{ config_data | safe }}
-                            </pre>
+                            {% if config_data %}
+                            <div class="timestamp" style="margin-bottom: 15px; color: #666;">
+                                {{ config_data.timestamp }}
+                            </div>
+                            <div class="table-responsive" style="overflow-x: auto;">
+                                <table class="config-table" style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                style="background-color: #2e4ead; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; text-align: center;">
+                                                Command</th>
+                                            <th
+                                                style="background-color: #2e4ead; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; text-align: center;">
+                                                Output</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cmd in config_data.commands %}
+                                        <tr>
+                                            <td
+                                                style="padding: 12px; border: 1px solid #ddd; font-weight: bold; width: 200px;">
+                                                {{ cmd.command }}
+                                            </td>
+                                            <td style="padding: 12px; border: 1px solid #ddd;">
+                                                <pre
+                                                    style="white-space: pre-wrap; margin: 0; font-family: monospace; font-size: 16; text-align: left;">{{ cmd.output }}</pre>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
                         </div>
-                    </div>
-                    <div
-                        style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px;">
-                        <input type="submit" value="Submit" class="fix-button">
-                        <button type="button" onclick="exportOutput()" class="btn-primary"
-                            style="color: #2e4ead; padding: 7px 20px; border: none; border-radius: 5px; background-color:white; font-size:16px; cursor: pointer; font-weight:bold;">
-                            <i class="fas fa-file-export"></i> Export
-                        </button>
                     </div>
                     <script>
                         function exportOutput() {
-                            const output = document.querySelector('.blue-pre').innerText.trim();
-                            if (!output) {
+                            const table = document.querySelector('.config-table');
+                            if (!table) {
                                 alert("No data available to export");
                                 return;
                             }
-                            const blob = new Blob([output], { type: 'text/plain' });
+
+                            let exportText = '';
+
+                            const timestamp = document.querySelector('.timestamp');
+                            if (timestamp) {
+                                exportText += timestamp.innerText + '\n\n';
+                            }
+
+                            const rows = table.querySelectorAll('tbody tr');
+                            rows.forEach(row => {
+                                const command = row.querySelector('td:first-child').innerText.trim();
+                                const output = row.querySelector('td:last-child pre').innerText.trim();
+                                exportText += `=== ${command} ===\n${output}\n\n`;
+                            });
+
+                            const blob = new Blob([exportText], { type: 'text/plain' });
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = 'device_config.txt';
+
+                            const currentDate = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-');
+                            a.download = `device_config_${currentDate}.txt`;
+
+                            document.body.appendChild(a);
                             a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
                         }
                     </script>
                     <script>

@@ -41,7 +41,6 @@
             toggleIpInput();
         };
 
-        // เพิ่มโค้ด JavaScript ใหม่ตรงนี้
         document.addEventListener('DOMContentLoaded', function () {
             function handleToggle(buttonId, enableId, disableId) {
                 const button = document.getElementById(buttonId);
@@ -314,6 +313,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Management Settings</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>

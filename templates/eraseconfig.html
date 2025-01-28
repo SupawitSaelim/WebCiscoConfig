@@ -191,6 +191,17 @@
         <div class="main_container">
             <!-- Device Configuration Reset Table -->
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Erase Configuration</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -208,7 +219,7 @@
                     style="margin-bottom: 20px; padding: 5px; width: 100%; font-size: 16px; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
                 <table
-                    style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
+                    style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 1em; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);">
                     <thead>
                         <tr style="background-color: #2e4ead; color: white;">
                             <th style="padding: 12px 15px; border: 1px solid #ddd; text-align: left;" class="sortable"

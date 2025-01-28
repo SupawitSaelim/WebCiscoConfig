@@ -374,6 +374,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">EIGRP</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -431,7 +442,7 @@
                         </div>
                     </div>
                     <button type="button"
-                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
                         onclick="addRoutePair()">Add network</button>
                     <br>
                 </div>
@@ -449,7 +460,7 @@
                         </div>
                     </div>
                     <button type="button"
-                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
                         onclick="addRemoveRoutePair()">Add network to remove</button><br>
                 </div>
 
@@ -465,7 +476,7 @@
                         <br>
                         <input type="text" id="process_id_input" name="process_id_input" placeholder="Enter AS Numbers"
                             title="Enter one or more AS Numbers to delete, separated by commas (e.g., 100,200,300). AS Numbers identify different EIGRP routing processes."
-                            style="display: none; width: 30%;">
+                            style="display: none; width: 30%; margin-top: 10px;">
                     </div>
                 </div>
                 <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">

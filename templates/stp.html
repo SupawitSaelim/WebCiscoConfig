@@ -270,6 +270,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Spanning Tree Protocol</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -357,17 +368,15 @@
 
                     <!-- PortFast Configuration Section -->
                     <div class="section-card">
-                        <div class="section-title" style="text-align: left;">PortFast Configuration</div>
-
-                        <div class="checkbox-wrapper-22" style="display: flex; align-items: center; gap: 10px;">
-                            <!-- PortFast Label and Help Icon -->
-                            <label style="color: #2e4ead; font-weight: 1000; margin: 0;">PortFast</label>
+                        <div class="section-title" style="text-align: left;">PortFast Configuration
                             <span class="question-mark"
                                 title="PortFast immediately transitions the port into Spanning Tree forwarding state, bypassing the listening and learning states"
                                 style="display: inline-block; background-color: orange; color: white; font-weight: bold; font-size: 16px; border-radius: 50%; padding: 5px 10px; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center;">
                                 ?
                             </span>
+                        </div>
 
+                        <div class="checkbox-wrapper-22" style="display: flex; align-items: center; gap: 10px;">
                             <!-- Toggle Button -->
                             <div class="protocol-toggle" style="display: inline-block; margin: 0;">
                                 <button type="button" id="portfastToggle" class="toggle-button none">

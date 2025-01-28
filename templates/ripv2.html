@@ -50,6 +50,43 @@
         }
     </style>
     <script>
+        window.onload = function () {
+            toggleIpInput();
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            function handleToggle(buttonId) {
+                const button = document.getElementById(buttonId);
+                const autoSummaryInput = document.createElement('input');
+                autoSummaryInput.type = 'hidden';
+                autoSummaryInput.name = 'auto_summary';
+
+                button.form.appendChild(autoSummaryInput);
+
+                let currentState = 'none';
+
+                button.addEventListener('click', function () {
+                    switch (currentState) {
+                        case 'on':
+                            currentState = 'none';
+                            autoSummaryInput.value = '';
+                            break;
+                        case 'none':
+                            currentState = 'off';
+                            autoSummaryInput.value = 'Disable';
+                            break;
+                        case 'off':
+                            currentState = 'on';
+                            autoSummaryInput.value = 'Enable';
+                            break;
+                    }
+                    button.className = `toggle-button ${currentState}`;
+                });
+            }
+
+            handleToggle('autoSummaryToggle');
+        });
+    </script>
+    <script>
         function addRoutePair() {
             let container = document.getElementById('route_networks_container');
 
@@ -103,11 +140,9 @@
 
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงทั้ง input และ label เมื่อเลือก "Please Select"
                     manyHostnameInput.style.display = "block";
                     hostnameLabel.style.display = "block";
                 } else {
-                    // ซ่อนทั้ง input และ label เมื่อเลือกอุปกรณ์
                     manyHostnameInput.style.display = "none";
                     hostnameLabel.style.display = "none";
                 }
@@ -146,21 +181,6 @@
             const form = document.querySelector("form");  // หาฟอร์ม
             form.addEventListener("submit", handleSubmit);  // ใช้ handleSubmit เมื่อฟอร์มจะถูกส่ง
         });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById('auto_summary_enable').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('auto_summary_disable').checked = false;
-                }
-            });
-
-            document.getElementById('auto_summary_disable').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('auto_summary_enable').checked = false;
-                }
-            });
-        });
-
     </script>
 </head>
 
@@ -254,6 +274,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">RIPv2</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -266,8 +297,8 @@
                 <h1 style="text-align: left; color: #2e4ead;">RIPv2</h1>
                 <br>
                 <form method="POST" action="/rip_settings" onsubmit="return handleSubmit()">
-                <div class="section-card">
-                    <div class="section-title" style="text-align: left;">Select Device:</div>
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device:</div>
                         <div class="input-container" style="display: flex; align-items: center;">
                             <!-- Dropdown with ID for JavaScript to access -->
                             <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
@@ -292,73 +323,69 @@
                         <!-- A div to display the suggestions -->
                         <div id="suggestions" class="suggestions-container"></div>
                         <br>
-                </div>
+                    </div>
 
-                <!-- network -->
-                <div class="section-card">
-                    <div class="section-title" style="text-align: left;">RIP Networks</div>
-                    </h3>
-                    <div id="route_networks_container">
-                        <div class="form-container route_pair">
-                            <div class="form-group">
-                                <input type="text" name="destination_networks[]"
-                                    placeholder="Enter network (Example: 192.168.1.0)"
-                                    pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
-                                    title="Please enter a valid IP address (e.g., 192.168.1.0).">
+                    <!-- network -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">RIP Networks</div>
+                        </h3>
+                        <div id="route_networks_container">
+                            <div class="form-container route_pair">
+                                <div class="form-group">
+                                    <input type="text" name="destination_networks[]"
+                                        placeholder="Enter network (Example: 192.168.1.0)"
+                                        pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
+                                        title="Please enter a valid IP address (e.g., 192.168.1.0).">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button"
+                            style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
+                            onclick="addRoutePair()">Add network</button>
+                        <br>
+                    </div>
+
+                    <!-- auto - sum -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Auto-Summary Configuration</div>
+                        <div class="checkbox-wrapper-22">
+                            <div class="protocol-toggle" style="margin-top: 10px;">
+                                <button type="button" id="autoSummaryToggle" class="toggle-button none"
+                                    title="Toggle Auto-Summary (Enable/Disable)">
+                                    <div class="toggle-knob"></div>
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <button type="button"
-                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRoutePair()">Add network</button>
-                    <br>
-                </div>
 
-                <!-- auto - sum (สำหรับ RIP) -->
-                <div class="section-card">
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;" >Auto-Summary</label>
-                        <label>Enable</label>
-                        <label class="switch" title="Enable auto-summary">
-                            <input type="checkbox" id="auto_summary_enable" name="auto_summary" value="Enable">
-                            <span class="slider"></span>
-                        </label>
-                        <label>Disable</label>
-                        <label class="switch" title="Disable auto-summary">
-                            <input type="checkbox" id="auto_summary_disable" name="auto_summary" value="Disable">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Remove network Route -->
-                <div class="section-card">
-                    <div class="section-title" style="text-align: left;">Remove RIP Networks</div>
-                    </h3>
-                    <div id="remove_networks_container">
-                        <div class="form-container route_pair">
-                            <div class="form-group">
-                                <input type="text" name="remove_destination_networks[]"
-                                    placeholder="Enter network to remove (Example: 192.168.1.0)"
-                                    pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
-                                    title="Please enter a valid IP address to remove (e.g., 192.168.1.0).">
+                    <!-- Remove network Route -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Remove RIP Networks</div>
+                        </h3>
+                        <div id="remove_networks_container">
+                            <div class="form-container route_pair">
+                                <div class="form-group">
+                                    <input type="text" name="remove_destination_networks[]"
+                                        placeholder="Enter network to remove (Example: 192.168.1.0)"
+                                        pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
+                                        title="Please enter a valid IP address to remove (e.g., 192.168.1.0).">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <button type="button"
-                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                        onclick="addRemoveRoutePair()">Add network to remove</button><br>
+                        <button type="button"
+                            style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
+                            onclick="addRemoveRoutePair()">Add network to remove</button><br>
 
-                    <!-- Disable RIP -->
-                    <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;">Disable RIP</label>
-                        <label class="switch" title="Disable RIP Routing Protocol">
-                            <input type="checkbox" id="disable_rip" name="disable_rip" value="true">
-                            <span class="slider"></span>
-                        </label>
+                        <!-- Disable RIP -->
+                        <div class="checkbox-wrapper-22">
+                            <label style="color: #2e4ead; font-weight: bold;">Disable RIP</label>
+                            <label class="switch" title="Disable RIP Routing Protocol">
+                                <input type="checkbox" id="disable_rip" name="disable_rip" value="true">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-                <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
+                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

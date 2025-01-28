@@ -17,7 +17,6 @@
             const manyHostnameInput = document.getElementById("many_hostname");
             const hostnameLabel = document.querySelector('label[for="many_name"]');
 
-            // จัดการการแสดงผลเมื่อมีการพิมพ์ใน many_hostname
             manyHostnameInput.addEventListener("input", function () {
                 if (manyHostnameInput.value.trim() !== "") {
                     deviceDropdown.style.display = "none";
@@ -26,14 +25,11 @@
                 }
             });
 
-            // จัดการการแสดงผลเมื่อมีการเลือกจาก dropdown
             deviceDropdown.addEventListener("change", function () {
                 if (deviceDropdown.value === "") {
-                    // แสดงทั้ง input และ label เมื่อเลือก "Please Select"
                     manyHostnameInput.style.display = "block";
                     hostnameLabel.style.display = "block";
                 } else {
-                    // ซ่อนทั้ง input และ label เมื่อเลือกอุปกรณ์
                     manyHostnameInput.style.display = "none";
                     hostnameLabel.style.display = "none";
                 }
@@ -41,32 +37,51 @@
         });
     </script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Function to toggle IPv4 switches
-            document.getElementById('enable_ipv4').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('disable_ipv4').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                }
-            });
+        window.onload = function () {
+            toggleIpInput();
+        };
 
-            document.getElementById('disable_ipv4').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('enable_ipv4').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                }
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            function handleToggle(buttonId, enableId, disableId) {
+                const button = document.getElementById(buttonId);
+                const enableInput = document.createElement('input');
+                enableInput.type = 'hidden';
+                enableInput.name = enableId;
 
-            // Function to toggle IPv6 switches
-            document.getElementById('enable_ipv6').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('disable_ipv6').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                }
-            });
+                const disableInput = document.createElement('input');
+                disableInput.type = 'hidden';
+                disableInput.name = disableId;
 
-            document.getElementById('disable_ipv6').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('enable_ipv6').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                }
-            });
+                button.form.appendChild(enableInput);
+                button.form.appendChild(disableInput);
+
+                let currentState = 'none';
+
+                button.addEventListener('click', function () {
+                    switch (currentState) {
+                        case 'on':
+                            currentState = 'none';
+                            enableInput.value = '';
+                            disableInput.value = '';
+                            break;
+                        case 'none':
+                            currentState = 'off';
+                            enableInput.value = '';
+                            disableInput.value = 'on';
+                            break;
+                        case 'off':
+                            currentState = 'on';
+                            enableInput.value = 'on';
+                            disableInput.value = '';
+                            break;
+                    }
+
+                    button.className = `toggle-button ${currentState}`;
+                });
+            }
+
+            handleToggle('ipv4Toggle', 'enable_ipv4', 'disable_ipv4');
+            handleToggle('ipv6Toggle', 'enable_ipv6', 'disable_ipv6');
         });
     </script>
     <script>
@@ -100,34 +115,62 @@
         }
 
         function validateIPv4Configuration() {
-            const enableIPv4 = document.getElementById('enable_ipv4').checked;
-            const disableIPv4 = document.getElementById('disable_ipv4').checked;
-            const deleteIPv4 = document.getElementById('delete_ipv4').checked;
-            const dhcpIPv4 = document.getElementById('dhcp').checked;
-            const interfacesIPv4 = document.getElementById('interfaces_ipv4').value.trim();
+            const ipv4ToggleButton = document.getElementById('ipv4Toggle');
+            const toggleState = ipv4ToggleButton.classList.contains('on') ? 'on' :
+                ipv4ToggleButton.classList.contains('off') ? 'off' : 'none';
+            const deleteIPv4 = document.getElementById('delete_ipv4')?.checked;
+            const dhcpIPv4 = document.getElementById('dhcp')?.checked;
+            const interfacesIPv4 = document.getElementById('interfaces_ipv4')?.value.trim();
 
-            // เช็คว่ามีการเลือกหนึ่งในตัวเลือกและยังไม่ได้กรอก interface IPv4
-            if ((enableIPv4 || disableIPv4 || deleteIPv4 || dhcpIPv4) && interfacesIPv4 === "") {
-                alert("Please enter the IPv4 interface if Enable, Disable, Delete IP, or DHCP is selected.");
-                return false; // หยุดการส่งฟอร์ม
+            // if input interface but not select anyaction (on,off,dhcp) tell user 
+            if (interfacesIPv4 !== "" && toggleState === 'none' && !deleteIPv4 && !dhcpIPv4) {
+                alert("You have entered an IPv4 interface but not selected any action (Enable, Disable, DHCP, or Delete IP).");
+                return false;
+            }
+
+            // ถ้า toggleState เป็น on หรือ off ต้องตรวจสอบว่า interfacesIPv4 ถูกกรอก
+            if ((toggleState === 'on' || toggleState === 'off') && interfacesIPv4 === "") {
+                alert("Please enter the IPv4 interface if Enable or Disable is selected.");
+                return false;
+            }
+
+            // กรณี deleteIPv4 หรือ dhcpIPv4 ถูกเลือก ต้องกรอก interfacesIPv4 เช่นกัน
+            if ((deleteIPv4 || dhcpIPv4) && interfacesIPv4 === "") {
+                alert("Please enter the IPv4 interface if Delete IP or DHCP is selected.");
+                return false;
             }
 
             return true; // ผ่านการตรวจสอบ
         }
 
-        function validateIPv6Configuration() {
-            const enableIPv6 = document.getElementById('enable_ipv6').checked;
-            const disableIPv6 = document.getElementById('disable_ipv6').checked;
-            const deleteIPv6 = document.getElementById('delete_ipv6').checked;
-            const dhcpIPv6 = document.getElementById('dhcp_ipv6').checked;
-            const interfacesIPv6 = document.getElementById('interfaces_ipv6').value.trim();
 
-            if ((enableIPv6 || disableIPv6 || deleteIPv6 || dhcpIPv6) && interfacesIPv6 === "") {
-                alert("Please enter the IPv6 interface if Enable, Disable, Delete IP, or DHCP is selected.");
+        function validateIPv6Configuration() {
+            const ipv6ToggleButton = document.getElementById('ipv6Toggle');
+            const toggleState = ipv6ToggleButton.classList.contains('on') ? 'on' :
+                ipv6ToggleButton.classList.contains('off') ? 'off' : 'none';
+            const deleteIPv6 = document.getElementById('delete_ipv6')?.checked;
+            const dhcpIPv6 = document.getElementById('dhcp')?.checked;
+            const interfacesIPv6 = document.getElementById('interfaces_ipv6')?.value.trim();
+
+            // if input interface but not select anyaction (on,off,dhcp) tell user 
+            if (interfacesIPv6 !== "" && toggleState === 'none' && !deleteIPv6 && !dhcpIPv6) {
+                alert("You have entered an IPv6 interface but not selected any action (Enable, Disable, DHCP, or Delete IP).");
                 return false;
             }
 
-            return true;
+            // ถ้า toggleState เป็น on หรือ off ต้องตรวจสอบว่า interfacesIPv6 ถูกกรอก
+            if ((toggleState === 'on' || toggleState === 'off') && interfacesIPv6 === "") {
+                alert("Please enter the IPv6 interface if Enable or Disable is selected.");
+                return false;
+            }
+
+            // กรณี deleteIPv6 หรือ dhcpIPv6 ถูกเลือก ต้องกรอก interfacesIPv6 เช่นกัน
+            if ((deleteIPv6 || dhcpIPv6) && interfacesIPv6 === "") {
+                alert("Please enter the IPv6 interface if Delete IP or DHCP is selected.");
+                return false;
+            }
+
+            return true; // ผ่านการตรวจสอบ
         }
         function validateDuplexConfiguration() {
             const interfacesDuplex = document.getElementById('interfaces_du').value.trim();
@@ -277,6 +320,17 @@
         </div>
         <div class="main_container">
             <div class="container">
+                <!-- crum -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb">
+                        <a href="/" class="breadcrumb-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                        <i class="fas fa-chevron-right separator"></i>
+                        <span class="breadcrumb-item active">Network Interface Configuration</span>
+                    </nav>
+                </div>
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <script>
@@ -333,18 +387,15 @@
                                 title="Enter an IPv4 address with CIDR notation (e.g., 192.168.1.1/24)"
                                 pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2})$">
                             <div class="checkbox-wrapper-22">
-                                <label>Enable</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="enable_ipv4" name="enable_ipv4">
-                                    <span class="slider"></span>
-                                </label>
-                                <label>Disable</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="disable_ipv4" name="disable_ipv4">
-                                    <span class="slider"></span>
-                                </label>
-                                <label>Delete IP</label>
-                                <label class="switch">
+                                <div class="protocol-toggle" style="margin-top: 10px;">
+                                    <button type="button" id="ipv4Toggle" class="toggle-button none"
+                                        title="Enable or Disable interface">
+                                        <div class="toggle-knob"></div>
+                                    </button>
+                                </div>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <label style="margin-top: 20px;">Delete IP</label>
+                                <label class="switch" title="Delete IP Address" style="margin-top: 20px;">
                                     <input type="checkbox" id="delete_ipv4" name="delete_ipv4">
                                     <span class="slider"></span>
                                 </label>
@@ -371,18 +422,15 @@
                                 title="Enter a valid IPv6 address with CIDR notation (e.g., 2001:db8::1/64)"
                                 pattern="^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(([0-9a-fA-F]{1,4}:)*:([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4})|::)(\/(12[0-8]|1[01][0-9]|[1-9]?[0-9]))?$">
                             <div class="checkbox-wrapper-22">
-                                <label>Enable</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="enable_ipv6" name="enable_ipv6">
-                                    <span class="slider"></span>
-                                </label>
-                                <label>Disable</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="disable_ipv6" name="disable_ipv6">
-                                    <span class="slider"></span>
-                                </label>
-                                <label>Delete IP</label>
-                                <label class="switch">
+                                <div class="protocol-toggle" style="margin-top: 10px;">
+                                    <button type="button" id="ipv6Toggle" class="toggle-button none"
+                                        title="Enable or Disable interface">
+                                        <div class="toggle-knob"></div>
+                                    </button>
+                                </div>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <label style="margin-top: 20px;">Delete IP</label>
+                                <label class="switch" title="Delete IP Address" style="margin-top: 20px;">
                                     <input type="checkbox" id="delete_ipv6" name="delete_ipv6">
                                     <span class="slider"></span>
                                 </label>

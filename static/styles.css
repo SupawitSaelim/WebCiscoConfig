@@ -740,3 +740,32 @@ input[data-tooltip]::after {
   border-top-color: transparent;
   border-bottom-color: #2e4ead;
 }
+
+.breadcrumb-container {
+  background-color: white;
+  padding: 8px 15px;
+  margin-bottom: 10px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb-item {
+  color: #2e4ead;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.breadcrumb-item.active {
+  color: #6b7280;
+}
+
+.separator {
+  color: #9ca3af;
+  font-size: 12px;
+}

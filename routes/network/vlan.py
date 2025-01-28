@@ -34,8 +34,6 @@ def init_vlan_settings(device_collection):
             vlan_ids_to_change = request.form.getlist('vlan_ids_change[]')
             vlan_names_to_change = request.form.getlist('vlan_names_change[]')
 
-            enable_vlans = request.form.get('enable_vlans')  
-            disable_vlans = request.form.get('disable_vlans')  
             vlan_id_enable = request.form.get('vlan_id_enable')  
             vlan_id_disable = request.form.get('vlan_id_disable')
             del_vlan_dat = request.form.get('del_vlan_dat')  
@@ -93,7 +91,7 @@ def init_vlan_settings(device_collection):
                 vlan_changes.append((vlan_id.strip(), vlan_name.strip()))
 
             vlan_range_enable = []
-            if enable_vlans and vlan_id_enable:
+            if vlan_id_enable:  # เช็คแค่ว่ามี vlan_id_enable หรือไม่
                 vlan_entries_enable = vlan_id_enable.split(',')
                 for entry in vlan_entries_enable:
                     entry = entry.strip()
@@ -110,7 +108,7 @@ def init_vlan_settings(device_collection):
                             return f'<script>alert("Invalid VLAN ID for Enable: {entry}"); window.location.href="/vlan_settings";</script>'
 
             vlan_range_disable = []
-            if disable_vlans and vlan_id_disable:
+            if vlan_id_disable:
                 vlan_entries_disable = vlan_id_disable.split(',')
                 for entry in vlan_entries_disable:
                     entry = entry.strip()
