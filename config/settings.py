@@ -7,7 +7,7 @@ load_dotenv()
 # Flask Configuration
 SECRET_KEY = 'Supawitadmin123_'
 DEBUG = True
-PORT = 8000
+PORT = 5000
 HOST = "0.0.0.0"
 
 # MongoDB Configuration

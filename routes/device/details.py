@@ -1,22 +1,48 @@
 from flask import Blueprint, render_template, request, flash, redirect
 from pymongo.errors import ServerSelectionTimeoutError
 import subprocess
+import os
+import sys
 
 device_details_routes = Blueprint('device_details_routes', __name__)
+
+def get_resource_path(relative_path):
+    """Get the absolute path to a resource, works for both development and PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        # ถ้าไม่ได้รันผ่าน PyInstaller จะใช้ path ปกติ
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
 
 def run_snmp_command(script_path, device_ip, community='public'):
     """Helper function to run SNMP-related scripts and return the output or error."""
     try:
+        full_path = get_resource_path(script_path)
+        if not os.path.exists(full_path):
+            return f"Error: Script not found at {full_path}"
+            
         result = subprocess.run(
-            ["node", script_path, device_ip, community],
-            capture_output=True, text=True, check=True
+            ["node", full_path, device_ip, community],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10  # เพิ่ม timeout
         )
+        
         if "Error fetching system description" in result.stdout or not result.stdout.strip():
             return "SNMP not configured or unreachable"
         
-        return result.stdout
+        return result.stdout.strip()
+        
+    except subprocess.TimeoutExpired:
+        return "SNMP request timed out"
     except subprocess.CalledProcessError as e:
-        return f"Error fetching data from {script_path}: {e}"
+        return "SNMP not configured or unreachable"
+    except Exception as e:
+        return f"SNMP not configured or unreachable: {str(e)}"
 
 def init_device_details_routes(device_collection):
     @device_details_routes.route('/devices_details_page', methods=['GET'])

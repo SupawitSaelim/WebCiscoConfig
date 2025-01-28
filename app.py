@@ -1,6 +1,8 @@
 # Flask imports
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+import sys
+import os
 
 # Configuration imports
 from config.settings import SECRET_KEY
@@ -50,10 +52,19 @@ from routes.system.status import init_system_status_routes
 # Utility imports
 from dotenv import load_dotenv
 
-# Initialize Flask app
-app = Flask(__name__, template_folder='templates')
-app.secret_key = SECRET_KEY
+if getattr(sys, 'frozen', False):
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
+app = Flask(__name__,
+    static_folder=os.path.join(base_path, 'static'),
+    template_folder=os.path.join(base_path, 'templates')
+)
+app.secret_key = os.urandom(24)
 socketio = SocketIO(app)
+
+# Model path
+MODEL_PATH = os.path.join(base_path, 'models', 'ml', 'lr_model.pkl')
 
 # Load environment variables
 load_dotenv()
@@ -112,10 +123,9 @@ def login_first():
 if __name__ == "__main__":
     register_blueprints()
     scheduler = init_scheduler(security_checker, ssh_manager)
-    socketio.run(
-        app, 
+    socketio.run(app, 
         host=active_config.HOST,
-        port=active_config.PORT,
+        port=active_config.PORT, 
         debug=active_config.DEBUG,
         allow_unsafe_werkzeug=True
     )
