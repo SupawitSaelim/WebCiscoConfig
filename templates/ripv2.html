@@ -255,52 +255,55 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead;">RIPv2</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/rip_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Select Device:</div>
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <!-- Dropdown with ID for JavaScript to access -->
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
+                        </div><br>
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
+                        </label>
+                        <!-- Input field for many_hostname with ID -->
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <!-- A div to display the suggestions -->
+                        <div id="suggestions" class="suggestions-container"></div>
+                        <br>
+                </div>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <!-- Input field for many_hostname with ID -->
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br>
-
-                    <!-- network -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">RIP Networks
+                <!-- network -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">RIP Networks</div>
                     </h3>
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
                                 <input type="text" name="destination_networks[]"
-                                    placeholder="Enter network (Example: 192.168.1.0)" pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
+                                    placeholder="Enter network (Example: 192.168.1.0)"
+                                    pattern="^(([0-9]{1,3}\.){3}[0-9]{1,3})$"
                                     title="Please enter a valid IP address (e.g., 192.168.1.0).">
                             </div>
                         </div>
@@ -309,27 +312,28 @@
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
                         onclick="addRoutePair()">Add network</button>
                     <br>
+                </div>
 
-                    <!-- auto - sum (สำหรับ RIP) -->
+                <!-- auto - sum (สำหรับ RIP) -->
+                <div class="section-card">
                     <div class="checkbox-wrapper-22">
-                        <label style="color: #2e4ead; font-weight: bold;">Auto-Summary</label>
+                        <label style="color: #2e4ead; font-weight: bold;" >Auto-Summary</label>
                         <label>Enable</label>
                         <label class="switch" title="Enable auto-summary">
                             <input type="checkbox" id="auto_summary_enable" name="auto_summary" value="Enable">
                             <span class="slider"></span>
                         </label>
-                        <br>
                         <label>Disable</label>
                         <label class="switch" title="Disable auto-summary">
                             <input type="checkbox" id="auto_summary_disable" name="auto_summary" value="Disable">
                             <span class="slider"></span>
                         </label>
-                        <br>
                     </div>
-                    <br>
+                </div>
 
-                    <!-- Remove network Route -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove RIP Networks
+                <!-- Remove network Route -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Remove RIP Networks</div>
                     </h3>
                     <div id="remove_networks_container">
                         <div class="form-container route_pair">
@@ -353,8 +357,8 @@
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <br><br>
-                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
+                </div>
+                <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

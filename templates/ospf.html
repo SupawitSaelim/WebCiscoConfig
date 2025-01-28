@@ -430,46 +430,47 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">ospf</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/ospf_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Select Device:</div>
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <!-- Dropdown with ID for JavaScript to access -->
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
+                        </div><br>
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
+                        </label>
+                        <!-- Input field for many_hostname with ID -->
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <!-- A div to display the suggestions -->
+                        <div id="suggestions" class="suggestions-container"></div>
+                </div>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <!-- Input field for many_hostname with ID -->
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br><br>
-
-                    <!-- ospf networks -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">OSPF Networks</h3><br>
+                <!-- ospf networks -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">OSPF Networks</div>
                     <input type="number" min="1" max="65535" name="process_id" id="process_id" placeholder="Process ID"
                         title="Enter the OSPF Process ID, a unique identifier for the OSPF routing process between 1 and 65535.">
                     <input type="text" name="router_id" id="router_id"
@@ -491,10 +492,11 @@
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
                         onclick="addRoutePair()">Add network</button>
-                    <br><br>
+                </div>
 
-                    <!-- Remove OSPF Networks -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove OSPF Networks</h3>
+                <!-- Remove OSPF Networks -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Remove OSPF Networks</div>
                     <div id="remove_networks_container">
                         <div class="form-container remove_route_pair">
                             <div class="form-group">
@@ -513,9 +515,10 @@
                     <button type="button"
                         style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
                         onclick="addRemoveRoutePair()">Add network to remove</button><br>
+                </div>
 
-
-                    <!-- Delete Process ID -->
+                <!-- Delete Process ID -->
+                <div class="section-card">
                     <div class="checkbox-wrapper-22">
                         <label style="color: #2e4ead; font-weight: bold;">Delete Process ID</label>
                         <label class="switch">
@@ -528,8 +531,8 @@
                             placeholder="Enter Process ID 1,2" title="Separate with commas: 1,2,3"
                             style="display: none; width: 30%;">
                     </div>
-                    <br><br>
-                    <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
+                </div>
+                <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>

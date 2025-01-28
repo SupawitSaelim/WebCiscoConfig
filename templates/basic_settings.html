@@ -222,63 +222,74 @@
         </div>
         <div class="main_container">
             <div class="container">
-                <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">BASIC SETTINGS</h1>
-                <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/basic_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <!-- Input field for many_hostname with ID -->
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br><br>
-
-                    <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
-                        maxlength="40">
-                    <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
-                        minlength="3" maxlength="20">
-                    <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
-                    <h3 style="color: #2e4ead; text-align: left;">Service Password-encryption</h3><br>
-                    <div class="checkbox-wrapper-22">
-                        <label>Enable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="enable_password_encryp" name="enable_password_encryp">
-                            <span class="slider"></span>
+                    <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">BASIC SETTINGS</h1>
+                    <br>
+                    <!-- Device Selection Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Select Device</div>
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
+                        </div><br>
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
                         </label>
-                        <label>Disable</label>
-                        <label class="switch">
-                            <input type="checkbox" id="disable_password_encryp" name="disable_password_encryp">
-                            <span class="slider"></span>
-                        </label>
-                    </div><br><br>
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <div id="suggestions" class="suggestions-container"></div>
+                    </div>
 
-                    <!-- Users -->
-                    <h3 style="color: #2e4ead; text-align: left;">Username and Password Management</h3>
-                    <div class="form-container route_pair">
-                        <div class="form-group">
-                            <input type="text" name="username" placeholder="Username" title="Enter device username">
+
+                    <!-- Device Basic Configuration Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Device Basic Configuration</div>
+                        <input type="text" id="hostname" name="hostname" placeholder="Hostname" minlength="3"
+                            maxlength="40">
+                        <input type="password" id="secret_password" name="secret_password" placeholder="Secret password"
+                            minlength="3" maxlength="20">
+                        <input type="text" style="height: 120px;" name="banner" id="banner" placeholder="Banner">
+                    </div>
+
+                    <!-- Password Encryption Settings Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;">Service Password-encryption</div>
+                        <div class="checkbox-wrapper-22">
+                            <label>Enable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enable_password_encryp" name="enable_password_encryp">
+                                <span class="slider"></span>
+                            </label>
+                            <label>Disable</label>
+                            <label class="switch">
+                                <input type="checkbox" id="disable_password_encryp" name="disable_password_encryp">
+                                <span class="slider"></span>
+                            </label>
                         </div>
-                        <div class="form-group">
-                            <input type="password" name="password" placeholder="Password" title="Enter device password">
+                    </div>
+
+                    <!-- User Management Section -->
+                    <div class="section-card">
+                        <div class="section-title" style="text-align: left;"    >Username and Password Management</div>
+                        <div class="form-container route_pair">
+                            <div class="form-group">
+                                <input type="text" name="username" placeholder="Username" title="Enter device username">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="password" placeholder="Password"
+                                    title="Enter device password">
+                            </div>
                         </div>
                     </div>
 

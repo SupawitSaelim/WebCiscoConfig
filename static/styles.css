@@ -610,3 +610,67 @@ input[type="submit"]:hover {
   gap: 10px;
   margin-bottom: 15px;
 }
+
+.section-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  color: #2e4ead;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #2e4ead;
+}
+
+/* ซ่อน radio button ดั้งเดิม */
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #D1D5DB;
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* สถานะ checked */
+input[type="radio"]:checked {
+  border-color: #3B82F6;
+}
+
+/* จุดกลมด้านใน เมื่อถูกเลือก */
+input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3B82F6;
+}
+
+/* hover effect */
+input[type="radio"]:hover {
+  border-color: #60A5FA;
+}
+
+/* label style */
+input[type="radio"] + label {
+  color: #374151;
+  font-size: 14px;
+  vertical-align: middle;
+  cursor: pointer;
+  margin-right: 16px;
+}

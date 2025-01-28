@@ -329,47 +329,45 @@
         <div class="main_container">
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <script>
-                            {% for category, message in messages %}
-                                alert("{{ message | safe }}");
-                            {% endfor %}
-                        </script>
-                        {% endif %}
-                    {% endwith %}
+                {% if messages %}
+                <script>
+                    {% for category, message in messages %}
+                    alert("{{ message | safe }}");
+                    {% endfor %}
+                </script>
+                {% endif %}
+                {% endwith %}
                 <h1 style="text-align: left; color: #2e4ead; text-transform: uppercase;">static route</h1>
                 <br>
-                <h3 style="color: #2e4ead;">Select Device:</h3><br>
                 <form method="POST" action="/static_settings" onsubmit="return handleSubmit()">
-                    <div class="input-container" style="display: flex; align-items: center;">
-                        <!-- Dropdown with ID for JavaScript to access -->
-                        <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
-                            <option value="">Please Select</option>
-                            {% if cisco_devices %}
-                            {% for device in cisco_devices %}
-                            <option value="{{ device.device_info.ip }}">
-                                {{ device.name }} ({{ device.device_info.ip }})
-                            </option>
-                            {% endfor %}
-                            {% else %}
-                            <option disabled>No devices available</option>
-                            {% endif %}
-                        </select>
-                    </div><br><br>
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Select Device</div>
+                        <div class="input-container" style="display: flex; align-items: center;">
+                            <select id="device_dropdown" name="device_name" style="margin-right: 10px;">
+                                <option value="">Please Select</option>
+                                {% if cisco_devices %}
+                                {% for device in cisco_devices %}
+                                <option value="{{ device.device_info.ip }}">
+                                    {{ device.name }} ({{ device.device_info.ip }})
+                                </option>
+                                {% endfor %}
+                                {% else %}
+                                <option disabled>No devices available</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <br>
+                        <label for="many_name" style="text-align: left;">
+                            Enter device names separated by commas
+                        </label>
+                        <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
+                            placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
+                        <div id="suggestions" class="suggestions-container"></div>
+                </div>
 
-                    <label for="many_name" style="text-align: left;">
-                        Enter device names separated by commas
-                    </label>
-                    <!-- Input field for many_hostname with ID -->
-                    <input type="text" style="height: 60px;" name="many_hostname" id="many_hostname"
-                        placeholder="Example: sw1,sw2,sw3" autocomplete="off" oninput="suggestHostnames()">
-                    <!-- A div to display the suggestions -->
-                    <div id="suggestions" class="suggestions-container"></div>
-                    <br><br>
-
-                    <!-- Static route -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Static Route Configuration
-                    </h3>
+                <!-- Static route -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Static Route</div>
                     <div id="route_networks_container">
                         <div class="form-container route_pair">
                             <div class="form-group">
@@ -385,46 +383,45 @@
                         </div>
                     </div>
                     <button type="button"
-                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
                         onclick="addRoutePair()">Add network</button>
-                    <br><br>
+                </div>
 
-                    <!-- Default Route -->
-                    <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Default Route
-                        <input type="text" id="default_route" name="default_route"
-                            placeholder="Exit interface or IP next hop"
-                            title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop (e.g., 192.168.1.1) for the default route. The default route is used to direct traffic to destinations outside the local network, typically used for accessing the internet or remote networks.">
-                        <div class="checkbox-wrapper-22">
-                            <label style="font-size: small;color: #2e4ead;">Remove default route</label>
-                            <label class="switch">
-                                <input type="checkbox" id="remove_default" name="remove_default">
-                                <span class="slider"></span>
-                            </label>
-                            <br>
-                        </div><br>
+                <!-- Default Route -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Default Route</div>
+                    <input type="text" id="default_route" name="default_route"
+                        placeholder="Exit interface or IP next hop"
+                        title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop...">
+                    <div class="checkbox-wrapper-22">
+                        <label style="font-size: small;color: #2e4ead;">Remove default route</label>
+                        <label class="switch">
+                            <input type="checkbox" id="remove_default" name="remove_default">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
 
-                        <!-- Remove Static Route -->
-                        <h3 style="text-align: left; color: #2e4ead; text-transform: uppercase;">Remove Static Route
-                        </h3>
-                        <div id="remove_networks_container">
-                            <div class="form-container route_pair">
-                                <div class="form-group">
-                                    <input type="text" name="remove_destination_networks[]"
-                                        placeholder="Destination Network to Remove"
-                                        title="Enter the destination network (e.g., 192.168.1.0/24) that you want to remove from the static route configuration. This is the network you wish to remove from the routing table.">
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" name="remove_exit_interfaces_or_next_hops[]"
-                                        placeholder="Exit Interface or Next Hop IP to Remove"
-                                        title="Enter the exit interface (e.g., fa0/1) or the IP address of the next hop (e.g., 192.168.1.1) to remove from the static route. This defines the outgoing path for traffic from the destination network.">
-                                </div>
+                <!-- Remove Static Route -->
+                <div class="section-card">
+                    <div class="section-title" style="text-align: left;">Remove Static Route</div>
+                    <div id="remove_networks_container">
+                        <div class="form-container route_pair">
+                            <div class="form-group">
+                                <input type="text" name="remove_destination_networks[]"
+                                    placeholder="Destination Network to Remove">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="remove_exit_interfaces_or_next_hops[]"
+                                    placeholder="Exit Interface or Next Hop IP to Remove">
                             </div>
                         </div>
-                        <button type="button"
-                            style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding:  2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0;"
-                            onclick="addRemoveRoutePair()">Add network to remove</button>
-                        <br><br>
-                        <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
+                    </div>
+                    <button type="button"
+                        style="background-color: #2e4ead; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 14px; cursor: pointer; display: block; margin-left: 0; margin-top: 10px;"
+                        onclick="addRemoveRoutePair()">Add network to remove</button>
+                </div>
+                <input style="margin-left: 90%;" type="submit" value="Submit" class="fix-button">
                 </form>
             </div>
         </div>
