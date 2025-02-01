@@ -413,6 +413,22 @@ def configure_spanning_tree(device, stp_mode, root_primary, root_vlan_id, root_s
         raise Exception(f"Error configuring spanning tree: {str(e)}")
 
 
+def format_interface_name(interface):
+    """
+    Format interface name to ensure proper prefix
+    """
+    interface = interface.strip().lower()
+    # If it's just a number, add 'port-channel' prefix
+    if interface.isdigit():
+        return f"Port-channel{interface}"
+    # If it starts with number, add 'po' prefix
+    elif interface[0].isdigit():
+        return f"Po{interface}"
+    # If it's already properly formatted (po, Port-channel), return as is
+    elif interface.startswith('po') or interface.startswith('port-channel'):
+        return interface.replace('po', 'Po').replace('port-channel', 'Port-channel')
+    return interface
+
 def configure_etherchannel(device, etherchannel_interfaces, channel_group_number, 
                            pagp_mode, etherchannel_interfaces_lacp, channel_group_number_lacp, lacp_mode,
                            etherchannel_interfaces_lacp_delete):
@@ -463,11 +479,17 @@ def configure_etherchannel(device, etherchannel_interfaces, channel_group_number
                 output = net_connect.send_config_set(lacp_commands)
                 print(output)
 
-        # Delete Port Group
+        # Delete Port Group with proper interface name formatting
         if etherchannel_interfaces_lacp_delete:
-            interfaces = etherchannel_interfaces_lacp_delete.split(",")  
+            interfaces = etherchannel_interfaces_lacp_delete.split(",")
             for interface in interfaces:
-                command = f"no interface {interface.strip()}" 
+                formatted_interface = format_interface_name(interface)
+                command = f"no interface {formatted_interface}"
+                
+                # Log the conversion for debugging
+                if formatted_interface != interface.strip():
+                    print(f"Converting interface name from '{interface.strip()}' to '{formatted_interface}'")
+                    
                 output = net_connect.send_config_set(command)
                 print(f"Deleted Port Group on {device['name']}: {command}\n{output}")
 
