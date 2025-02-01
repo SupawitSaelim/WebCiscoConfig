@@ -197,34 +197,142 @@
         }
     </script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById('enable_cdp').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('disable_cdp').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                }
-            });
+        // Wait for DOM to be fully loaded
+        window.addEventListener('load', function () {
+            // Get the authentication method select element
+            const authenMethodSelect = document.getElementById('authen_method_select');
 
-            document.getElementById('disable_cdp').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('enable_cdp').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                }
-            });
+            if (authenMethodSelect) {
+                // Add change event listener
+                authenMethodSelect.addEventListener('change', function (event) {
+                    // Check if VTY Password is selected
+                    if (this.value === 'login') {
+                        // Show warning message
+                        const confirmation = confirm(
+                            '⚠️ Warning ⚠️\n\n' +
+                            'Selecting VTY Password authentication will prevent Netmiko from connecting to devices.\n\n' +
+                            'This application requires "Local User" authentication to function properly.\n\n' +
+                            'Are you sure you want to continue with VTY Password authentication?'
+                        );
 
+                        // If user clicks Cancel, revert to Local User
+                        if (!confirmation) {
+                            this.value = 'login local';
+                            return;
+                        }
+
+                        // If user confirms, show additional warning
+                        const finalWarning = confirm(
+                            '⚠️ Final Warning ⚠️\n\n' +
+                            'Using VTY Password will:\n' +
+                            '• Disable remote management capabilities\n' +
+                            '• Prevent automated configurations\n' +
+                            '• Require manual intervention to restore connectivity\n\n' +
+                            'Do you still want to proceed?'
+                        );
+
+                        // If user cancels final warning, revert to Local User
+                        if (!finalWarning) {
+                            this.value = 'login local';
+                        }
+                    }
+                });
+            } else {
+                console.error('Authentication method select element not found');
+            }
+
+            // Add form submit validation
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    const selectedAuth = authenMethodSelect.value;
+
+                    if (selectedAuth === 'login') {
+                        const submitConfirm = confirm(
+                            '⚠️ Final Confirmation ⚠️\n\n' +
+                            'You are about to apply VTY Password authentication.\n' +
+                            'This will disconnect the device from remote management.\n\n' +
+                            'Click OK to proceed or Cancel to review your settings.'
+                        );
+
+                        if (!submitConfirm) {
+                            event.preventDefault();
+                        }
+                    }
+                });
+            }
         });
+        // Wait for DOM to be fully loaded
+        window.addEventListener('load', function () {
+            const loginMethodSelect = document.getElementById('login_method_select');
 
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById('enable_lldp').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('disable_lldp').checked = false; // ปิด Disable เมื่อ Enable เปิด
-                }
-            });
+            if (loginMethodSelect) {
+                // Add change event listener
+                loginMethodSelect.addEventListener('change', function (event) {
+                    // Check if Telnet is selected
+                    if (this.value === 'telnet') {
+                        const confirmation = confirm(
+                            '⚠️ Warning: Telnet Selection ⚠️\n\n' +
+                            'Selecting Telnet as the login method is not recommended because:\n\n' +
+                            '• Netmiko requires SSH for secure device connections\n' +
+                            '• Telnet sends data in plain text (not secure)\n' +
+                            '• Most modern network management tools use SSH\n\n' +
+                            'Would you like to select SSH instead?'
+                        );
 
-            document.getElementById('disable_lldp').addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('enable_lldp').checked = false; // ปิด Enable เมื่อ Disable เปิด
-                }
-            });
+                        if (confirmation) {
+                            this.value = 'ssh';
+                        }
+                    }
+                    // Check if None is selected
+                    else if (this.value === 'none') {
+                        const confirmation = confirm(
+                            '⚠️ Warning: No Protocol Selected ⚠️\n\n' +
+                            'Disabling all protocols will:\n' +
+                            '• Prevent Netmiko from connecting to devices\n' +
+                            '• Disable remote management capabilities\n' +
+                            '• Require console access for any changes\n\n' +
+                            'SSH is recommended for secure remote management.\n\n' +
+                            'Would you like to select SSH instead?'
+                        );
 
+                        if (confirmation) {
+                            this.value = 'ssh';
+                        }
+                    }
+                });
+            }
+
+            // Add form submit validation
+            const form = document.querySelector('form');
+            if (form) {
+                const originalSubmit = form.onsubmit;
+
+                form.onsubmit = function (event) {
+                    // First check original submit handler if it exists
+                    if (originalSubmit && !originalSubmit(event)) {
+                        return false;
+                    }
+
+                    const selectedMethod = loginMethodSelect.value;
+
+                    if (selectedMethod === 'telnet' || selectedMethod === 'none') {
+                        const submitConfirm = confirm(
+                            '⚠️ Final Configuration Warning ⚠️\n\n' +
+                            'You are about to configure a potentially insecure or restrictive login method.\n' +
+                            'This may affect the ability to manage devices remotely.\n\n' +
+                            'Are you sure you want to proceed?'
+                        );
+
+                        if (!submitConfirm) {
+                            event.preventDefault();
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+            }
         });
     </script>
 </head>
