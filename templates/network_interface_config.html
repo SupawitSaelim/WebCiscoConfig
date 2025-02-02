@@ -101,17 +101,32 @@
         }
 
         function handleSubmit() {
-            const ipv4Valid = validateIPv4Configuration();
-            const ipv6Valid = validateIPv6Configuration();
-            const duplexValid = validateDuplexConfiguration();
+            // Only validate sections that have input
+            const hasIPv4Input = hasIPv4Configuration();
+            const hasIPv6Input = hasIPv6Configuration();
+            const hasDuplexInput = hasDuplexConfiguration();
 
-            if (!validateDeviceSelection() || !ipv4Valid || !ipv6Valid || !duplexValid) {
-                event.preventDefault(); // หยุดการส่งฟอร์ม
+            let isValid = true;
+
+            if (hasIPv4Input) {
+                isValid = isValid && validateIPv4Configuration();
+            }
+
+            if (hasIPv6Input) {
+                isValid = isValid && validateIPv6Configuration();
+            }
+
+            if (hasDuplexInput) {
+                isValid = isValid && validateDuplexConfiguration();
+            }
+
+            if (!validateDeviceSelection() || !isValid) {
+                event.preventDefault();
                 return false;
             }
 
-            showLoader(); // Show loader when form is submitted
-            return true; // Proceed with form submission
+            showLoader();
+            return true;
         }
 
         function validateIPv4Configuration() {
@@ -149,29 +164,54 @@
             const toggleState = ipv6ToggleButton.classList.contains('on') ? 'on' :
                 ipv6ToggleButton.classList.contains('off') ? 'off' : 'none';
             const deleteIPv6 = document.getElementById('delete_ipv6')?.checked;
-            const dhcpIPv6 = document.getElementById('dhcp')?.checked;
+            const dhcpIPv6 = document.getElementById('dhcp_ipv6')?.checked;
             const interfacesIPv6 = document.getElementById('interfaces_ipv6')?.value.trim();
 
-            // if input interface but not select anyaction (on,off,dhcp) tell user 
+            // Only validate if there's any IPv6 configuration attempt
+            if (!interfacesIPv6 && toggleState === 'none' && !deleteIPv6 && !dhcpIPv6) {
+                return true; // No IPv6 configuration attempted, validation passes
+            }
+
+            // Rest of the validation logic remains the same
             if (interfacesIPv6 !== "" && toggleState === 'none' && !deleteIPv6 && !dhcpIPv6) {
                 alert("You have entered an IPv6 interface but not selected any action (Enable, Disable, DHCP, or Delete IP).");
                 return false;
             }
 
-            // ถ้า toggleState เป็น on หรือ off ต้องตรวจสอบว่า interfacesIPv6 ถูกกรอก
             if ((toggleState === 'on' || toggleState === 'off') && interfacesIPv6 === "") {
                 alert("Please enter the IPv6 interface if Enable or Disable is selected.");
                 return false;
             }
 
-            // กรณี deleteIPv6 หรือ dhcpIPv6 ถูกเลือก ต้องกรอก interfacesIPv6 เช่นกัน
             if ((deleteIPv6 || dhcpIPv6) && interfacesIPv6 === "") {
                 alert("Please enter the IPv6 interface if Delete IP or DHCP is selected.");
                 return false;
             }
 
-            return true; // ผ่านการตรวจสอบ
+            return true;
         }
+        function hasIPv4Configuration() {
+            const interfacesIPv4 = document.getElementById('interfaces_ipv4')?.value.trim();
+            const deleteIPv4 = document.getElementById('delete_ipv4')?.checked;
+            const dhcpIPv4 = document.getElementById('dhcp')?.checked;
+            const ipv4ToggleButton = document.getElementById('ipv4Toggle');
+            const toggleState = ipv4ToggleButton.classList.contains('on') ? 'on' :
+                ipv4ToggleButton.classList.contains('off') ? 'off' : 'none';
+
+            return interfacesIPv4 !== "" || deleteIPv4 || dhcpIPv4 || toggleState !== 'none';
+        }
+
+        function hasIPv6Configuration() {
+            const interfacesIPv6 = document.getElementById('interfaces_ipv6')?.value.trim();
+            const deleteIPv6 = document.getElementById('delete_ipv6')?.checked;
+            const dhcpIPv6 = document.getElementById('dhcp_ipv6')?.checked;
+            const ipv6ToggleButton = document.getElementById('ipv6Toggle');
+            const toggleState = ipv6ToggleButton.classList.contains('on') ? 'on' :
+                ipv6ToggleButton.classList.contains('off') ? 'off' : 'none';
+
+            return interfacesIPv6 !== "" || deleteIPv6 || dhcpIPv6 || toggleState !== 'none';
+        }
+
         function validateDuplexConfiguration() {
             const interfacesDuplex = document.getElementById('interfaces_du').value.trim();
             const speedDuplex = document.getElementById('speed_duplex').value;
@@ -183,6 +223,13 @@
             }
 
             return true; // ผ่านการตรวจสอบ
+        }
+
+        function hasDuplexConfiguration() {
+            const interfacesDuplex = document.getElementById('interfaces_du')?.value.trim();
+            const speedDuplex = document.getElementById('speed_duplex')?.value;
+
+            return interfacesDuplex !== "" || speedDuplex !== "auto";
         }
     </script>
     <script>
