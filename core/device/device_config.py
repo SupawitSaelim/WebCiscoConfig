@@ -65,7 +65,7 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
 
 def is_serial_interface(interface):
    """ตรวจสอบว่าเป็น serial interface หรือไม่"""
-   return interface.lower().startswith('se') or interface.lower().startswith('serial')
+   return interface.lower().startswith('s') or interface.lower().startswith('serial')
 
 def configure_interface(net_connect, interface, commands):
    """Configure interface แยกตามประเภท"""

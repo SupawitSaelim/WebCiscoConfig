@@ -43,6 +43,14 @@ def run_snmp_command(script_path, device_ip, community='public'):
         return "SNMP not configured or unreachable"
     except Exception as e:
         return f"SNMP not configured or unreachable: {str(e)}"
+    
+def check_snmp_connectivity(device_ip, community):
+    """ตรวจสอบ SNMP connectivity ก่อน"""
+    description_output = run_snmp_command("static/snmp/description.js", device_ip, community)
+    print(description_output)
+    if "SNMP request timed out" in description_output:
+        return False
+    return True
 
 def init_device_details_routes(device_collection):
     @device_details_routes.route('/devices_details_page', methods=['GET'])
@@ -61,8 +69,13 @@ def init_device_details_routes(device_collection):
         
         if not device_info_record:
             return f"Device with IP {device_ip} not found", 404
+
+        if not check_snmp_connectivity(device_ip, community):
+            flash("Error: SNMP not configured or unreachable", "error")
+            return redirect('/devices_details_page')
         
         sw_l3, sw_l2, device_type = False, False, ''
+        l2_eve = False
         
         description_output = run_snmp_command("static/snmp/description.js", device_ip,community)
         if "SNMP not configured or unreachable" in description_output:
@@ -75,6 +88,9 @@ def init_device_details_routes(device_collection):
         elif "switch" in description_output.lower() or "C2" in description_output:
             device_type = "Switch Layer2"
             sw_l2 = True
+        elif "LINUXL2-ADVENTERPRISEK9-M" in description_output:
+            device_type = "Switch EVE-NG"
+            l2_eve = True
         else:
             device_type = "Router"
         
@@ -83,6 +99,8 @@ def init_device_details_routes(device_collection):
             output = run_snmp_command("static/snmp/port_l3.js", device_ip, community)
         elif sw_l2:
             output = run_snmp_command("static/snmp/port_l2.js", device_ip, community)
+        elif  l2_eve:
+            output = run_snmp_command("static/snmp/port_router.js", device_ip, community)
         else:
             output = run_snmp_command("static/snmp/port_router.js", device_ip, community)
 
