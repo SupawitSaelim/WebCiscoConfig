@@ -63,80 +63,87 @@ def configure_device(device, hostname, secret_password, banner, device_collectio
         print(f"Unexpected error for {device['name']}: {e}")
         raise
 
+def is_serial_interface(interface):
+   """ตรวจสอบว่าเป็น serial interface หรือไม่"""
+   return interface.lower().startswith('se') or interface.lower().startswith('serial')
+
+def configure_interface(net_connect, interface, commands):
+   """Configure interface แยกตามประเภท"""
+   if is_serial_interface(interface):
+       return net_connect.send_config_set([f"interface {interface}"] + commands) 
+   else:
+       return net_connect.send_config_set([f"interface range {interface}"] + commands)
 
 def configure_network_interface(device, interfaces_ipv4,dhcp_ipv4, ip_address_ipv4, subnet_mask_ipv4, 
-                                enable_ipv4, disable_ipv4, delete_ipv4,
-                                interfaces_ipv6,dhcp_ipv6, ip_address_ipv6, enable_ipv6, 
-                                disable_ipv6, delete_ipv6, interfaces_du,speed_duplex, device_collection):
-    device_info = device["device_info"]
-    
-    try:
-        net_connect = ConnectHandler(**device_info)
-        net_connect.enable()
+                               enable_ipv4, disable_ipv4, delete_ipv4,
+                               interfaces_ipv6,dhcp_ipv6, ip_address_ipv6, enable_ipv6, 
+                               disable_ipv6, delete_ipv6, interfaces_du,speed_duplex, device_collection):
+   device_info = device["device_info"]
+   
+   try:
+       net_connect = ConnectHandler(**device_info)
+       net_connect.enable()
 
-        if dhcp_ipv4:
-            ipv4_config = "ip address dhcp"
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
-            print(f"IPv4 Config for {device['name']} (DHCP):", output)
+       if dhcp_ipv4:
+           ipv4_config = "ip address dhcp"
+           output = configure_interface(net_connect, interfaces_ipv4, ["no switchport", ipv4_config])
+           print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
-        if ip_address_ipv4 and interfaces_ipv4:
-            if '/' in ip_address_ipv4:
-                ip, cidr = ip_address_ipv4.split('/')
-                subnet_mask_ipv4 = convert_cidr_to_netmask(ip_address_ipv4)
-                ip_address_ipv4 = ip_address_ipv4.split("/")[0]
-                ipv4_config = f"ip address {ip_address_ipv4} {subnet_mask_ipv4}"
-                output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no switchport", ipv4_config])
-                print(f"IPv4 Config for {device['name']}:", output)
+       if ip_address_ipv4 and interfaces_ipv4:
+           if '/' in ip_address_ipv4:
+               ip, cidr = ip_address_ipv4.split('/')
+               subnet_mask_ipv4 = convert_cidr_to_netmask(ip_address_ipv4)
+               ip_address_ipv4 = ip_address_ipv4.split("/")[0]
+               ipv4_config = f"ip address {ip_address_ipv4} {subnet_mask_ipv4}"
+               output = configure_interface(net_connect, interfaces_ipv4, ["no switchport", ipv4_config])
+               print(f"IPv4 Config for {device['name']}:", output)
 
-        
-        if enable_ipv4 and interfaces_ipv4:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no shutdown"])
-            print(f"IPv4 Config for {device['name']}:", output)
-        
-        if disable_ipv4 and interfaces_ipv4:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "shutdown"])
-            print(f"Disable IPv4 for {device['name']}:", output)
+       if enable_ipv4 and interfaces_ipv4:
+           output = configure_interface(net_connect, interfaces_ipv4, ["no shutdown"])
+           print(f"IPv4 Config for {device['name']}:", output)
+       
+       if disable_ipv4 and interfaces_ipv4:
+           output = configure_interface(net_connect, interfaces_ipv4, ["shutdown"])
+           print(f"Disable IPv4 for {device['name']}:", output)
 
-        if delete_ipv4 and interfaces_ipv4:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv4}", "no ip address"])
-            print(f"Delete IPv4 for {device['name']}:", output)
+       if delete_ipv4 and interfaces_ipv4:
+           output = configure_interface(net_connect, interfaces_ipv4, ["no ip address"])
+           print(f"Delete IPv4 for {device['name']}:", output)
 
+       # IPv6 #
+       if dhcp_ipv6 and interfaces_ipv6:
+           ipv6_config = "ipv6 address dhcp"
+           output = configure_interface(net_connect, interfaces_ipv6, ["no switchport", ipv6_config])
+           print(f"IPv4 Config for {device['name']} (DHCP):", output)
 
+       if ip_address_ipv6 and interfaces_ipv6: 
+           ipv6_config = f"ipv6 address {ip_address_ipv6} \n "
+           output = configure_interface(net_connect, interfaces_ipv6, ["no switchport", ipv6_config])
+           print(f"IPv6 Config for {device['name']}:", output)
 
-        # IPv6 #
-        if dhcp_ipv6 and interfaces_ipv6:
-            ipv6_config = "ipv6 address dhcp"
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
-            print(f"IPv4 Config for {device['name']} (DHCP):", output)
+       if enable_ipv6 and interfaces_ipv6:
+           output = configure_interface(net_connect, interfaces_ipv6, ["no shutdown"])
+           print(f"IPv6 Config for {device['name']}:", output)
 
-        if ip_address_ipv6 and interfaces_ipv6: 
-            ipv6_config = f"ipv6 address {ip_address_ipv6} \n "
-            output = net_connect.send_config_set(["ipv6 unicast-routing",f"interface range {interfaces_ipv6}", "no switchport", ipv6_config])
-            print(f"IPv6 Config for {device['name']}:", output)
+       if disable_ipv6 and interfaces_ipv6:
+           output = configure_interface(net_connect, interfaces_ipv6, ["shutdown"])
+           print(f"Disable IPv6 for {device['name']}:", output)
 
-        if enable_ipv6 and interfaces_ipv6:
-            output = net_connect.send_config_set(["ipv6 unicast-routing",f"interface range {interfaces_ipv6}", "no shutdown"])
-            print(f"IPv6 Config for {device['name']}:", output)
+       if delete_ipv6 and interfaces_ipv6:
+           output = configure_interface(net_connect, interfaces_ipv6, ["no ipv6 address"])
+           print(f"Delete IPv6 for {device['name']}:", output)
 
-        if disable_ipv6 and interfaces_ipv6:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "shutdown"])
-            print(f"Disable IPv6 for {device['name']}:", output)
+       if interfaces_du and speed_duplex:
+           output = configure_interface(net_connect, interfaces_du, [f"duplex {speed_duplex}"])
+           print(f"Duplex Config for {device['name']}:", output)
 
-        if delete_ipv6 and interfaces_ipv6:
-            output = net_connect.send_config_set([f"interface range {interfaces_ipv6}", "no ipv6 address"])
-            print(f"Delete IPv6 for {device['name']}:", output)
-
-        if interfaces_du and speed_duplex:
-            output = net_connect.send_config_set([f"interface range {interfaces_du}", f"duplex {speed_duplex}"])
-            print(f"Duplex Config for {device['name']}:", output)
-
-        net_connect.disconnect()
-    except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
-        print(f"Error connecting to {device['name']}: {e}")
-        raise  
-    except Exception as e:
-        print(f"Unexpected error for {device['name']}: {e}")
-        raise  
+       net_connect.disconnect()
+   except (NetMikoTimeoutException, NetMikoAuthenticationException) as e:
+       print(f"Error connecting to {device['name']}: {e}")
+       raise  
+   except Exception as e:
+       print(f"Unexpected error for {device['name']}: {e}")
+       raise
 
 
 def manage_vlan_on_device(device, vlan_range, vlan_range_del, vlan_changes, vlan_range_enable, vlan_range_disable,

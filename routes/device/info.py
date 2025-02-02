@@ -63,19 +63,36 @@ def init_device_info_routes(device_collection):
 
         skip = (page - 1) * per_page
 
-        if sort_column and sort_direction:  # ต้องมีทั้ง column และ direction
+        if sort_column and sort_direction:
             if sort_column == 'name':
+                # Sort ตามตัวอักษรสำหรับชื่อ
                 import re
-                def natural_sort_key(s):
+                def natural_sort_key(s):    
                     return [int(text) if text.isdigit() else text.lower()
                         for text in re.split('([0-9]+)', s['name'])]
                 
                 results = list(device_collection.find(query))
                 results.sort(key=natural_sort_key, reverse=(sort_direction == 'desc'))
                 results = results[skip:skip + per_page]
+            
+            elif sort_column == 'ip':
+                # Sort ตามค่าตัวเลขสำหรับ IP
+                def ip_to_number(ip):
+                    try:
+                        return sum(int(x) * (256 ** i) for i, x in enumerate(reversed(ip.split('.'))))
+                    except:
+                        return 0
+                        
+                results = list(device_collection.find(query))
+                results.sort(
+                    key=lambda x: ip_to_number(x['device_info']['ip']),
+                    reverse=(sort_direction == 'desc')
+                )
+                results = results[skip:skip + per_page]
+            
             else:
                 sort_field_map = {
-                    'ip': 'device_info.ip',
+                    'ip': 'device_info.ip',  # แม้จะไม่ได้ใช้แล้ว แต่เก็บไว้ไม่เป็นไร
                     'time': 'timestamp'
                 }
                 if sort_column in sort_field_map:
