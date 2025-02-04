@@ -72,25 +72,20 @@ class NetworkConfigSecurityChecker:
         """
         warnings = []
 
-        enable_password_match = re.search(r'enable password\s+(\S+)', config)
-        if enable_password_match:
-            enable_password = enable_password_match.group(1)
-            if enable_password.startswith("7"):
-                pass
-            else:
+        if "no service password-encryption" in config:
+            warnings.append("Password encryption is not enabled")
+            enable_password_match = re.search(r'enable password\s+(\S+)', config)
+            if enable_password_match:
+                enable_password = enable_password_match.group(1)
                 strength = self.predict_password_strength(enable_password)
                 if strength in ["Weak", "Normal"]:
                     warnings.append(f"Insecure enable password found! Strength: {strength}")
-
-        username_password_matches = re.findall(r'username\s+(\S+)\s+password\s+\S+\s+(\S+)', config)
-        for username, password in username_password_matches:
-            strength = self.predict_password_strength(password)
-            if strength in ["Weak", "Normal"]:
-                warnings.append(f"Insecure password for username '{username}' found! Strength: {strength}")
-
-
-        if "no service password-encryption" in config:
-            warnings.append("Password encryption is not enabled")
+            
+            username_password_matches = re.findall(r'username\s+(\S+)\s+password\s+\S+\s+(\S+)', config)
+            for username, password in username_password_matches:
+                strength = self.predict_password_strength(password)
+                if strength in ["Weak", "Normal"]:
+                    warnings.append(f"Insecure password for username '{username}' found! Strength: {strength}")
 
         # Check interface status
         down_ports = re.findall(r'^\s*(\S+)\s+\S+\s+\S+\s+\S+\s+(down)', ip_interface_brief, re.MULTILINE)
