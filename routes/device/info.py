@@ -42,81 +42,98 @@ def init_device_info_routes(device_collection):
 
     @device_info_blueprint.route('/search_devices', methods=['GET'])
     def search_devices():
-        search_query = request.args.get('search', '')
-        page = int(request.args.get('page', 1))
-        sort_column = request.args.get('sort_column')
-        sort_direction = request.args.get('sort_direction')
-        per_page = 10
+        try:
+            search_query = request.args.get('search', '')
+            page = int(request.args.get('page', 1))
+            sort_column = request.args.get('sort_column')
+            sort_direction = request.args.get('sort_direction')
+            per_page = 10
 
-        query = {}
-        if search_query:
-            query = {
-                "$or": [
-                    {"name": {"$regex": search_query, "$options": "i"}},
-                    {"device_info.ip": {"$regex": search_query, "$options": "i"}},
-                    {"device_info.username": {"$regex": search_query, "$options": "i"}},
-                ]
-            }
-
-        total_results = device_collection.count_documents(query)
-        total_pages = (total_results + per_page - 1) // per_page
-
-        skip = (page - 1) * per_page
-
-        if sort_column and sort_direction:
-            if sort_column == 'name':
-                # Sort ตามตัวอักษรสำหรับชื่อ
-                import re
-                def natural_sort_key(s):    
-                    return [int(text) if text.isdigit() else text.lower()
-                        for text in re.split('([0-9]+)', s['name'])]
-                
-                results = list(device_collection.find(query))
-                results.sort(key=natural_sort_key, reverse=(sort_direction == 'desc'))
-                results = results[skip:skip + per_page]
+            # Initialize results as empty list
+            results = []
             
-            elif sort_column == 'ip':
-                # Sort ตามค่าตัวเลขสำหรับ IP
-                def ip_to_number(ip):
-                    try:
-                        return sum(int(x) * (256 ** i) for i, x in enumerate(reversed(ip.split('.'))))
-                    except:
-                        return 0
-                        
-                results = list(device_collection.find(query))
-                results.sort(
-                    key=lambda x: ip_to_number(x['device_info']['ip']),
-                    reverse=(sort_direction == 'desc')
-                )
-                results = results[skip:skip + per_page]
-            
-            else:
-                sort_field_map = {
-                    'ip': 'device_info.ip',  # แม้จะไม่ได้ใช้แล้ว แต่เก็บไว้ไม่เป็นไร
-                    'time': 'timestamp'
+            # Build search query
+            query = {}
+            if search_query:
+                query = {
+                    "$or": [
+                        {"name": {"$regex": search_query, "$options": "i"}},
+                        {"device_info.ip": {"$regex": search_query, "$options": "i"}},
+                        {"device_info.username": {"$regex": search_query, "$options": "i"}},
+                    ]
                 }
-                if sort_column in sort_field_map:
-                    mongodb_field = sort_field_map[sort_column]
-                    results = list(device_collection.find(query).sort(
-                        mongodb_field, 1 if sort_direction == 'asc' else -1
-                    ).skip(skip).limit(per_page))
-        else:
-            results = list(device_collection.find(query).sort(
-                'timestamp', -1
-            ).skip(skip).limit(per_page))
 
-        for device in results:
-            if "_id" in device:
-                device["_id"] = str(device["_id"])
-            if "timestamp" in device:
-                utc_time = device["timestamp"]
-                device["timestamp"] = (utc_time + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M:%S')
+            # Get total results for pagination
+            total_results = device_collection.count_documents(query)
+            total_pages = (total_results + per_page - 1) // per_page
+            skip = (page - 1) * per_page
 
-        return jsonify({
-            "devices": results,
-            "total_pages": total_pages,
-            "current_page": page
-        })
+            # Fetch base results
+            results = list(device_collection.find(query))
+
+            # Apply sorting
+            if sort_column and sort_direction:
+                if sort_column == 'name':
+                    # Sort by name using natural sort
+                    import re
+                    def natural_sort_key(s):    
+                        return [int(text) if text.isdigit() else text.lower()
+                            for text in re.split('([0-9]+)', s['name'])]
+                    results.sort(key=natural_sort_key, reverse=(sort_direction == 'desc'))
+                
+                elif sort_column == 'ip':
+                    # Sort by IP address
+                    def ip_to_number(ip):
+                        try:
+                            # Split IP into octets and convert to integers
+                            octets = [int(x) for x in ip.split('.')]
+                            if len(octets) != 4:  # Validate IP format
+                                return float('inf')  # Return infinity for invalid IPs
+                            # Validate each octet is between 0 and 255
+                            if not all(0 <= x <= 255 for x in octets):
+                                return float('inf')
+                            # Convert to 32-bit integer
+                            return (octets[0] << 24) + (octets[1] << 16) + (octets[2] << 8) + octets[3]
+                        except (ValueError, AttributeError, TypeError):
+                            return float('inf')  # Return infinity for invalid inputs
+
+                    results.sort(
+                        key=lambda x: ip_to_number(x['device_info']['ip']),
+                        reverse=(sort_direction == 'desc')
+                    )
+                
+                elif sort_column == 'time':
+                    # Sort by timestamp
+                    results.sort(
+                        key=lambda x: x.get('timestamp', ''),
+                        reverse=(sort_direction == 'desc')
+                    )
+
+            # Apply pagination after sorting
+            results = results[skip:skip + per_page]
+
+            # Process results for JSON response
+            for device in results:
+                if "_id" in device:
+                    device["_id"] = str(device["_id"])
+                if "timestamp" in device:
+                    utc_time = device["timestamp"]
+                    device["timestamp"] = (utc_time + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M:%S')
+
+            return jsonify({
+                "devices": results,
+                "total_pages": total_pages,
+                "current_page": page
+            })
+            
+        except Exception as e:
+            print(f"Error in search_devices: {str(e)}")  # For debugging
+            return jsonify({
+                "error": str(e),
+                "devices": [],
+                "total_pages": 1,
+                "current_page": 1
+            }), 500
 
     @device_info_blueprint.route('/delete', methods=['POST'])
     def delete_device(): 
